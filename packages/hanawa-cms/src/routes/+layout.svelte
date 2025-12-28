@@ -2,6 +2,7 @@
   import '../app.css';
   import CommandPalette from '$lib/components/CommandPalette.svelte';
   import KeyboardShortcuts from '$lib/components/KeyboardShortcuts.svelte';
+  import RocketLaunch from 'phosphor-svelte/lib/RocketLaunch';
 
   let { children } = $props();
 
@@ -11,13 +12,15 @@
 
 <div class="min-h-screen bg-gray-50">
   <!-- Top Navigation -->
-  <nav class="bg-esolia-navy text-white shadow-lg">
+  <nav class="bg-rose-600 text-white shadow-lg">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-16">
-        <!-- Logo -->
+        <!-- Logo with Rocket Icon -->
         <div class="flex items-center">
           <a href="/" class="flex items-center gap-3">
-            <span class="text-2xl font-bold text-esolia-orange">塙</span>
+            <span class="flex items-center justify-center w-9 h-9 bg-white/90 rounded-lg">
+              <RocketLaunch size={24} weight="duotone" class="text-rose-600" />
+            </span>
             <span class="text-xl font-semibold">Hanawa</span>
           </a>
         </div>

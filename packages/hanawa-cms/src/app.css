@@ -10,6 +10,13 @@
   --color-esolia-emerald: #10b981;
   --color-esolia-sky: #0ea5e9;
   --color-esolia-fuchsia: #d946ef;
+
+  /* Codex Theme - Rose accent */
+  --color-codex-rose: #e11d48;
+  --color-codex-rose-light: #fda4af;
+  --color-codex-rose-dark: #9f1239;
+  --color-codex-bg: #fff1f2;
+  --color-codex-surface: #ffe4e6;
 }
 
 /* Base styles */
