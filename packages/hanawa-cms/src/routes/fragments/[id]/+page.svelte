@@ -226,7 +226,10 @@
         </button>
         <button
           type="button"
-          onclick={() => (isEditing = true)}
+          onclick={() => {
+            isEditing = true;
+            useRichEditor = true; // Ensure rich editor is on by default
+          }}
           class="inline-flex items-center px-4 py-2 bg-esolia-navy text-white rounded-lg hover:bg-esolia-navy/90 transition-colors"
         >
           <svg
