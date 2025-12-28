@@ -59,7 +59,7 @@ class MermaidNodeView implements NodeView {
     // Create DOM structure
     this.dom = document.createElement("div");
     this.dom.className = "mermaid-block";
-    this.dom.setAttribute("data-type", "mermaid");
+    this.dom.setAttribute("data-type", "mermaidBlock");
 
     // Header
     const header = document.createElement("div");
@@ -330,6 +330,10 @@ export const MermaidBlock = Node.create<MermaidBlockOptions>({
   parseHTML() {
     return [
       {
+        tag: 'div[data-type="mermaidBlock"]',
+      },
+      // Also parse legacy format
+      {
         tag: 'div[data-type="mermaid"]',
       },
     ];
@@ -339,8 +343,11 @@ export const MermaidBlock = Node.create<MermaidBlockOptions>({
     return [
       "div",
       mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, {
-        "data-type": "mermaid",
+        "data-type": "mermaidBlock",
+        class: "mermaid-block",
       }),
+      // Include diagram container for view mode rendering
+      ["div", { class: "mermaid-diagram" }],
     ];
   },
 
