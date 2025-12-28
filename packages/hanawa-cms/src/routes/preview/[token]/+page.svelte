@@ -3,12 +3,16 @@
    * Preview Page
    * Secure content preview with deterrence measures
    *
-   * InfoSec: Watermarking, screenshot shield, session logging
+   * InfoSec: Watermarking, screenshot shield, session logging, XSS prevention
    */
   import type { PageData } from './$types';
   import ScreenshotShield from '$lib/components/security/ScreenshotShield.svelte';
+  import { sanitizeHtml } from '$lib/sanitize';
 
   let { data }: { data: PageData } = $props();
+
+  // InfoSec: Sanitize content before rendering to prevent XSS
+  const safeContent = $derived(sanitizeHtml(data.content));
 </script>
 
 <svelte:head>
@@ -63,7 +67,7 @@
         <div
           class="prose prose-lg max-w-none prose-headings:text-esolia-navy prose-a:text-esolia-navy"
         >
-          {@html data.content}
+          {@html safeContent}
         </div>
       </article>
 

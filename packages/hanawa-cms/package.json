@@ -48,6 +48,7 @@
     "@tiptap/suggestion": "^3.14.0",
     "@types/marked": "^5.0.2",
     "date-fns": "^4.1.0",
+    "isomorphic-dompurify": "^2.35.0",
     "marked": "^17.0.1",
     "mermaid": "^11.12.2",
     "tippy.js": "^6.3.7",

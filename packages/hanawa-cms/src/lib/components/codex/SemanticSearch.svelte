@@ -1,8 +1,10 @@
 <script lang="ts">
   /**
    * Semantic Search Component
-   * InfoSec: AI-powered content search using vector embeddings
+   * InfoSec: AI-powered content search using vector embeddings, XSS prevention
    */
+
+  import { highlightSearchMatch } from '$lib/sanitize';
 
   interface SearchResult {
     documentId: string;
@@ -90,20 +92,6 @@
     return 'bg-gray-100 text-gray-600';
   }
 
-  function highlightMatch(text: string, query: string): string {
-    if (!query.trim()) return text;
-
-    const words = query.toLowerCase().split(/\s+/);
-    let result = text;
-
-    for (const word of words) {
-      if (word.length < 2) continue;
-      const regex = new RegExp(`(${word})`, 'gi');
-      result = result.replace(regex, '<mark>$1</mark>');
-    }
-
-    return result;
-  }
 </script>
 
 <div class="semantic-search">
@@ -192,7 +180,7 @@
 
           <!-- Excerpt -->
           <p class="text-sm text-gray-600 line-clamp-2">
-            {@html highlightMatch(result.content.slice(0, 200), query)}...
+            {@html highlightSearchMatch(result.content.slice(0, 200), query)}...
           </p>
 
           <!-- Meta -->

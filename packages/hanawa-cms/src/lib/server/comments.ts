@@ -9,6 +9,7 @@
 /// <reference types="@cloudflare/workers-types" />
 
 import type { AuditService, AuditContext } from './audit';
+import { sanitizeComment, escapeHtml } from '../sanitize';
 
 export type CommentType = 'inline' | 'document' | 'suggestion';
 export type CommentStatus = 'open' | 'resolved' | 'rejected';
@@ -512,13 +513,15 @@ export function createCommentsService(db: D1Database, audit?: AuditService) {
     },
 
     renderMarkdown(content: string): string {
-      // Simplified markdown rendering
-      // In production, use a proper markdown library
-      return content
+      // InfoSec: Escape user input first, then apply formatting
+      // This prevents XSS while allowing basic markdown
+      const escaped = escapeHtml(content);
+      const formatted = escaped
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
         .replace(/\*(.*?)\*/g, '<em>$1</em>')
         .replace(/`(.*?)`/g, '<code>$1</code>')
         .replace(/\n/g, '<br>');
+      return sanitizeComment(formatted);
     },
 
     rowToComment(row: Record<string, unknown>): Comment {

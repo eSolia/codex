@@ -1,10 +1,11 @@
 <script lang="ts">
   /**
    * Comment Thread Component
-   * InfoSec: Displays threaded comments with moderation controls
+   * InfoSec: Displays threaded comments with moderation controls, XSS prevention
    */
 
   import CommentEditor from './CommentEditor.svelte';
+  import { sanitizeComment } from '$lib/sanitize';
 
   interface CommentAuthor {
     id: string;
@@ -163,7 +164,7 @@
         {:else}
           <div class="mt-1 text-sm text-gray-700 prose prose-sm max-w-none">
             {#if thread.rootComment.contentHtml}
-              {@html thread.rootComment.contentHtml}
+              {@html sanitizeComment(thread.rootComment.contentHtml)}
             {:else}
               {thread.rootComment.content}
             {/if}
@@ -317,7 +318,7 @@
 
                 <div class="mt-0.5 text-sm text-gray-700">
                   {#if reply.contentHtml}
-                    {@html reply.contentHtml}
+                    {@html sanitizeComment(reply.contentHtml)}
                   {:else}
                     {reply.content}
                   {/if}

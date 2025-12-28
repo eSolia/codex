@@ -7,6 +7,7 @@
   import { marked } from 'marked';
   import { onMount } from 'svelte';
   import mermaid from 'mermaid';
+  import { sanitizeHtml } from '$lib/sanitize';
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
 
@@ -47,12 +48,13 @@
   }
 
   // Render content - handles both HTML and markdown
+  // InfoSec: All content is sanitized to prevent XSS
   function renderContent(content: string | null | undefined): string {
     if (!content) return '';
     if (isHtmlContent(content)) {
-      return content; // Already HTML from Tiptap
+      return sanitizeHtml(content); // Sanitize HTML from Tiptap
     }
-    return marked.parse(content) as string;
+    return sanitizeHtml(marked.parse(content) as string);
   }
 
   // Render mermaid diagrams after content is displayed
