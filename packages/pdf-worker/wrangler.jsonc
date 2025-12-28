@@ -1,0 +1,22 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "pdf-worker",
+  "main": "src/index.ts",
+  "compatibility_date": "2024-12-01",
+  "compatibility_flags": ["nodejs_compat"],
+
+  // Custom domain
+  "routes": [
+    { "pattern": "pdf.esolia.co.jp", "custom_domain": true }
+  ],
+
+  // Environment variables (non-sensitive)
+  "vars": {
+    "ENVIRONMENT": "production"
+  }
+
+  // Secrets (set via: wrangler secret put <NAME>)
+  // CLOUDFLARE_ACCOUNT_ID         - Cloudflare account ID
+  // CLOUDFLARE_PDF_RENDER_TOKEN   - API token with Browser Rendering permission
+  // PDF_API_KEY                   - Shared secret for client authentication
+}

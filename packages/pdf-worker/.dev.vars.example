@@ -1,0 +1,15 @@
+# PDF Worker Development Variables
+# Copy to .dev.vars and fill in your values
+
+# Cloudflare Account ID
+# Found at: Dashboard > Any zone > Overview > right sidebar
+CLOUDFLARE_ACCOUNT_ID=your-account-id
+
+# Cloudflare API Token for Browser Rendering
+# Create at: https://dash.cloudflare.com/profile/api-tokens
+# Required permission: Account > Cloudflare Browser Rendering > Edit
+CLOUDFLARE_PDF_RENDER_TOKEN=your-api-token
+
+# Shared API Key for client authentication
+# Generate with: openssl rand -hex 32
+PDF_API_KEY=your-shared-secret
