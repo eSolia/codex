@@ -5,24 +5,24 @@
  * InfoSec: Mermaid code sanitized by library (OWASP A03)
  */
 
-import { Node, mergeAttributes } from "@tiptap/core";
-import type { Node as ProseMirrorNode } from "@tiptap/pm/model";
-import type { NodeView, EditorView, Decoration } from "@tiptap/pm/view";
-import mermaid from "mermaid";
+import { Node, mergeAttributes } from '@tiptap/core';
+import type { Node as ProseMirrorNode } from '@tiptap/pm/model';
+import type { NodeView, EditorView, Decoration } from '@tiptap/pm/view';
+import mermaid from 'mermaid';
 
 // Initialize mermaid with security-conscious settings
 mermaid.initialize({
   startOnLoad: false,
-  theme: "neutral",
-  securityLevel: "strict", // InfoSec: Prevent script injection
-  fontFamily: "IBM Plex Sans, sans-serif",
+  theme: 'neutral',
+  securityLevel: 'strict', // InfoSec: Prevent script injection
+  fontFamily: 'IBM Plex Sans, sans-serif',
 });
 
 export interface MermaidBlockOptions {
   HTMLAttributes: Record<string, unknown>;
 }
 
-declare module "@tiptap/core" {
+declare module '@tiptap/core' {
   interface Commands<ReturnType> {
     mermaidBlock: {
       insertMermaid: (source?: string) => ReturnType;
@@ -47,23 +47,19 @@ class MermaidNodeView implements NodeView {
   private captionJaInput: HTMLInputElement;
   private errorDisplay: HTMLElement;
 
-  constructor(
-    node: ProseMirrorNode,
-    view: EditorView,
-    getPos: () => number | undefined
-  ) {
+  constructor(node: ProseMirrorNode, view: EditorView, getPos: () => number | undefined) {
     this.node = node;
     this.view = view;
     this.getPos = getPos;
 
     // Create DOM structure
-    this.dom = document.createElement("div");
-    this.dom.className = "mermaid-block";
-    this.dom.setAttribute("data-type", "mermaidBlock");
+    this.dom = document.createElement('div');
+    this.dom.className = 'mermaid-block';
+    this.dom.setAttribute('data-type', 'mermaidBlock');
 
     // Header
-    const header = document.createElement("div");
-    header.className = "mermaid-header";
+    const header = document.createElement('div');
+    header.className = 'mermaid-header';
     header.innerHTML = `
       <span class="mermaid-type-label">Mermaid Diagram</span>
       <div class="mermaid-actions">
@@ -74,71 +70,71 @@ class MermaidNodeView implements NodeView {
     this.dom.appendChild(header);
 
     // Edit button handler
-    const editBtn = header.querySelector(".mermaid-edit-btn") as HTMLButtonElement;
-    editBtn.addEventListener("click", () => this.toggleEdit());
+    const editBtn = header.querySelector('.mermaid-edit-btn') as HTMLButtonElement;
+    editBtn.addEventListener('click', () => this.toggleEdit());
 
     // Delete button handler
-    const deleteBtn = header.querySelector(".mermaid-delete-btn") as HTMLButtonElement;
-    deleteBtn.addEventListener("click", () => this.deleteBlock());
+    const deleteBtn = header.querySelector('.mermaid-delete-btn') as HTMLButtonElement;
+    deleteBtn.addEventListener('click', () => this.deleteBlock());
 
     // Diagram container (visible in view mode)
-    this.diagramContainer = document.createElement("div");
-    this.diagramContainer.className = "mermaid-diagram";
+    this.diagramContainer = document.createElement('div');
+    this.diagramContainer.className = 'mermaid-diagram';
     this.dom.appendChild(this.diagramContainer);
 
     // Error display
-    this.errorDisplay = document.createElement("div");
-    this.errorDisplay.className = "mermaid-error hidden";
+    this.errorDisplay = document.createElement('div');
+    this.errorDisplay.className = 'mermaid-error hidden';
     this.dom.appendChild(this.errorDisplay);
 
     // Editor container (visible in edit mode)
-    this.editorContainer = document.createElement("div");
-    this.editorContainer.className = "mermaid-editor hidden";
+    this.editorContainer = document.createElement('div');
+    this.editorContainer.className = 'mermaid-editor hidden';
 
     // Source textarea
-    const sourceLabel = document.createElement("label");
-    sourceLabel.textContent = "Diagram Code";
-    sourceLabel.className = "mermaid-label";
+    const sourceLabel = document.createElement('label');
+    sourceLabel.textContent = 'Diagram Code';
+    sourceLabel.className = 'mermaid-label';
     this.editorContainer.appendChild(sourceLabel);
 
-    this.textarea = document.createElement("textarea");
-    this.textarea.className = "mermaid-source";
+    this.textarea = document.createElement('textarea');
+    this.textarea.className = 'mermaid-source';
     this.textarea.rows = 10;
     this.textarea.spellcheck = false;
     this.textarea.value = node.attrs.source;
-    this.textarea.addEventListener("input", () => this.handleSourceChange());
+    this.textarea.addEventListener('input', () => this.handleSourceChange());
     this.editorContainer.appendChild(this.textarea);
 
     // Caption fields
-    const captionGrid = document.createElement("div");
-    captionGrid.className = "mermaid-caption-grid";
+    const captionGrid = document.createElement('div');
+    captionGrid.className = 'mermaid-caption-grid';
 
     // EN caption
-    const enGroup = document.createElement("div");
-    enGroup.className = "mermaid-caption-group";
-    const enLabel = document.createElement("label");
-    enLabel.textContent = "Caption (EN)";
-    enLabel.className = "mermaid-label";
-    this.captionEnInput = document.createElement("input");
-    this.captionEnInput.type = "text";
-    this.captionEnInput.className = "mermaid-caption-input";
-    this.captionEnInput.value = node.attrs.caption || "";
-    this.captionEnInput.addEventListener("input", () => this.handleCaptionChange());
+    const enGroup = document.createElement('div');
+    enGroup.className = 'mermaid-caption-group';
+    const enLabel = document.createElement('label');
+    enLabel.textContent = 'Caption (EN)';
+    enLabel.className = 'mermaid-label';
+    this.captionEnInput = document.createElement('input');
+    this.captionEnInput.type = 'text';
+    this.captionEnInput.className = 'mermaid-caption-input';
+    this.captionEnInput.value = node.attrs.caption || '';
+    this.captionEnInput.addEventListener('input', () => this.handleCaptionChange());
     enGroup.appendChild(enLabel);
     enGroup.appendChild(this.captionEnInput);
     captionGrid.appendChild(enGroup);
 
     // JA caption
-    const jaGroup = document.createElement("div");
-    jaGroup.className = "mermaid-caption-group";
-    const jaLabel = document.createElement("label");
-    jaLabel.textContent = "Caption (JA)";
-    jaLabel.className = "mermaid-label";
-    this.captionJaInput = document.createElement("input");
-    this.captionJaInput.type = "text";
-    this.captionJaInput.className = "mermaid-caption-input";
-    this.captionJaInput.value = node.attrs.caption_ja || "";
-    this.captionJaInput.addEventListener("input", () => this.handleCaptionChange());
+    const jaGroup = document.createElement('div');
+    jaGroup.className = 'mermaid-caption-group';
+    const jaLabel = document.createElement('label');
+    jaLabel.textContent = 'Caption (JA)';
+    jaLabel.className = 'mermaid-label';
+    this.captionJaInput = document.createElement('input');
+    this.captionJaInput.type = 'text';
+    this.captionJaInput.className = 'mermaid-caption-input';
+    this.captionJaInput.value = node.attrs.caption_ja || '';
+    this.captionJaInput.addEventListener('input', () => this.handleCaptionChange());
     jaGroup.appendChild(jaLabel);
     jaGroup.appendChild(this.captionJaInput);
     captionGrid.appendChild(jaGroup);
@@ -146,18 +142,18 @@ class MermaidNodeView implements NodeView {
     this.editorContainer.appendChild(captionGrid);
 
     // Save button
-    const saveBtn = document.createElement("button");
-    saveBtn.type = "button";
-    saveBtn.className = "mermaid-save-btn";
-    saveBtn.textContent = "Save Changes";
-    saveBtn.addEventListener("click", () => this.toggleEdit());
+    const saveBtn = document.createElement('button');
+    saveBtn.type = 'button';
+    saveBtn.className = 'mermaid-save-btn';
+    saveBtn.textContent = 'Save Changes';
+    saveBtn.addEventListener('click', () => this.toggleEdit());
     this.editorContainer.appendChild(saveBtn);
 
     this.dom.appendChild(this.editorContainer);
 
     // Caption display (view mode)
-    const captionDisplay = document.createElement("p");
-    captionDisplay.className = "mermaid-caption-display";
+    const captionDisplay = document.createElement('p');
+    captionDisplay.className = 'mermaid-caption-display';
     if (node.attrs.caption) {
       captionDisplay.textContent = node.attrs.caption;
     }
@@ -170,7 +166,8 @@ class MermaidNodeView implements NodeView {
   private async renderDiagram() {
     const source = this.textarea?.value || this.node.attrs.source;
     if (!source) {
-      this.diagramContainer.innerHTML = "<p class='mermaid-placeholder'>Enter Mermaid code to render diagram</p>";
+      this.diagramContainer.innerHTML =
+        "<p class='mermaid-placeholder'>Enter Mermaid code to render diagram</p>";
       return;
     }
 
@@ -178,30 +175,31 @@ class MermaidNodeView implements NodeView {
       const id = `mermaid-${crypto.randomUUID()}`;
       const { svg } = await mermaid.render(id, source);
       this.diagramContainer.innerHTML = svg;
-      this.errorDisplay.classList.add("hidden");
-      this.errorDisplay.textContent = "";
+      this.errorDisplay.classList.add('hidden');
+      this.errorDisplay.textContent = '';
     } catch (e) {
-      const message = e instanceof Error ? e.message : "Render error";
+      const message = e instanceof Error ? e.message : 'Render error';
       this.errorDisplay.textContent = message;
-      this.errorDisplay.classList.remove("hidden");
+      this.errorDisplay.classList.remove('hidden');
       // Keep last valid diagram if there is one
-      if (!this.diagramContainer.querySelector("svg")) {
-        this.diagramContainer.innerHTML = "<p class='mermaid-placeholder'>Fix syntax to render diagram</p>";
+      if (!this.diagramContainer.querySelector('svg')) {
+        this.diagramContainer.innerHTML =
+          "<p class='mermaid-placeholder'>Fix syntax to render diagram</p>";
       }
     }
   }
 
   private toggleEdit() {
     this.isEditing = !this.isEditing;
-    const editBtn = this.dom.querySelector(".mermaid-edit-btn") as HTMLButtonElement;
+    const editBtn = this.dom.querySelector('.mermaid-edit-btn') as HTMLButtonElement;
 
     if (this.isEditing) {
-      this.editorContainer.classList.remove("hidden");
-      editBtn.textContent = "Preview";
+      this.editorContainer.classList.remove('hidden');
+      editBtn.textContent = 'Preview';
       this.textarea.focus();
     } else {
-      this.editorContainer.classList.add("hidden");
-      editBtn.textContent = "Edit";
+      this.editorContainer.classList.add('hidden');
+      editBtn.textContent = 'Edit';
       this.renderDiagram();
     }
   }
@@ -238,7 +236,7 @@ class MermaidNodeView implements NodeView {
     this.view.dispatch(tr);
 
     // Update display
-    const display = this.dom.querySelector(".mermaid-caption-display");
+    const display = this.dom.querySelector('.mermaid-caption-display');
     if (display) {
       display.textContent = this.captionEnInput.value;
     }
@@ -265,18 +263,20 @@ class MermaidNodeView implements NodeView {
   }
 
   selectNode() {
-    this.dom.classList.add("ProseMirror-selectednode");
+    this.dom.classList.add('ProseMirror-selectednode');
   }
 
   deselectNode() {
-    this.dom.classList.remove("ProseMirror-selectednode");
+    this.dom.classList.remove('ProseMirror-selectednode');
   }
 
   stopEvent(event: Event): boolean {
     // Allow interactions within the node view
-    return event.target instanceof HTMLElement &&
-      (event.target.closest(".mermaid-editor") !== null ||
-       event.target.closest(".mermaid-actions") !== null);
+    return (
+      event.target instanceof HTMLElement &&
+      (event.target.closest('.mermaid-editor') !== null ||
+        event.target.closest('.mermaid-actions') !== null)
+    );
   }
 
   ignoreMutation(): boolean {
@@ -289,7 +289,7 @@ class MermaidNodeView implements NodeView {
 }
 
 export const MermaidBlock = Node.create<MermaidBlockOptions>({
-  name: "mermaidBlock",
+  name: 'mermaidBlock',
 
   addOptions() {
     return {
@@ -297,7 +297,7 @@ export const MermaidBlock = Node.create<MermaidBlockOptions>({
     };
   },
 
-  group: "block",
+  group: 'block',
 
   atom: true,
 
@@ -306,23 +306,23 @@ export const MermaidBlock = Node.create<MermaidBlockOptions>({
   addAttributes() {
     return {
       source: {
-        default: "flowchart TB\n  A[Start] --> B[End]",
-        parseHTML: (element) => element.getAttribute("data-source") || "",
+        default: 'flowchart TB\n  A[Start] --> B[End]',
+        parseHTML: (element) => element.getAttribute('data-source') || '',
         renderHTML: (attributes) => ({
-          "data-source": attributes.source,
+          'data-source': attributes.source,
         }),
       },
       caption: {
-        default: "",
-        parseHTML: (element) => element.getAttribute("data-caption") || "",
+        default: '',
+        parseHTML: (element) => element.getAttribute('data-caption') || '',
         renderHTML: (attributes) =>
-          attributes.caption ? { "data-caption": attributes.caption } : {},
+          attributes.caption ? { 'data-caption': attributes.caption } : {},
       },
       caption_ja: {
-        default: "",
-        parseHTML: (element) => element.getAttribute("data-caption-ja") || "",
+        default: '',
+        parseHTML: (element) => element.getAttribute('data-caption-ja') || '',
         renderHTML: (attributes) =>
-          attributes.caption_ja ? { "data-caption-ja": attributes.caption_ja } : {},
+          attributes.caption_ja ? { 'data-caption-ja': attributes.caption_ja } : {},
       },
     };
   },
@@ -341,13 +341,13 @@ export const MermaidBlock = Node.create<MermaidBlockOptions>({
 
   renderHTML({ HTMLAttributes }) {
     return [
-      "div",
+      'div',
       mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, {
-        "data-type": "mermaidBlock",
-        class: "mermaid-block",
+        'data-type': 'mermaidBlock',
+        class: 'mermaid-block',
       }),
       // Include diagram container for view mode rendering
-      ["div", { class: "mermaid-diagram" }],
+      ['div', { class: 'mermaid-diagram' }],
     ];
   },
 
@@ -365,7 +365,7 @@ export const MermaidBlock = Node.create<MermaidBlockOptions>({
           return commands.insertContent({
             type: this.name,
             attrs: {
-              source: source || "flowchart TB\n  A[Start] --> B[End]",
+              source: source || 'flowchart TB\n  A[Start] --> B[End]',
             },
           });
         },
@@ -392,7 +392,7 @@ export const MermaidBlock = Node.create<MermaidBlockOptions>({
 
   addKeyboardShortcuts() {
     return {
-      "Mod-Shift-m": () => this.editor.commands.insertMermaid(),
+      'Mod-Shift-m': () => this.editor.commands.insertMermaid(),
     };
   },
 });

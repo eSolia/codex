@@ -64,7 +64,7 @@
     const hours = Math.floor(diff / 3600000);
     const days = Math.floor(diff / 86400000);
 
-    if (minutes < 1) return "just now";
+    if (minutes < 1) return 'just now';
     if (minutes < 60) return `${minutes}m ago`;
     if (hours < 24) return `${hours}h ago`;
     if (days < 7) return `${days}d ago`;
@@ -79,10 +79,10 @@
 
   function getVersionTypeLabel(type: string): string {
     const labels: Record<string, string> = {
-      auto: "",
-      manual: "Saved",
-      publish: "Published",
-      restore: "Restored",
+      auto: '',
+      manual: 'Saved',
+      publish: 'Published',
+      restore: 'Restored',
     };
     return labels[type] || type;
   }
@@ -126,7 +126,14 @@
     {#if loading}
       <div class="flex justify-center py-8">
         <svg class="animate-spin h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+          <circle
+            class="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            stroke-width="4"
+          />
           <path
             class="opacity-75"
             fill="currentColor"
@@ -136,7 +143,7 @@
       </div>
     {:else if filteredVersions.length === 0}
       <div class="text-center py-8 text-gray-500 text-sm">
-        {showLabeledOnly ? "No labeled versions" : "No versions yet"}
+        {showLabeledOnly ? 'No labeled versions' : 'No versions yet'}
       </div>
     {:else}
       <ul class="divide-y divide-gray-100">
@@ -189,7 +196,7 @@
               <time>{formatTime(version.createdAt)}</time>
             </div>
 
-            {#if version.versionType !== "auto"}
+            {#if version.versionType !== 'auto'}
               <div class="mt-1 text-xs text-gray-400 italic">
                 {getVersionTypeLabel(version.versionType)}
               </div>
@@ -225,7 +232,7 @@
                 <button
                   type="button"
                   onclick={() => handleCompareClick(version.id)}
-                  title={isSelected ? "Cancel comparison" : "Compare"}
+                  title={isSelected ? 'Cancel comparison' : 'Compare'}
                   class="p-1.5 rounded transition-colors"
                   class:text-white={isSelected}
                   class:bg-esolia-navy={isSelected}

@@ -3,17 +3,17 @@
  * InfoSec: Claude-powered content assistance with usage tracking
  */
 
-import type { AuditService } from "./audit";
+import type { AuditService } from './audit';
 
 type AIAction =
-  | "continue"
-  | "expand"
-  | "improve"
-  | "simplify"
-  | "fix_grammar"
-  | "translate"
-  | "suggest_tags"
-  | "custom";
+  | 'continue'
+  | 'expand'
+  | 'improve'
+  | 'simplify'
+  | 'fix_grammar'
+  | 'translate'
+  | 'suggest_tags'
+  | 'custom';
 
 interface AIRequest {
   action: AIAction;
@@ -22,8 +22,8 @@ interface AIRequest {
   documentId?: string;
   documentType?: string;
   customPrompt?: string;
-  targetLocale?: "en" | "ja";
-  sourceLocale?: "en" | "ja";
+  targetLocale?: 'en' | 'ja';
+  sourceLocale?: 'en' | 'ja';
 }
 
 interface AIResponse {
@@ -61,38 +61,35 @@ interface UsageRecord {
  * Create AI Service
  * InfoSec: All AI interactions are logged for audit and billing
  */
-export function createAIService(
-  db: D1Database,
-  ai: Ai,
-  audit?: AuditService
-) {
-  const MODEL = "@cf/meta/llama-3.1-70b-instruct";
+export function createAIService(db: D1Database, ai: Ai, audit?: AuditService) {
+  // Use type assertion for model since types may not include all available models
+  const MODEL = '@cf/meta/llama-3.1-70b-instruct' as Parameters<typeof ai.run>[0];
 
   /**
    * Build system prompt based on request type
    */
   function buildSystemPrompt(request: AIRequest): string {
     let prompt =
-      "You are a professional writing assistant for business content. " +
+      'You are a professional writing assistant for business content. ' +
       "Preserve the author's voice and maintain consistent formatting. " +
-      "Be concise and avoid unnecessary filler words.";
+      'Be concise and avoid unnecessary filler words.';
 
-    if (request.documentType === "compliance-control") {
+    if (request.documentType === 'compliance-control') {
       prompt +=
-        " Use precise compliance terminology appropriate for SOC 2 and ISO 27001 documentation.";
+        ' Use precise compliance terminology appropriate for SOC 2 and ISO 27001 documentation.';
     }
 
-    if (request.documentType === "proposal") {
-      prompt +=
-        " Maintain professional business tone suitable for client-facing proposals.";
+    if (request.documentType === 'proposal') {
+      prompt += ' Maintain professional business tone suitable for client-facing proposals.';
     }
 
-    if (request.action === "translate") {
+    if (request.action === 'translate') {
       const direction =
-        request.sourceLocale === "en" ? "English to Japanese" : "Japanese to English";
-      prompt = `You are a professional translator specializing in ${direction} translation. ` +
-        "Maintain the original formatting and structure. " +
-        "Use natural, fluent language appropriate for business communication.";
+        request.sourceLocale === 'en' ? 'English to Japanese' : 'Japanese to English';
+      prompt =
+        `You are a professional translator specializing in ${direction} translation. ` +
+        'Maintain the original formatting and structure. ' +
+        'Use natural, fluent language appropriate for business communication.';
     }
 
     return prompt;
@@ -102,49 +99,49 @@ export function createAIService(
    * Build user prompt based on action type
    */
   function buildUserPrompt(request: AIRequest): string {
-    const text = request.selection || request.documentContent || "";
+    const text = request.selection || request.documentContent || '';
 
     switch (request.action) {
-      case "continue":
+      case 'continue':
         return (
           `Continue writing from where this text ends. Write 2-3 paragraphs that naturally follow:\n\n` +
           `"${text.slice(-500)}"`
         );
 
-      case "expand":
+      case 'expand':
         return (
           `Expand the following text with more detail and examples. ` +
           `Keep the same structure but add depth:\n\n"${text}"`
         );
 
-      case "improve":
+      case 'improve':
         return (
           `Improve the following text for clarity and professionalism. ` +
           `Fix any issues while preserving the meaning:\n\n"${text}"`
         );
 
-      case "simplify":
+      case 'simplify':
         return (
           `Simplify the following text to make it easier to understand. ` +
           `Use shorter sentences and simpler words:\n\n"${text}"`
         );
 
-      case "fix_grammar":
+      case 'fix_grammar':
         return (
           `Fix only grammar, spelling, and punctuation errors in the following text. ` +
           `Do not change the meaning or style:\n\n"${text}"`
         );
 
-      case "translate":
-        return `Translate the following to ${request.targetLocale === "ja" ? "Japanese" : "English"}:\n\n"${text}"`;
+      case 'translate':
+        return `Translate the following to ${request.targetLocale === 'ja' ? 'Japanese' : 'English'}:\n\n"${text}"`;
 
-      case "suggest_tags":
+      case 'suggest_tags':
         return (
           `Suggest 3-7 relevant tags for the following content. ` +
           `Return only a JSON array of strings, nothing else:\n\n"${text.slice(0, 2000)}"`
         );
 
-      case "custom":
+      case 'custom':
         return `${request.customPrompt}\n\nText:\n"${text}"`;
 
       default:
@@ -197,10 +194,7 @@ export function createAIService(
      * Generate AI response for writing assistance
      * InfoSec: All requests logged with user context
      */
-    async generate(
-      request: AIRequest,
-      userEmail: string
-    ): Promise<AIResponse> {
+    async generate(request: AIRequest, userEmail: string): Promise<AIResponse> {
       const startTime = Date.now();
 
       try {
@@ -209,30 +203,22 @@ export function createAIService(
 
         const response = await ai.run(MODEL, {
           messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: userPrompt },
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt },
           ],
           max_tokens: 2048,
         });
 
         const content =
-          typeof response === "object" && "response" in response
+          typeof response === 'object' && 'response' in response
             ? (response.response as string)
-            : "";
+            : '';
 
         // Estimate tokens (rough approximation)
-        const inputTokens = Math.ceil(
-          (systemPrompt.length + userPrompt.length) / 4
-        );
+        const inputTokens = Math.ceil((systemPrompt.length + userPrompt.length) / 4);
         const outputTokens = Math.ceil(content.length / 4);
 
-        await recordUsage(
-          userEmail,
-          request,
-          { inputTokens, outputTokens },
-          startTime,
-          true
-        );
+        await recordUsage(userEmail, request, { inputTokens, outputTokens }, startTime, true);
 
         return { content, inputTokens, outputTokens };
       } catch (error) {
@@ -242,7 +228,7 @@ export function createAIService(
           { inputTokens: 0, outputTokens: 0 },
           startTime,
           false,
-          error instanceof Error ? error.message : "Unknown error"
+          error instanceof Error ? error.message : 'Unknown error'
         );
 
         throw error;
@@ -255,13 +241,13 @@ export function createAIService(
      */
     async translate(
       text: string,
-      sourceLocale: "en" | "ja",
-      targetLocale: "en" | "ja",
+      sourceLocale: 'en' | 'ja',
+      targetLocale: 'en' | 'ja',
       userEmail: string
     ): Promise<string> {
       const response = await this.generate(
         {
-          action: "translate",
+          action: 'translate',
           selection: text,
           sourceLocale,
           targetLocale,
@@ -278,7 +264,7 @@ export function createAIService(
     async suggestTags(content: string, userEmail: string): Promise<string[]> {
       const response = await this.generate(
         {
-          action: "suggest_tags",
+          action: 'suggest_tags',
           selection: content,
         },
         userEmail
@@ -289,7 +275,7 @@ export function createAIService(
       } catch {
         // If parsing fails, try to extract tags from response
         const matches = response.content.match(/"([^"]+)"/g);
-        return matches ? matches.map((m) => m.replace(/"/g, "")) : [];
+        return matches ? matches.map((m) => m.replace(/"/g, '')) : [];
       }
     },
 
@@ -299,20 +285,20 @@ export function createAIService(
     async getTerminology(
       options: { category?: string; verified?: boolean } = {}
     ): Promise<TerminologyEntry[]> {
-      let query = "SELECT * FROM terminology WHERE 1=1";
+      let query = 'SELECT * FROM terminology WHERE 1=1';
       const bindings: (string | number)[] = [];
 
       if (options.category) {
-        query += " AND category = ?";
+        query += ' AND category = ?';
         bindings.push(options.category);
       }
 
       if (options.verified !== undefined) {
-        query += " AND verified = ?";
+        query += ' AND verified = ?';
         bindings.push(options.verified ? 1 : 0);
       }
 
-      query += " ORDER BY term_en ASC";
+      query += ' ORDER BY term_en ASC';
 
       const { results } = await db
         .prepare(query)
@@ -347,25 +333,20 @@ export function createAIService(
           id, term_en, term_ja, category, notes, verified, created_at, updated_at
         ) VALUES (?, ?, ?, ?, ?, 0, ?, ?)`
         )
-        .bind(
-          id,
-          termEn,
-          termJa,
-          options.category || null,
-          options.notes || null,
-          now,
-          now
-        )
+        .bind(id, termEn, termJa, options.category || null, options.notes || null, now, now)
         .run();
 
       if (audit) {
-        await audit.log({
-          action: "create",
-          resourceType: "terminology",
-          resourceId: id,
-          details: { termEn, termJa },
-          actorEmail: userEmail,
-        });
+        await audit.log(
+          {
+            action: 'create',
+            actionCategory: 'content',
+            resourceType: 'terminology',
+            resourceId: id,
+            metadata: { termEn, termJa },
+          },
+          { actorId: userEmail, actorEmail: userEmail }
+        );
       }
 
       return {
@@ -381,10 +362,7 @@ export function createAIService(
     /**
      * Verify terminology entry
      */
-    async verifyTerminology(
-      id: string,
-      userEmail: string
-    ): Promise<void> {
+    async verifyTerminology(id: string, userEmail: string): Promise<void> {
       const now = Date.now();
 
       await db
@@ -397,13 +375,16 @@ export function createAIService(
         .run();
 
       if (audit) {
-        await audit.log({
-          action: "update",
-          resourceType: "terminology",
-          resourceId: id,
-          details: { verified: true },
-          actorEmail: userEmail,
-        });
+        await audit.log(
+          {
+            action: 'update',
+            actionCategory: 'content',
+            resourceType: 'terminology',
+            resourceId: id,
+            metadata: { verified: true },
+          },
+          { actorId: userEmail, actorEmail: userEmail }
+        );
       }
     },
 
@@ -436,21 +417,21 @@ export function createAIService(
       const bindings: (string | number)[] = [];
 
       if (options.userEmail) {
-        query += " AND user_email = ?";
+        query += ' AND user_email = ?';
         bindings.push(options.userEmail);
       }
 
       if (options.startDate) {
-        query += " AND created_at >= ?";
+        query += ' AND created_at >= ?';
         bindings.push(options.startDate);
       }
 
       if (options.endDate) {
-        query += " AND created_at <= ?";
+        query += ' AND created_at <= ?';
         bindings.push(options.endDate);
       }
 
-      query += " GROUP BY action";
+      query += ' GROUP BY action';
 
       const { results } = await db
         .prepare(query)

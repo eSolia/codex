@@ -4,8 +4,8 @@
    * InfoSec: Toggle between EN/JA with translation status indicator
    */
 
-  type Locale = "en" | "ja";
-  type TranslationStatus = "pending" | "in_progress" | "review" | "complete";
+  type Locale = 'en' | 'ja';
+  type TranslationStatus = 'pending' | 'in_progress' | 'review' | 'complete';
 
   interface Props {
     currentLocale: Locale;
@@ -19,8 +19,8 @@
 
   let {
     currentLocale,
-    availableLocales = ["en", "ja"],
-    defaultLocale = "en",
+    availableLocales = ['en', 'ja'],
+    defaultLocale = 'en',
     translationStatus = {},
     disabled = false,
     compact = false,
@@ -28,28 +28,28 @@
   }: Props = $props();
 
   const localeLabels: Record<Locale, { short: string; full: string; native: string }> = {
-    en: { short: "EN", full: "English", native: "English" },
-    ja: { short: "JA", full: "Japanese", native: "日本語" },
+    en: { short: 'EN', full: 'English', native: 'English' },
+    ja: { short: 'JA', full: 'Japanese', native: '日本語' },
   };
 
   function getStatusColor(status?: TranslationStatus) {
-    if (!status) return "";
+    if (!status) return '';
     const colors = {
-      pending: "bg-gray-300",
-      in_progress: "bg-amber-400",
-      review: "bg-blue-400",
-      complete: "bg-green-400",
+      pending: 'bg-gray-300',
+      in_progress: 'bg-amber-400',
+      review: 'bg-blue-400',
+      complete: 'bg-green-400',
     };
     return colors[status];
   }
 
   function getStatusLabel(status?: TranslationStatus) {
-    if (!status) return "";
+    if (!status) return '';
     const labels = {
-      pending: "Pending",
-      in_progress: "In Progress",
-      review: "In Review",
-      complete: "Complete",
+      pending: 'Pending',
+      in_progress: 'In Progress',
+      review: 'In Review',
+      complete: 'Complete',
     };
     return labels[status];
   }
@@ -79,7 +79,7 @@
         {#if isDefault}
           <span class="sr-only">(default)</span>
         {/if}
-        {#if status && status !== "complete"}
+        {#if status && status !== 'complete'}
           <span
             class="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full {getStatusColor(status)}"
             title={getStatusLabel(status)}
@@ -107,11 +107,15 @@
         >
           <!-- Flag indicator -->
           <span class="text-base" role="img" aria-label={localeLabels[locale].full}>
-            {locale === "en" ? "🇺🇸" : "🇯🇵"}
+            {locale === 'en' ? '🇺🇸' : '🇯🇵'}
           </span>
 
           <div class="text-left">
-            <div class="text-sm font-medium" class:text-esolia-navy={isActive} class:text-gray-900={!isActive}>
+            <div
+              class="text-sm font-medium"
+              class:text-esolia-navy={isActive}
+              class:text-gray-900={!isActive}
+            >
               {localeLabels[locale].native}
               {#if isDefault}
                 <span class="text-[10px] text-gray-400 ml-1">(default)</span>
@@ -126,8 +130,18 @@
           </div>
 
           {#if isActive}
-            <svg class="w-4 h-4 text-esolia-navy" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            <svg
+              class="w-4 h-4 text-esolia-navy"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M5 13l4 4L19 7"
+              />
             </svg>
           {/if}
         </button>

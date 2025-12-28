@@ -1,12 +1,12 @@
 <script lang="ts">
-  import type { PageData, ActionData } from "./$types";
-  import { enhance } from "$app/forms";
-  import VersionPanel from "$lib/components/versions/VersionPanel.svelte";
-  import HanawaEditor from "$lib/components/editor/HanawaEditor.svelte";
-  import { browser } from "$app/environment";
-  import { marked } from "marked";
-  import { onMount } from "svelte";
-  import mermaid from "mermaid";
+  import type { PageData, ActionData } from './$types';
+  import { enhance } from '$app/forms';
+  import VersionPanel from '$lib/components/versions/VersionPanel.svelte';
+  import HanawaEditor from '$lib/components/editor/HanawaEditor.svelte';
+  import { browser } from '$app/environment';
+  import { marked } from 'marked';
+  import { onMount } from 'svelte';
+  import mermaid from 'mermaid';
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
 
@@ -23,11 +23,11 @@
 
   // Initialize mermaid on client
   onMount(() => {
-    console.log("[Mermaid] onMount - initializing");
+    console.log('[Mermaid] onMount - initializing');
     mermaid.initialize({
       startOnLoad: false,
-      theme: "default",
-      securityLevel: "loose",
+      theme: 'default',
+      securityLevel: 'loose',
     });
     // Render diagrams after mount
     setTimeout(renderMermaidDiagrams, 300);
@@ -35,7 +35,7 @@
 
   // Parse markdown to HTML
   function renderMarkdown(content: string | null | undefined): string {
-    if (!content) return "";
+    if (!content) return '';
     return marked.parse(content) as string;
   }
 
@@ -43,12 +43,12 @@
   function isHtmlContent(content: string | null | undefined): boolean {
     if (!content) return false;
     // If it starts with HTML tags, it's from Tiptap
-    return content.trim().startsWith("<");
+    return content.trim().startsWith('<');
   }
 
   // Render content - handles both HTML and markdown
   function renderContent(content: string | null | undefined): string {
-    if (!content) return "";
+    if (!content) return '';
     if (isHtmlContent(content)) {
       return content; // Already HTML from Tiptap
     }
@@ -57,35 +57,37 @@
 
   // Render mermaid diagrams after content is displayed
   async function renderMermaidDiagrams() {
-    console.log("[Mermaid] renderMermaidDiagrams called");
+    console.log('[Mermaid] renderMermaidDiagrams called');
 
     // Find all mermaid blocks - try both new and legacy format
-    const mermaidBlocks = document.querySelectorAll("[data-type='mermaidBlock'], [data-type='mermaid']");
-    console.log("[Mermaid] Found blocks:", mermaidBlocks.length);
+    const mermaidBlocks = document.querySelectorAll(
+      "[data-type='mermaidBlock'], [data-type='mermaid']"
+    );
+    console.log('[Mermaid] Found blocks:', mermaidBlocks.length);
 
     for (const block of mermaidBlocks) {
-      const source = block.getAttribute("data-source");
-      console.log("[Mermaid] Block source:", source?.substring(0, 50));
+      const source = block.getAttribute('data-source');
+      console.log('[Mermaid] Block source:', source?.substring(0, 50));
 
       // Find or create diagram container
-      let diagramContainer = block.querySelector(".mermaid-diagram");
+      let diagramContainer = block.querySelector('.mermaid-diagram');
       if (!diagramContainer) {
-        console.log("[Mermaid] Creating diagram container");
-        diagramContainer = document.createElement("div");
-        diagramContainer.className = "mermaid-diagram";
+        console.log('[Mermaid] Creating diagram container');
+        diagramContainer = document.createElement('div');
+        diagramContainer.className = 'mermaid-diagram';
         block.appendChild(diagramContainer);
       }
 
       if (source) {
         try {
           const id = `mermaid-${Math.random().toString(36).substring(2, 9)}`;
-          console.log("[Mermaid] Rendering with id:", id);
+          console.log('[Mermaid] Rendering with id:', id);
           const { svg } = await mermaid.render(id, source);
           diagramContainer.innerHTML = svg;
-          console.log("[Mermaid] Render success");
+          console.log('[Mermaid] Render success');
         } catch (err) {
-          console.error("[Mermaid] Render error:", err);
-          diagramContainer.innerHTML = `<div class="text-red-500 text-sm">Diagram error: ${err instanceof Error ? err.message : "Unknown error"}</div>`;
+          console.error('[Mermaid] Render error:', err);
+          diagramContainer.innerHTML = `<div class="text-red-500 text-sm">Diagram error: ${err instanceof Error ? err.message : 'Unknown error'}</div>`;
         }
       }
     }
@@ -94,57 +96,57 @@
   // Re-render mermaid when exiting edit mode or switching tabs
   $effect(() => {
     if (!isEditing && browser) {
-      console.log("[Mermaid] Effect - exiting edit mode, re-rendering");
+      console.log('[Mermaid] Effect - exiting edit mode, re-rendering');
       setTimeout(renderMermaidDiagrams, 300);
     }
   });
 
   let showDeleteConfirm = $state(false);
-  let activeTab = $state<"en" | "ja">("en");
+  let activeTab = $state<'en' | 'ja'>('en');
 
   // Re-render mermaid when switching language tabs
   $effect(() => {
     // Track activeTab to trigger re-render
     const _tab = activeTab;
     if (browser && !isEditing) {
-      console.log("[Mermaid] Effect - tab changed to", _tab);
+      console.log('[Mermaid] Effect - tab changed to', _tab);
       setTimeout(renderMermaidDiagrams, 100);
     }
   });
 
   // Form state - initialized from data, updated by effects
-  let name = $state("");
-  let contentEn = $state("");
-  let contentJa = $state("");
-  let description = $state("");
-  let category = $state("");
-  let tagsInput = $state("");
+  let name = $state('');
+  let contentEn = $state('');
+  let contentJa = $state('');
+  let description = $state('');
+  let category = $state('');
+  let tagsInput = $state('');
 
   // Initialize form state from data
   // Convert markdown to HTML for rich editor
   $effect(() => {
     name = data.fragment.name;
     // Parse markdown to HTML for the rich editor
-    contentEn = renderMarkdown(data.fragment.content_en || "");
-    contentJa = renderMarkdown(data.fragment.content_ja || "");
-    description = data.fragment.description || "";
-    category = data.fragment.category || "";
-    tagsInput = (data.fragment.tags || []).join(", ");
+    contentEn = renderMarkdown(data.fragment.content_en || '');
+    contentJa = renderMarkdown(data.fragment.content_ja || '');
+    description = data.fragment.description || '';
+    category = data.fragment.category || '';
+    tagsInput = (data.fragment.tags || []).join(', ');
   });
 
   function resetForm() {
     name = data.fragment.name;
-    contentEn = renderMarkdown(data.fragment.content_en || "");
-    contentJa = renderMarkdown(data.fragment.content_ja || "");
-    description = data.fragment.description || "";
-    category = data.fragment.category || "";
-    tagsInput = (data.fragment.tags || []).join(", ");
+    contentEn = renderMarkdown(data.fragment.content_en || '');
+    contentJa = renderMarkdown(data.fragment.content_ja || '');
+    description = data.fragment.description || '';
+    category = data.fragment.category || '';
+    tagsInput = (data.fragment.tags || []).join(', ');
     isEditing = false;
   }
 
   function formatTags(): string {
     const tags = tagsInput
-      .split(",")
+      .split(',')
       .map((t) => t.trim())
       .filter(Boolean);
     return JSON.stringify(tags);
@@ -155,7 +157,7 @@
    * InfoSec: Prevents Cloudflare WAF from blocking HTML content.
    */
   function encodeContent(content: string): string {
-    if (!content) return "";
+    if (!content) return '';
     try {
       return btoa(unescape(encodeURIComponent(content)));
     } catch {
@@ -191,9 +193,7 @@
         <h1 class="text-3xl font-bold text-esolia-navy">{data.fragment.name}</h1>
       {/if}
       <p class="mt-1 text-gray-600">
-        <span class="font-mono text-sm bg-gray-100 px-2 py-0.5 rounded"
-          >{data.fragment.slug}</span
-        >
+        <span class="font-mono text-sm bg-gray-100 px-2 py-0.5 rounded">{data.fragment.slug}</span>
         {#if data.fragment.category}
           <span class="mx-2">in</span>
           <span
@@ -243,12 +243,7 @@
           }}
           class="inline-flex items-center px-4 py-2 bg-esolia-navy text-white rounded-lg hover:bg-esolia-navy/90 transition-colors"
         >
-          <svg
-            class="w-4 h-4 mr-2"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
@@ -263,12 +258,7 @@
           onclick={() => (showDeleteConfirm = true)}
           class="inline-flex items-center px-4 py-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
         >
-          <svg
-            class="w-4 h-4 mr-2"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
+          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
@@ -283,15 +273,11 @@
   </div>
 
   {#if form?.success}
-    <div
-      class="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg"
-    >
+    <div class="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg">
       Fragment updated successfully.
     </div>
   {:else if form?.error}
-    <div
-      class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg"
-    >
+    <div class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">
       Error: {form.error}
     </div>
   {/if}
@@ -317,9 +303,7 @@
       {#if isEditing}
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label for="category" class="block text-sm font-medium text-gray-700"
-              >Category</label
-            >
+            <label for="category" class="block text-sm font-medium text-gray-700">Category</label>
             <input
               type="text"
               id="category"
@@ -366,12 +350,12 @@
             <dd class="mt-1">
               <span
                 class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium"
-                class:bg-green-100={data.fragment.status === "active"}
-                class:text-green-800={data.fragment.status === "active"}
-                class:bg-yellow-100={data.fragment.status === "draft"}
-                class:text-yellow-800={data.fragment.status === "draft"}
-                class:bg-gray-100={data.fragment.status === "deprecated"}
-                class:text-gray-800={data.fragment.status === "deprecated"}
+                class:bg-green-100={data.fragment.status === 'active'}
+                class:text-green-800={data.fragment.status === 'active'}
+                class:bg-yellow-100={data.fragment.status === 'draft'}
+                class:text-yellow-800={data.fragment.status === 'draft'}
+                class:bg-gray-100={data.fragment.status === 'deprecated'}
+                class:text-gray-800={data.fragment.status === 'deprecated'}
               >
                 {data.fragment.status}
               </span>
@@ -408,12 +392,12 @@
           <button
             type="button"
             class="px-6 py-3 text-sm font-medium border-b-2 transition-colors"
-            class:border-esolia-navy={activeTab === "en"}
-            class:text-esolia-navy={activeTab === "en"}
-            class:border-transparent={activeTab !== "en"}
-            class:text-gray-500={activeTab !== "en"}
-            class:hover:text-gray-700={activeTab !== "en"}
-            onclick={() => (activeTab = "en")}
+            class:border-esolia-navy={activeTab === 'en'}
+            class:text-esolia-navy={activeTab === 'en'}
+            class:border-transparent={activeTab !== 'en'}
+            class:text-gray-500={activeTab !== 'en'}
+            class:hover:text-gray-700={activeTab !== 'en'}
+            onclick={() => (activeTab = 'en')}
           >
             English
             {#if !contentEn && !data.fragment.content_en}
@@ -423,12 +407,12 @@
           <button
             type="button"
             class="px-6 py-3 text-sm font-medium border-b-2 transition-colors"
-            class:border-esolia-navy={activeTab === "ja"}
-            class:text-esolia-navy={activeTab === "ja"}
-            class:border-transparent={activeTab !== "ja"}
-            class:text-gray-500={activeTab !== "ja"}
-            class:hover:text-gray-700={activeTab !== "ja"}
-            onclick={() => (activeTab = "ja")}
+            class:border-esolia-navy={activeTab === 'ja'}
+            class:text-esolia-navy={activeTab === 'ja'}
+            class:border-transparent={activeTab !== 'ja'}
+            class:text-gray-500={activeTab !== 'ja'}
+            class:hover:text-gray-700={activeTab !== 'ja'}
+            onclick={() => (activeTab = 'ja')}
           >
             Japanese
             {#if !contentJa && !data.fragment.content_ja}
@@ -458,7 +442,7 @@
         <input type="hidden" name="content_ja" value={encodeContent(contentJa)} />
         <input type="hidden" name="content_encoding" value="base64" />
 
-        {#if activeTab === "en"}
+        {#if activeTab === 'en'}
           {#if isEditing}
             {#if useRichEditor && browser}
               <div class="min-h-[300px]">
@@ -478,34 +462,33 @@
           {:else if data.fragment.content_en}
             <div
               class="bg-gray-50 p-4 rounded-lg overflow-x-auto text-sm text-gray-800 prose prose-sm max-w-none"
-            >{@html renderContent(data.fragment.content_en)}</div>
+            >
+              {@html renderContent(data.fragment.content_en)}
+            </div>
           {:else}
             <p class="text-gray-500 italic">No English content yet.</p>
           {/if}
-        {:else}
-          {#if isEditing}
-            {#if useRichEditor && browser}
-              <div class="min-h-[300px]">
-                <HanawaEditor
-                  bind:content={contentJa}
-                  placeholder="日本語のコンテンツを入力..."
-                />
-              </div>
-            {:else}
-              <textarea
-                bind:value={contentJa}
-                rows="15"
-                class="w-full rounded-md border-gray-300 shadow-sm focus:border-esolia-navy focus:ring-esolia-navy font-mono text-sm"
-                placeholder="Japanese content (Markdown supported)..."
-              ></textarea>
-            {/if}
-          {:else if data.fragment.content_ja}
-            <div
-              class="bg-gray-50 p-4 rounded-lg overflow-x-auto text-sm text-gray-800 prose prose-sm max-w-none"
-            >{@html renderContent(data.fragment.content_ja)}</div>
+        {:else if isEditing}
+          {#if useRichEditor && browser}
+            <div class="min-h-[300px]">
+              <HanawaEditor bind:content={contentJa} placeholder="日本語のコンテンツを入力..." />
+            </div>
           {:else}
-            <p class="text-gray-500 italic">No Japanese content yet.</p>
+            <textarea
+              bind:value={contentJa}
+              rows="15"
+              class="w-full rounded-md border-gray-300 shadow-sm focus:border-esolia-navy focus:ring-esolia-navy font-mono text-sm"
+              placeholder="Japanese content (Markdown supported)..."
+            ></textarea>
           {/if}
+        {:else if data.fragment.content_ja}
+          <div
+            class="bg-gray-50 p-4 rounded-lg overflow-x-auto text-sm text-gray-800 prose prose-sm max-w-none"
+          >
+            {@html renderContent(data.fragment.content_ja)}
+          </div>
+        {:else}
+          <p class="text-gray-500 italic">No Japanese content yet.</p>
         {/if}
       </div>
     </div>
@@ -538,8 +521,7 @@
     <div class="bg-white rounded-lg shadow-xl p-6 max-w-md mx-4">
       <h3 class="text-lg font-semibold text-gray-900">Delete Fragment</h3>
       <p class="mt-2 text-gray-600">
-        Are you sure you want to delete "{data.fragment.name}"? This action
-        cannot be undone.
+        Are you sure you want to delete "{data.fragment.name}"? This action cannot be undone.
       </p>
       <div class="mt-6 flex justify-end gap-3">
         <button
@@ -569,19 +551,19 @@
       versions={data.versions || []}
       onPreview={(versionId) => {
         // TODO: Implement preview
-        console.log("Preview version:", versionId);
+        console.log('Preview version:', versionId);
       }}
       onRestore={(versionId) => {
         // TODO: Implement restore
-        console.log("Restore version:", versionId);
+        console.log('Restore version:', versionId);
       }}
       onCompare={(versionIdA, versionIdB) => {
         // TODO: Implement compare
-        console.log("Compare versions:", versionIdA, versionIdB);
+        console.log('Compare versions:', versionIdA, versionIdB);
       }}
       onLabel={(versionId) => {
         // TODO: Implement label
-        console.log("Label version:", versionId);
+        console.log('Label version:', versionId);
       }}
     />
   </div>

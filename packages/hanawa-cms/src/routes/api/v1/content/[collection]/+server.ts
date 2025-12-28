@@ -5,9 +5,9 @@
  * InfoSec: API key auth, rate limiting, CORS (OWASP A01, A04)
  */
 
-import { json, error } from "@sveltejs/kit";
-import type { RequestHandler } from "./$types";
-import { createDeliveryService } from "$lib/server/delivery";
+import { json, error } from '@sveltejs/kit';
+import type { RequestHandler } from './$types';
+import { createDeliveryService } from '$lib/server/delivery';
 
 /**
  * Validate API key from Authorization header
@@ -23,19 +23,23 @@ async function validateRequest(
   rateLimit?: number;
   error?: string;
 }> {
-  const authHeader = request.headers.get("Authorization");
+  const authHeader = request.headers.get('Authorization');
 
   // Allow unauthenticated access for now (can be restricted later)
   if (!authHeader) {
     return { valid: true, rateLimit: 100 }; // Lower rate limit for unauthenticated
   }
 
-  if (!authHeader.startsWith("Bearer ")) {
-    return { valid: false, error: "Invalid Authorization header format" };
+  if (!authHeader.startsWith('Bearer ')) {
+    return { valid: false, error: 'Invalid Authorization header format' };
   }
 
   const apiKey = authHeader.slice(7);
-  const delivery = createDeliveryService(platform.env.DB, platform.env.KV);
+  // Note: Type assertion needed due to workers-types version mismatch
+  const delivery = createDeliveryService(
+    platform.env.DB,
+    platform.env.KV as unknown as import('@cloudflare/workers-types').KVNamespace | undefined
+  );
   const result = await delivery.validateApiKey(apiKey);
 
   if (!result.valid) {
@@ -64,39 +68,40 @@ async function validateRequest(
  */
 export const GET: RequestHandler = async ({ params, url, request, platform }) => {
   if (!platform?.env?.DB) {
-    throw error(500, "Service unavailable");
+    throw error(500, 'Service unavailable');
   }
 
   // Validate API key
   const auth = await validateRequest(request, platform);
   if (!auth.valid) {
-    throw error(401, auth.error || "Unauthorized");
+    throw error(401, auth.error || 'Unauthorized');
   }
 
   // Check collection access
   if (auth.collections && !auth.collections.includes(params.collection)) {
-    throw error(403, "Access to this collection is not allowed");
+    throw error(403, 'Access to this collection is not allowed');
   }
 
   // Check rate limit
+  // Note: Type assertion needed due to workers-types version mismatch
   const delivery = createDeliveryService(
     platform.env.DB,
-    platform.env.KV,
-    platform.env.R2
+    platform.env.KV as unknown as import('@cloudflare/workers-types').KVNamespace | undefined,
+    platform.env.R2 as unknown as import('@cloudflare/workers-types').R2Bucket | undefined
   );
 
   if (auth.keyId && auth.rateLimit) {
     const rateLimit = await delivery.checkRateLimit(auth.keyId, auth.rateLimit);
     if (!rateLimit.allowed) {
       return json(
-        { error: "Rate limit exceeded" },
+        { error: 'Rate limit exceeded' },
         {
           status: 429,
           headers: {
-            "X-RateLimit-Limit": String(auth.rateLimit),
-            "X-RateLimit-Remaining": "0",
-            "X-RateLimit-Reset": String(rateLimit.reset),
-            "Retry-After": String(rateLimit.reset - Math.floor(Date.now() / 1000)),
+            'X-RateLimit-Limit': String(auth.rateLimit),
+            'X-RateLimit-Remaining': '0',
+            'X-RateLimit-Reset': String(rateLimit.reset),
+            'Retry-After': String(rateLimit.reset - Math.floor(Date.now() / 1000)),
           },
         }
       );
@@ -105,19 +110,16 @@ export const GET: RequestHandler = async ({ params, url, request, platform }) =>
 
   try {
     // Parse query parameters
-    const locale = url.searchParams.get("locale") || undefined;
-    const page = Math.max(1, parseInt(url.searchParams.get("page") || "1"));
-    const perPage = Math.min(
-      100,
-      Math.max(1, parseInt(url.searchParams.get("perPage") || "20"))
-    );
-    const sort = url.searchParams.get("sort") || "publishedAt:desc";
-    const fields = url.searchParams.get("fields")?.split(",").filter(Boolean);
+    const locale = url.searchParams.get('locale') || undefined;
+    const page = Math.max(1, parseInt(url.searchParams.get('page') || '1'));
+    const perPage = Math.min(100, Math.max(1, parseInt(url.searchParams.get('perPage') || '20')));
+    const sort = url.searchParams.get('sort') || 'publishedAt:desc';
+    const fields = url.searchParams.get('fields')?.split(',').filter(Boolean);
 
     // Parse filters
     const filters: Record<string, unknown> = {};
     for (const [key, value] of url.searchParams.entries()) {
-      if (key.startsWith("filter[") && key.endsWith("]")) {
+      if (key.startsWith('filter[') && key.endsWith(']')) {
         const filterKey = key.slice(7, -1);
         filters[filterKey] = value;
       }
@@ -130,25 +132,25 @@ export const GET: RequestHandler = async ({ params, url, request, platform }) =>
       sort,
       fields,
       filters,
-      status: "published",
+      status: 'published',
     });
 
     // Add rate limit headers if authenticated
     const headers: Record<string, string> = {
-      "Cache-Control": "public, max-age=60, stale-while-revalidate=300",
-      "Content-Type": "application/json",
+      'Cache-Control': 'public, max-age=60, stale-while-revalidate=300',
+      'Content-Type': 'application/json',
     };
 
     if (auth.keyId && auth.rateLimit) {
       const rateLimit = await delivery.checkRateLimit(auth.keyId, auth.rateLimit);
-      headers["X-RateLimit-Limit"] = String(auth.rateLimit);
-      headers["X-RateLimit-Remaining"] = String(rateLimit.remaining);
-      headers["X-RateLimit-Reset"] = String(rateLimit.reset);
+      headers['X-RateLimit-Limit'] = String(auth.rateLimit);
+      headers['X-RateLimit-Remaining'] = String(rateLimit.remaining);
+      headers['X-RateLimit-Reset'] = String(rateLimit.reset);
     }
 
     return json(result, { headers });
   } catch (err) {
-    console.error("Content list error:", err);
-    throw error(500, "Failed to list content");
+    console.error('Content list error:', err);
+    throw error(500, 'Failed to list content');
   }
 };

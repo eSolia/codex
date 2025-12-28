@@ -11,15 +11,11 @@
 
 /// <reference types="@cloudflare/workers-types" />
 
-import type { AuditService, AuditContext } from "./audit";
+import type { AuditService, AuditContext } from './audit';
 
-export type Locale = "en" | "ja";
-export type DocumentType = "content" | "fragment";
-export type TranslationStatus =
-  | "pending"
-  | "in_progress"
-  | "review"
-  | "complete";
+export type Locale = 'en' | 'ja';
+export type DocumentType = 'content' | 'fragment';
+export type TranslationStatus = 'pending' | 'in_progress' | 'review' | 'complete';
 
 export interface LocalizedContent {
   [locale: string]: Record<string, unknown>;
@@ -76,9 +72,9 @@ export function createLocalizationService(db: D1Database, audit?: AuditService) 
       defaultLocale: Locale;
       availableLocales: Locale[];
     }> {
-      const { documentType = "content", fallback = true, markFallbacks = false } = options;
+      const { documentType = 'content', fallback = true, markFallbacks = false } = options;
 
-      const table = documentType === "fragment" ? "fragments" : "content";
+      const table = documentType === 'fragment' ? 'fragments' : 'content';
 
       const doc = await db
         .prepare(
@@ -96,11 +92,9 @@ export function createLocalizationService(db: D1Database, audit?: AuditService) 
         throw new Error(`${documentType} not found: ${documentId}`);
       }
 
-      const defaultLocale = (doc.default_locale || "en") as Locale;
+      const defaultLocale = (doc.default_locale || 'en') as Locale;
       const availableLocales = JSON.parse(doc.available_locales || '["en"]') as Locale[];
-      const localizedContent: LocalizedContent = JSON.parse(
-        doc.localized_content || "{}"
-      );
+      const localizedContent: LocalizedContent = JSON.parse(doc.localized_content || '{}');
 
       const localeContent = localizedContent[locale] || {};
       const defaultContent = localizedContent[defaultLocale] || {};
@@ -147,14 +141,12 @@ export function createLocalizationService(db: D1Database, audit?: AuditService) 
         context?: AuditContext;
       } = {}
     ): Promise<void> {
-      const { documentType = "content", context } = options;
-      const table = documentType === "fragment" ? "fragments" : "content";
+      const { documentType = 'content', context } = options;
+      const table = documentType === 'fragment' ? 'fragments' : 'content';
 
       // Get current content
       const doc = await db
-        .prepare(
-          `SELECT localized_content, available_locales FROM ${table} WHERE id = ?`
-        )
+        .prepare(`SELECT localized_content, available_locales FROM ${table} WHERE id = ?`)
         .bind(documentId)
         .first<{
           localized_content: string | null;
@@ -165,7 +157,7 @@ export function createLocalizationService(db: D1Database, audit?: AuditService) 
         throw new Error(`${documentType} not found: ${documentId}`);
       }
 
-      const content: LocalizedContent = JSON.parse(doc.localized_content || "{}");
+      const content: LocalizedContent = JSON.parse(doc.localized_content || '{}');
       const availableLocales: Locale[] = JSON.parse(doc.available_locales || '["en"]');
 
       // Merge new fields with existing
@@ -182,11 +174,7 @@ export function createLocalizationService(db: D1Database, audit?: AuditService) 
            SET localized_content = ?, available_locales = ?, updated_at = datetime('now')
            WHERE id = ?`
         )
-        .bind(
-          JSON.stringify(content),
-          JSON.stringify(availableLocales),
-          documentId
-        )
+        .bind(JSON.stringify(content), JSON.stringify(availableLocales), documentId)
         .run();
 
       // Update translation status
@@ -199,11 +187,11 @@ export function createLocalizationService(db: D1Database, audit?: AuditService) 
       if (audit && context) {
         await audit.log(
           {
-            action: "update",
-            actionCategory: "content",
+            action: 'update',
+            actionCategory: 'content',
             resourceType: documentType,
             resourceId: documentId,
-            changeSummary: `Updated ${locale} translation: ${Object.keys(fields).join(", ")}`,
+            changeSummary: `Updated ${locale} translation: ${Object.keys(fields).join(', ')}`,
             metadata: { locale, fields: Object.keys(fields) },
           },
           context
@@ -219,8 +207,8 @@ export function createLocalizationService(db: D1Database, audit?: AuditService) 
       locale: Locale,
       options: { documentType?: DocumentType; context?: AuditContext } = {}
     ): Promise<void> {
-      const { documentType = "content", context } = options;
-      const table = documentType === "fragment" ? "fragments" : "content";
+      const { documentType = 'content', context } = options;
+      const table = documentType === 'fragment' ? 'fragments' : 'content';
 
       await db
         .prepare(`UPDATE ${table} SET default_locale = ? WHERE id = ?`)
@@ -230,8 +218,8 @@ export function createLocalizationService(db: D1Database, audit?: AuditService) 
       if (audit && context) {
         await audit.log(
           {
-            action: "update",
-            actionCategory: "content",
+            action: 'update',
+            actionCategory: 'content',
             resourceType: documentType,
             resourceId: documentId,
             changeSummary: `Set default locale to ${locale}`,
@@ -248,7 +236,7 @@ export function createLocalizationService(db: D1Database, audit?: AuditService) 
     async getTranslationStatus(
       documentId: string,
       locale: Locale,
-      documentType: DocumentType = "content"
+      documentType: DocumentType = 'content'
     ): Promise<TranslationStatusRecord | null> {
       const row = await db
         .prepare(
@@ -275,7 +263,7 @@ export function createLocalizationService(db: D1Database, audit?: AuditService) 
         notes?: string;
       } = {}
     ): Promise<void> {
-      const { documentType = "content", translatedFields, status, assignedTo, notes } = options;
+      const { documentType = 'content', translatedFields, status, assignedTo, notes } = options;
       const now = Date.now();
 
       // Get or create status record
@@ -287,39 +275,37 @@ export function createLocalizationService(db: D1Database, audit?: AuditService) 
           ? [...new Set([...existing.translatedFields, ...translatedFields])]
           : existing.translatedFields;
 
-        const updates: string[] = ["last_updated = ?"];
+        const updates: string[] = ['last_updated = ?'];
         const values: (string | number | null)[] = [now];
 
         if (translatedFields) {
-          updates.push("translated_fields = ?");
+          updates.push('translated_fields = ?');
           values.push(JSON.stringify(newTranslatedFields));
         }
 
         if (status) {
-          updates.push("status = ?");
+          updates.push('status = ?');
           values.push(status);
-          if (status === "complete") {
-            updates.push("completed_at = ?");
+          if (status === 'complete') {
+            updates.push('completed_at = ?');
             values.push(now);
           }
         }
 
         if (assignedTo !== undefined) {
-          updates.push("assigned_to = ?", "assigned_at = ?");
+          updates.push('assigned_to = ?', 'assigned_at = ?');
           values.push(assignedTo, now);
         }
 
         if (notes !== undefined) {
-          updates.push("notes = ?");
+          updates.push('notes = ?');
           values.push(notes);
         }
 
         values.push(existing.id);
 
         await db
-          .prepare(
-            `UPDATE translation_status SET ${updates.join(", ")} WHERE id = ?`
-          )
+          .prepare(`UPDATE translation_status SET ${updates.join(', ')} WHERE id = ?`)
           .bind(...values)
           .run();
       } else {
@@ -339,7 +325,7 @@ export function createLocalizationService(db: D1Database, audit?: AuditService) 
             documentId,
             documentType,
             locale,
-            status || "pending",
+            status || 'pending',
             JSON.stringify(translatedFields || []),
             assignedTo || null,
             assignedTo ? now : null,
@@ -397,11 +383,14 @@ export function createLocalizationService(db: D1Database, audit?: AuditService) 
       query += ` ORDER BY ts.last_updated DESC LIMIT ?`;
       params.push(limit);
 
-      const { results } = await db.prepare(query).bind(...params).all();
+      const { results } = await db
+        .prepare(query)
+        .bind(...params)
+        .all();
 
       return results.map((row) => ({
         ...this.rowToTranslationStatus(row),
-        documentTitle: (row.document_title as string) || "Untitled",
+        documentTitle: (row.document_title as string) || 'Untitled',
       }));
     },
 
@@ -414,19 +403,19 @@ export function createLocalizationService(db: D1Database, audit?: AuditService) 
       assignedTo: string,
       options: { documentType?: DocumentType; context?: AuditContext } = {}
     ): Promise<void> {
-      const { documentType = "content", context } = options;
+      const { documentType = 'content', context } = options;
 
       await this.updateTranslationProgress(documentId, locale, {
         documentType,
         assignedTo,
-        status: "in_progress",
+        status: 'in_progress',
       });
 
       if (audit && context) {
         await audit.log(
           {
-            action: "update",
-            actionCategory: "content",
+            action: 'update',
+            actionCategory: 'content',
             resourceType: documentType,
             resourceId: documentId,
             changeSummary: `Assigned ${locale} translation to ${assignedTo}`,
@@ -445,18 +434,18 @@ export function createLocalizationService(db: D1Database, audit?: AuditService) 
       locale: Locale,
       options: { documentType?: DocumentType; context?: AuditContext } = {}
     ): Promise<void> {
-      const { documentType = "content", context } = options;
+      const { documentType = 'content', context } = options;
 
       await this.updateTranslationProgress(documentId, locale, {
         documentType,
-        status: "complete",
+        status: 'complete',
       });
 
       if (audit && context) {
         await audit.log(
           {
-            action: "update",
-            actionCategory: "content",
+            action: 'update',
+            actionCategory: 'content',
             resourceType: documentType,
             resourceId: documentId,
             changeSummary: `Marked ${locale} translation as complete`,
@@ -615,9 +604,7 @@ export function createLocalizationService(db: D1Database, audit?: AuditService) 
     /**
      * Get localization statistics
      */
-    async getStats(
-      locale: Locale
-    ): Promise<{
+    async getStats(locale: Locale): Promise<{
       pending: number;
       inProgress: number;
       review: number;
@@ -657,9 +644,9 @@ export function createLocalizationService(db: D1Database, audit?: AuditService) 
     async hashText(text: string): Promise<string> {
       const encoder = new TextEncoder();
       const data = encoder.encode(text.toLowerCase().trim());
-      const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
       const hashArray = Array.from(new Uint8Array(hashBuffer));
-      return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+      return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
     },
 
     // Helper: Convert row to TranslationStatusRecord
@@ -671,8 +658,8 @@ export function createLocalizationService(db: D1Database, audit?: AuditService) 
         locale: row.locale as Locale,
         status: row.status as TranslationStatus,
         progressPercent: (row.progress_percent as number) || 0,
-        translatedFields: JSON.parse((row.translated_fields as string) || "[]"),
-        pendingFields: JSON.parse((row.pending_fields as string) || "[]"),
+        translatedFields: JSON.parse((row.translated_fields as string) || '[]'),
+        pendingFields: JSON.parse((row.pending_fields as string) || '[]'),
         assignedTo: row.assigned_to as string | undefined,
         assignedAt: row.assigned_at as number | undefined,
         createdAt: row.created_at as number,

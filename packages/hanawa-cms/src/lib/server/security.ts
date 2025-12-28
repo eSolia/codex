@@ -8,7 +8,7 @@
 
 /// <reference types="@cloudflare/workers-types" />
 
-export type SensitivityLevel = "normal" | "confidential" | "embargoed";
+export type SensitivityLevel = 'normal' | 'confidential' | 'embargoed';
 
 /**
  * Security configuration by sensitivity level
@@ -75,35 +75,31 @@ export async function createPreviewToken(
   const config = securityLevels[sensitivity];
 
   // InfoSec: Check if embargoed content allows preview
-  if (sensitivity === "embargoed") {
+  if (sensitivity === 'embargoed') {
     const content = await db
-      .prepare("SELECT embargo_until FROM content WHERE id = ?")
+      .prepare('SELECT embargo_until FROM content WHERE id = ?')
       .bind(contentId)
       .first<{ embargo_until: number | null }>();
 
     if (content?.embargo_until && Date.now() / 1000 < content.embargo_until) {
-      throw new Error("Content under embargo. Preview not available.");
+      throw new Error('Content under embargo. Preview not available.');
     }
   }
 
   // InfoSec: Check if confidential content is approved for preview
-  if (sensitivity === "confidential") {
+  if (sensitivity === 'confidential') {
     const content = await db
-      .prepare("SELECT approved_for_preview FROM content WHERE id = ?")
+      .prepare('SELECT approved_for_preview FROM content WHERE id = ?')
       .bind(contentId)
       .first<{ approved_for_preview: number }>();
 
     if (!content?.approved_for_preview) {
-      throw new Error(
-        "Confidential content requires approval before preview sharing."
-      );
+      throw new Error('Confidential content requires approval before preview sharing.');
     }
   }
 
   const token = crypto.randomUUID();
-  const expires =
-    Math.floor(Date.now() / 1000) +
-    (options.expiresIn || config.previewTokenExpiry);
+  const expires = Math.floor(Date.now() / 1000) + (options.expiresIn || config.previewTokenExpiry);
 
   await db
     .prepare(
@@ -131,7 +127,7 @@ export async function createPreviewToken(
     .run();
 
   // Audit log
-  await logAuditEvent(db, "preview_created", requestedBy, "content", contentId, {
+  await logAuditEvent(db, 'preview_created', requestedBy, 'content', contentId, {
     expires,
     maxViews: options.maxViews || config.previewMaxViews,
     ipRestrict: options.ipRestrict,
@@ -175,32 +171,32 @@ export async function validatePreviewToken(
     }>();
 
   if (!doc) {
-    return { valid: false, reason: "invalid_token" };
+    return { valid: false, reason: 'invalid_token' };
   }
 
   if (doc.preview_expires < Date.now() / 1000) {
-    return { valid: false, reason: "expired" };
+    return { valid: false, reason: 'expired' };
   }
 
   if (doc.preview_max_views && doc.preview_view_count >= doc.preview_max_views) {
-    return { valid: false, reason: "max_views_exceeded" };
+    return { valid: false, reason: 'max_views_exceeded' };
   }
 
   if (doc.preview_ip_allowlist) {
     const allowed = JSON.parse(doc.preview_ip_allowlist) as string[];
     if (!allowed.includes(clientIp)) {
-      await logAuditEvent(db, "preview_ip_rejected", null, "preview", token, {
+      await logAuditEvent(db, 'preview_ip_rejected', null, 'preview', token, {
         clientIp,
         allowed,
       });
-      return { valid: false, reason: "ip_not_allowed" };
+      return { valid: false, reason: 'ip_not_allowed' };
     }
   }
 
   // Increment view count
   await db
     .prepare(
-      "UPDATE content SET preview_view_count = preview_view_count + 1 WHERE preview_token = ?"
+      'UPDATE content SET preview_view_count = preview_view_count + 1 WHERE preview_token = ?'
     )
     .bind(token)
     .run();
@@ -234,14 +230,7 @@ export async function requestPreviewApproval(
     .bind(requestedBy, Math.floor(Date.now() / 1000), contentId)
     .run();
 
-  await logAuditEvent(
-    db,
-    "preview_approval_requested",
-    requestedBy,
-    "content",
-    contentId,
-    {}
-  );
+  await logAuditEvent(db, 'preview_approval_requested', requestedBy, 'content', contentId, {});
 }
 
 /**
@@ -266,14 +255,7 @@ export async function approvePreview(
     .bind(approvedBy, Math.floor(Date.now() / 1000), contentId)
     .run();
 
-  await logAuditEvent(
-    db,
-    "preview_approved",
-    approvedBy,
-    "content",
-    contentId,
-    {}
-  );
+  await logAuditEvent(db, 'preview_approved', approvedBy, 'content', contentId, {});
 }
 
 /**
@@ -325,11 +307,7 @@ export async function encryptContent(
   const iv = crypto.getRandomValues(new Uint8Array(12));
   const encoded = new TextEncoder().encode(content);
 
-  const encrypted = await crypto.subtle.encrypt(
-    { name: "AES-GCM", iv },
-    key,
-    encoded
-  );
+  const encrypted = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, encoded);
 
   return {
     encrypted: btoa(String.fromCharCode(...new Uint8Array(encrypted))),
@@ -342,13 +320,11 @@ export async function decryptContent(
   iv: string,
   key: CryptoKey
 ): Promise<string> {
-  const encryptedBytes = Uint8Array.from(atob(encrypted), (c) =>
-    c.charCodeAt(0)
-  );
+  const encryptedBytes = Uint8Array.from(atob(encrypted), (c) => c.charCodeAt(0));
   const ivBytes = Uint8Array.from(atob(iv), (c) => c.charCodeAt(0));
 
   const decrypted = await crypto.subtle.decrypt(
-    { name: "AES-GCM", iv: ivBytes },
+    { name: 'AES-GCM', iv: ivBytes },
     key,
     encryptedBytes
   );
@@ -363,24 +339,24 @@ export async function decryptContent(
 export async function deriveKey(secret: string): Promise<CryptoKey> {
   const encoder = new TextEncoder();
   const keyMaterial = await crypto.subtle.importKey(
-    "raw",
+    'raw',
     encoder.encode(secret),
-    "PBKDF2",
+    'PBKDF2',
     false,
-    ["deriveKey"]
+    ['deriveKey']
   );
 
   return crypto.subtle.deriveKey(
     {
-      name: "PBKDF2",
-      salt: encoder.encode("hanawa-cms-salt"),
+      name: 'PBKDF2',
+      salt: encoder.encode('hanawa-cms-salt'),
       iterations: 100000,
-      hash: "SHA-256",
+      hash: 'SHA-256',
     },
     keyMaterial,
-    { name: "AES-GCM", length: 256 },
+    { name: 'AES-GCM', length: 256 },
     false,
-    ["encrypt", "decrypt"]
+    ['encrypt', 'decrypt']
   );
 }
 
@@ -390,9 +366,9 @@ export async function deriveKey(secret: string): Promise<CryptoKey> {
  */
 export function getPreviewSecurityHeaders(): Record<string, string> {
   return {
-    "Cache-Control": "private, no-store, no-cache, must-revalidate",
-    "X-Robots-Tag": "noindex, nofollow, noarchive, nosnippet",
-    "X-Frame-Options": "DENY",
-    "Content-Security-Policy": "frame-ancestors 'none'",
+    'Cache-Control': 'private, no-store, no-cache, must-revalidate',
+    'X-Robots-Tag': 'noindex, nofollow, noarchive, nosnippet',
+    'X-Frame-Options': 'DENY',
+    'Content-Security-Policy': "frame-ancestors 'none'",
   };
 }

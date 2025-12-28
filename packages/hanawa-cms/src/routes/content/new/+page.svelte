@@ -3,32 +3,30 @@
    * New Content Page
    * Create new content with initial settings
    */
-  import type { PageData, ActionData } from "./$types";
-  import { enhance } from "$app/forms";
+  import type { PageData, ActionData } from './$types';
+  import { enhance } from '$app/forms';
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
 
-  let title = $state("");
-  let slug = $state("");
-  let siteId = $state("");
-  let contentTypeId = $state("");
-  let sensitivity = $state("normal");
-  let language = $state("en");
+  let title = $state('');
+  let slug = $state('');
+  let siteId = $state('');
+  let contentTypeId = $state('');
+  let sensitivity = $state('normal');
+  let language = $state('en');
   let isSubmitting = $state(false);
 
   // Filter content types by selected site
   let filteredContentTypes = $derived(
-    siteId
-      ? data.contentTypes.filter((ct) => ct.site_id === siteId)
-      : data.contentTypes
+    siteId ? data.contentTypes.filter((ct) => ct.site_id === siteId) : data.contentTypes
   );
 
   // Auto-generate slug from title
   function generateSlug() {
     slug = title
       .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-|-$/g, "");
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '');
   }
 </script>
 
@@ -38,9 +36,7 @@
 
 <div class="max-w-2xl mx-auto">
   <div class="flex items-center gap-4 mb-6">
-    <a href="/content" class="text-gray-500 hover:text-gray-700">
-      ← Back to Content
-    </a>
+    <a href="/content" class="text-gray-500 hover:text-gray-700"> ← Back to Content </a>
   </div>
 
   <div class="bg-white rounded-lg shadow p-6">
@@ -103,9 +99,7 @@
               placeholder="url-friendly-slug"
             />
           </div>
-          <p class="mt-1 text-xs text-gray-500">
-            Only lowercase letters, numbers, and hyphens
-          </p>
+          <p class="mt-1 text-xs text-gray-500">Only lowercase letters, numbers, and hyphens</p>
         </div>
 
         <!-- Site -->
@@ -129,10 +123,7 @@
 
         <!-- Content Type -->
         <div>
-          <label
-            for="content_type_id"
-            class="block text-sm font-medium text-gray-700"
-          >
+          <label for="content_type_id" class="block text-sm font-medium text-gray-700">
             Content Type <span class="text-red-500">*</span>
           </label>
           <select
@@ -144,7 +135,7 @@
             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-esolia-navy focus:ring-esolia-navy disabled:bg-gray-100"
           >
             <option value="">
-              {siteId ? "Select content type..." : "Select a site first"}
+              {siteId ? 'Select content type...' : 'Select a site first'}
             </option>
             {#each filteredContentTypes as type}
               <option value={type.id}>{type.name}</option>
@@ -170,11 +161,11 @@
 
         <!-- Sensitivity -->
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">
-            Sensitivity Level
-          </label>
+          <label class="block text-sm font-medium text-gray-700 mb-2"> Sensitivity Level </label>
           <div class="space-y-2">
-            <label class="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+            <label
+              class="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50"
+            >
               <input
                 type="radio"
                 name="sensitivity"
@@ -189,7 +180,9 @@
                 </div>
               </div>
             </label>
-            <label class="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+            <label
+              class="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50"
+            >
               <input
                 type="radio"
                 name="sensitivity"
@@ -204,7 +197,9 @@
                 </div>
               </div>
             </label>
-            <label class="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+            <label
+              class="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50"
+            >
               <input
                 type="radio"
                 name="sensitivity"
@@ -229,12 +224,9 @@
             disabled={isSubmitting}
             class="flex-1 px-4 py-2 bg-esolia-navy text-white rounded-lg hover:bg-esolia-navy/90 transition-colors font-medium disabled:opacity-50"
           >
-            {isSubmitting ? "Creating..." : "Create Content"}
+            {isSubmitting ? 'Creating...' : 'Create Content'}
           </button>
-          <a
-            href="/content"
-            class="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
-          >
+          <a href="/content" class="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">
             Cancel
           </a>
         </div>

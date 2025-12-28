@@ -5,33 +5,33 @@
  * InfoSec: HMAC signing, URL validation, rate limiting (OWASP A01, A03)
  */
 
-import type { D1Database } from "@cloudflare/workers-types";
-import type { AuditService, AuditContext } from "./audit";
+import type { D1Database } from '@cloudflare/workers-types';
+import type { AuditService, AuditContext } from './audit';
 
 // Event types that can trigger webhooks
 export type WebhookEvent =
-  | "document.created"
-  | "document.updated"
-  | "document.published"
-  | "document.unpublished"
-  | "document.deleted"
-  | "document.archived"
-  | "workflow.submitted"
-  | "workflow.approved"
-  | "workflow.rejected"
-  | "workflow.stage_changed"
-  | "comment.created"
-  | "comment.resolved"
-  | "comment.mention"
-  | "media.uploaded"
-  | "media.deleted";
+  | 'document.created'
+  | 'document.updated'
+  | 'document.published'
+  | 'document.unpublished'
+  | 'document.deleted'
+  | 'document.archived'
+  | 'workflow.submitted'
+  | 'workflow.approved'
+  | 'workflow.rejected'
+  | 'workflow.stage_changed'
+  | 'comment.created'
+  | 'comment.resolved'
+  | 'comment.mention'
+  | 'media.uploaded'
+  | 'media.deleted';
 
 export interface Webhook {
   id: string;
   name: string;
   url: string;
   secret: string | null;
-  auth_type: "none" | "bearer" | "basic" | "hmac";
+  auth_type: 'none' | 'bearer' | 'basic' | 'hmac';
   auth_value: string | null;
   events: WebhookEvent[];
   collections: string[] | null;
@@ -54,7 +54,7 @@ export interface WebhookDelivery {
   event_type: string;
   event_id: string;
   payload: string;
-  status: "pending" | "success" | "failed" | "retrying";
+  status: 'pending' | 'success' | 'failed' | 'retrying';
   attempts: number;
   response_status: number | null;
   response_body: string | null;
@@ -84,7 +84,7 @@ export interface WebhookPayload {
 
 export interface Integration {
   id: string;
-  type: "slack" | "email" | "teams";
+  type: 'slack' | 'email' | 'teams';
   name: string;
   config: Record<string, unknown>;
   enabled: boolean;
@@ -100,7 +100,7 @@ export interface CreateWebhookOptions {
   url: string;
   events: WebhookEvent[];
   secret?: string;
-  authType?: "none" | "bearer" | "basic" | "hmac";
+  authType?: 'none' | 'bearer' | 'basic' | 'hmac';
   authValue?: string;
   collections?: string[];
   maxRetries?: number;
@@ -118,24 +118,21 @@ export interface DeliveryResult {
  * Sign payload with HMAC-SHA256
  * InfoSec: Cryptographic signature for webhook authenticity
  */
-async function signPayload(
-  payload: WebhookPayload,
-  secret: string
-): Promise<string> {
+async function signPayload(payload: WebhookPayload, secret: string): Promise<string> {
   const encoder = new TextEncoder();
   const data = encoder.encode(JSON.stringify(payload));
   const key = await crypto.subtle.importKey(
-    "raw",
+    'raw',
     encoder.encode(secret),
-    { name: "HMAC", hash: "SHA-256" },
+    { name: 'HMAC', hash: 'SHA-256' },
     false,
-    ["sign"]
+    ['sign']
   );
 
-  const signature = await crypto.subtle.sign("HMAC", key, data);
+  const signature = await crypto.subtle.sign('HMAC', key, data);
   return Array.from(new Uint8Array(signature))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
 }
 
 /**
@@ -147,45 +144,45 @@ function validateWebhookUrl(url: string): void {
   try {
     parsed = new URL(url);
   } catch {
-    throw new Error("Invalid webhook URL");
+    throw new Error('Invalid webhook URL');
   }
 
   // InfoSec: Require HTTPS
-  if (parsed.protocol !== "https:") {
-    throw new Error("Webhook URL must use HTTPS");
+  if (parsed.protocol !== 'https:') {
+    throw new Error('Webhook URL must use HTTPS');
   }
 
   // InfoSec: Block localhost and private IPs
   const hostname = parsed.hostname.toLowerCase();
   const blockedPatterns = [
-    "localhost",
-    "127.0.0.1",
-    "0.0.0.0",
-    "::1",
-    "10.",
-    "192.168.",
-    "172.16.",
-    "172.17.",
-    "172.18.",
-    "172.19.",
-    "172.20.",
-    "172.21.",
-    "172.22.",
-    "172.23.",
-    "172.24.",
-    "172.25.",
-    "172.26.",
-    "172.27.",
-    "172.28.",
-    "172.29.",
-    "172.30.",
-    "172.31.",
-    "169.254.",
+    'localhost',
+    '127.0.0.1',
+    '0.0.0.0',
+    '::1',
+    '10.',
+    '192.168.',
+    '172.16.',
+    '172.17.',
+    '172.18.',
+    '172.19.',
+    '172.20.',
+    '172.21.',
+    '172.22.',
+    '172.23.',
+    '172.24.',
+    '172.25.',
+    '172.26.',
+    '172.27.',
+    '172.28.',
+    '172.29.',
+    '172.30.',
+    '172.31.',
+    '169.254.',
   ];
 
   for (const pattern of blockedPatterns) {
     if (hostname === pattern || hostname.startsWith(pattern)) {
-      throw new Error("Webhook URL cannot target private networks");
+      throw new Error('Webhook URL cannot target private networks');
     }
   }
 }
@@ -195,10 +192,7 @@ export function createWebhookService(db: D1Database, audit?: AuditService) {
     /**
      * Create a new webhook
      */
-    async create(
-      options: CreateWebhookOptions,
-      context: AuditContext
-    ): Promise<Webhook> {
+    async create(options: CreateWebhookOptions, context: AuditContext): Promise<Webhook> {
       // InfoSec: Validate URL before storing
       validateWebhookUrl(options.url);
 
@@ -220,7 +214,7 @@ export function createWebhookService(db: D1Database, audit?: AuditService) {
           options.name,
           options.url,
           options.secret || null,
-          options.authType || "none",
+          options.authType || 'none',
           options.authValue || null,
           JSON.stringify(options.events),
           options.collections ? JSON.stringify(options.collections) : null,
@@ -235,15 +229,15 @@ export function createWebhookService(db: D1Database, audit?: AuditService) {
       if (audit) {
         await audit.log(
           {
-            action: "create",
-            actionCategory: "system",
-            resourceType: "webhook",
+            action: 'create',
+            actionCategory: 'system',
+            resourceType: 'webhook',
             resourceId: id,
             resourceTitle: options.name,
             metadata: {
               url: options.url,
               events: options.events,
-              authType: options.authType || "none",
+              authType: options.authType || 'none',
             },
           },
           context
@@ -257,10 +251,7 @@ export function createWebhookService(db: D1Database, audit?: AuditService) {
      * Get webhook by ID
      */
     async get(id: string): Promise<Webhook | null> {
-      const row = await db
-        .prepare("SELECT * FROM webhooks WHERE id = ?")
-        .bind(id)
-        .first();
+      const row = await db.prepare('SELECT * FROM webhooks WHERE id = ?').bind(id).first();
 
       if (!row) return null;
       return this.rowToWebhook(row);
@@ -270,9 +261,7 @@ export function createWebhookService(db: D1Database, audit?: AuditService) {
      * List all webhooks
      */
     async list(): Promise<Webhook[]> {
-      const { results } = await db
-        .prepare("SELECT * FROM webhooks ORDER BY name")
-        .all();
+      const { results } = await db.prepare('SELECT * FROM webhooks ORDER BY name').all();
 
       return results.map((row) => this.rowToWebhook(row));
     },
@@ -289,65 +278,63 @@ export function createWebhookService(db: D1Database, audit?: AuditService) {
         validateWebhookUrl(updates.url);
       }
 
-      const setClauses: string[] = ["updated_at = ?"];
+      const setClauses: string[] = ['updated_at = ?'];
       const params: unknown[] = [Date.now()];
 
       if (updates.name !== undefined) {
-        setClauses.push("name = ?");
+        setClauses.push('name = ?');
         params.push(updates.name);
       }
       if (updates.url !== undefined) {
-        setClauses.push("url = ?");
+        setClauses.push('url = ?');
         params.push(updates.url);
       }
       if (updates.secret !== undefined) {
-        setClauses.push("secret = ?");
+        setClauses.push('secret = ?');
         params.push(updates.secret);
       }
       if (updates.authType !== undefined) {
-        setClauses.push("auth_type = ?");
+        setClauses.push('auth_type = ?');
         params.push(updates.authType);
       }
       if (updates.authValue !== undefined) {
-        setClauses.push("auth_value = ?");
+        setClauses.push('auth_value = ?');
         params.push(updates.authValue);
       }
       if (updates.events !== undefined) {
-        setClauses.push("events = ?");
+        setClauses.push('events = ?');
         params.push(JSON.stringify(updates.events));
       }
       if (updates.collections !== undefined) {
-        setClauses.push("collections = ?");
-        params.push(
-          updates.collections ? JSON.stringify(updates.collections) : null
-        );
+        setClauses.push('collections = ?');
+        params.push(updates.collections ? JSON.stringify(updates.collections) : null);
       }
       if (updates.enabled !== undefined) {
-        setClauses.push("enabled = ?");
+        setClauses.push('enabled = ?');
         params.push(updates.enabled ? 1 : 0);
       }
       if (updates.maxRetries !== undefined) {
-        setClauses.push("max_retries = ?");
+        setClauses.push('max_retries = ?');
         params.push(updates.maxRetries);
       }
       if (updates.retryDelay !== undefined) {
-        setClauses.push("retry_delay = ?");
+        setClauses.push('retry_delay = ?');
         params.push(updates.retryDelay);
       }
 
       params.push(id);
 
       await db
-        .prepare(`UPDATE webhooks SET ${setClauses.join(", ")} WHERE id = ?`)
+        .prepare(`UPDATE webhooks SET ${setClauses.join(', ')} WHERE id = ?`)
         .bind(...params)
         .run();
 
       if (audit) {
         await audit.log(
           {
-            action: "update",
-            actionCategory: "system",
-            resourceType: "webhook",
+            action: 'update',
+            actionCategory: 'system',
+            resourceType: 'webhook',
             resourceId: id,
             metadata: updates,
           },
@@ -365,14 +352,14 @@ export function createWebhookService(db: D1Database, audit?: AuditService) {
       const webhook = await this.get(id);
       if (!webhook) throw new Error(`Webhook not found: ${id}`);
 
-      await db.prepare("DELETE FROM webhooks WHERE id = ?").bind(id).run();
+      await db.prepare('DELETE FROM webhooks WHERE id = ?').bind(id).run();
 
       if (audit) {
         await audit.log(
           {
-            action: "delete",
-            actionCategory: "system",
-            resourceType: "webhook",
+            action: 'delete',
+            actionCategory: 'system',
+            resourceType: 'webhook',
             resourceId: id,
             resourceTitle: webhook.name,
           },
@@ -386,12 +373,10 @@ export function createWebhookService(db: D1Database, audit?: AuditService) {
      */
     async trigger(
       event: WebhookEvent,
-      data: Omit<WebhookPayload, "id" | "event" | "timestamp">
+      data: Omit<WebhookPayload, 'id' | 'event' | 'timestamp'>
     ): Promise<void> {
       // Find matching enabled webhooks
-      const { results } = await db
-        .prepare("SELECT * FROM webhooks WHERE enabled = 1")
-        .all();
+      const { results } = await db.prepare('SELECT * FROM webhooks WHERE enabled = 1').all();
 
       const matchingWebhooks = results.filter((row) => {
         const events = JSON.parse(row.events as string) as WebhookEvent[];
@@ -460,28 +445,28 @@ export function createWebhookService(db: D1Database, audit?: AuditService) {
       try {
         // Build headers
         const headers: Record<string, string> = {
-          "Content-Type": "application/json",
-          "X-Webhook-ID": webhook.id,
-          "X-Event-Type": payload.event,
-          "X-Delivery-ID": deliveryId,
-          "X-Timestamp": String(payload.timestamp),
-          "User-Agent": "Hanawa-CMS-Webhook/1.0",
+          'Content-Type': 'application/json',
+          'X-Webhook-ID': webhook.id,
+          'X-Event-Type': payload.event,
+          'X-Delivery-ID': deliveryId,
+          'X-Timestamp': String(payload.timestamp),
+          'User-Agent': 'Hanawa-CMS-Webhook/1.0',
         };
 
         // InfoSec: Add authentication
-        if (webhook.auth_type === "bearer" && webhook.auth_value) {
-          headers["Authorization"] = `Bearer ${webhook.auth_value}`;
-        } else if (webhook.auth_type === "basic" && webhook.auth_value) {
-          headers["Authorization"] = `Basic ${btoa(webhook.auth_value)}`;
-        } else if (webhook.auth_type === "hmac" && webhook.secret) {
+        if (webhook.auth_type === 'bearer' && webhook.auth_value) {
+          headers['Authorization'] = `Bearer ${webhook.auth_value}`;
+        } else if (webhook.auth_type === 'basic' && webhook.auth_value) {
+          headers['Authorization'] = `Basic ${btoa(webhook.auth_value)}`;
+        } else if (webhook.auth_type === 'hmac' && webhook.secret) {
           const signature = await signPayload(payload, webhook.secret);
-          headers["X-Signature"] = signature;
-          headers["X-Signature-Algorithm"] = "sha256";
+          headers['X-Signature'] = signature;
+          headers['X-Signature-Algorithm'] = 'sha256';
         }
 
         // Send request
         const response = await fetch(webhook.url, {
-          method: "POST",
+          method: 'POST',
           headers,
           body: JSON.stringify(payload),
         });
@@ -501,7 +486,7 @@ export function createWebhookService(db: D1Database, audit?: AuditService) {
         `
           )
           .bind(
-            response.ok ? "success" : "failed",
+            response.ok ? 'success' : 'failed',
             response.status,
             responseBody.slice(0, 1000), // Limit stored response
             responseTime,
@@ -516,8 +501,8 @@ export function createWebhookService(db: D1Database, audit?: AuditService) {
             `
           UPDATE webhooks
           SET last_triggered_at = ?,
-              ${response.ok ? "last_success_at" : "last_failure_at"} = ?,
-              ${response.ok ? "success_count = success_count + 1" : "failure_count = failure_count + 1"}
+              ${response.ok ? 'last_success_at' : 'last_failure_at'} = ?,
+              ${response.ok ? 'success_count = success_count + 1' : 'failure_count = failure_count + 1'}
           WHERE id = ?
         `
           )
@@ -531,8 +516,7 @@ export function createWebhookService(db: D1Database, audit?: AuditService) {
           error: response.ok ? undefined : `HTTP ${response.status}`,
         };
       } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : "Unknown error";
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 
         await db
           .prepare(
@@ -569,17 +553,17 @@ export function createWebhookService(db: D1Database, audit?: AuditService) {
 
       const testPayload: WebhookPayload = {
         id: `test-${crypto.randomUUID()}`,
-        event: "document.updated",
+        event: 'document.updated',
         timestamp: Date.now(),
         data: {
-          id: "test-doc",
-          type: "test",
-          attributes: { title: "Test Document" },
+          id: 'test-doc',
+          type: 'test',
+          attributes: { title: 'Test Document' },
         },
         actor: {
-          id: "system",
-          email: "test@hanawa.internal",
-          name: "Webhook Test",
+          id: 'system',
+          email: 'test@hanawa.internal',
+          name: 'Webhook Test',
         },
       };
 
@@ -598,9 +582,7 @@ export function createWebhookService(db: D1Database, audit?: AuditService) {
       const offset = (page - 1) * perPage;
 
       const countResult = await db
-        .prepare(
-          "SELECT COUNT(*) as total FROM webhook_deliveries WHERE webhook_id = ?"
-        )
+        .prepare('SELECT COUNT(*) as total FROM webhook_deliveries WHERE webhook_id = ?')
         .bind(webhookId)
         .first();
       const total = (countResult?.total as number) || 0;
@@ -628,14 +610,14 @@ export function createWebhookService(db: D1Database, audit?: AuditService) {
      */
     async retryDelivery(deliveryId: string): Promise<DeliveryResult> {
       const row = await db
-        .prepare("SELECT * FROM webhook_deliveries WHERE id = ?")
+        .prepare('SELECT * FROM webhook_deliveries WHERE id = ?')
         .bind(deliveryId)
         .first();
 
       if (!row) throw new Error(`Delivery not found: ${deliveryId}`);
 
       const webhook = await this.get(row.webhook_id as string);
-      if (!webhook) throw new Error("Associated webhook not found");
+      if (!webhook) throw new Error('Associated webhook not found');
 
       const payload = JSON.parse(row.payload as string) as WebhookPayload;
 
@@ -655,7 +637,7 @@ export function createWebhookService(db: D1Database, audit?: AuditService) {
      */
     async createIntegration(
       data: {
-        type: "slack" | "email" | "teams";
+        type: 'slack' | 'email' | 'teams';
         name: string;
         config: Record<string, unknown>;
         events: WebhookEvent[];
@@ -690,9 +672,9 @@ export function createWebhookService(db: D1Database, audit?: AuditService) {
       if (audit) {
         await audit.log(
           {
-            action: "create",
-            actionCategory: "system",
-            resourceType: "integration",
+            action: 'create',
+            actionCategory: 'system',
+            resourceType: 'integration',
             resourceId: id,
             resourceTitle: data.name,
             metadata: { type: data.type },
@@ -708,10 +690,7 @@ export function createWebhookService(db: D1Database, audit?: AuditService) {
      * Get integration by ID
      */
     async getIntegration(id: string): Promise<Integration | null> {
-      const row = await db
-        .prepare("SELECT * FROM integrations WHERE id = ?")
-        .bind(id)
-        .first();
+      const row = await db.prepare('SELECT * FROM integrations WHERE id = ?').bind(id).first();
 
       if (!row) return null;
       return this.rowToIntegration(row);
@@ -721,15 +700,15 @@ export function createWebhookService(db: D1Database, audit?: AuditService) {
      * List integrations
      */
     async listIntegrations(type?: string): Promise<Integration[]> {
-      let query = "SELECT * FROM integrations";
+      let query = 'SELECT * FROM integrations';
       const params: string[] = [];
 
       if (type) {
-        query += " WHERE type = ?";
+        query += ' WHERE type = ?';
         params.push(type);
       }
 
-      query += " ORDER BY name";
+      query += ' ORDER BY name';
 
       const { results } = await db
         .prepare(query)
@@ -746,14 +725,14 @@ export function createWebhookService(db: D1Database, audit?: AuditService) {
       const integration = await this.getIntegration(id);
       if (!integration) throw new Error(`Integration not found: ${id}`);
 
-      await db.prepare("DELETE FROM integrations WHERE id = ?").bind(id).run();
+      await db.prepare('DELETE FROM integrations WHERE id = ?').bind(id).run();
 
       if (audit) {
         await audit.log(
           {
-            action: "delete",
-            actionCategory: "system",
-            resourceType: "integration",
+            action: 'delete',
+            actionCategory: 'system',
+            resourceType: 'integration',
             resourceId: id,
             resourceTitle: integration.name,
           },
@@ -770,12 +749,10 @@ export function createWebhookService(db: D1Database, audit?: AuditService) {
         name: row.name as string,
         url: row.url as string,
         secret: row.secret as string | null,
-        auth_type: row.auth_type as "none" | "bearer" | "basic" | "hmac",
+        auth_type: row.auth_type as 'none' | 'bearer' | 'basic' | 'hmac',
         auth_value: row.auth_value as string | null,
         events: JSON.parse(row.events as string),
-        collections: row.collections
-          ? JSON.parse(row.collections as string)
-          : null,
+        collections: row.collections ? JSON.parse(row.collections as string) : null,
         enabled: Boolean(row.enabled),
         max_retries: row.max_retries as number,
         retry_delay: row.retry_delay as number,
@@ -797,7 +774,7 @@ export function createWebhookService(db: D1Database, audit?: AuditService) {
         event_type: row.event_type as string,
         event_id: row.event_id as string,
         payload: row.payload as string,
-        status: row.status as "pending" | "success" | "failed" | "retrying",
+        status: row.status as 'pending' | 'success' | 'failed' | 'retrying',
         attempts: row.attempts as number,
         response_status: row.response_status as number | null,
         response_body: row.response_body as string | null,
@@ -811,14 +788,12 @@ export function createWebhookService(db: D1Database, audit?: AuditService) {
     rowToIntegration(row: Record<string, unknown>): Integration {
       return {
         id: row.id as string,
-        type: row.type as "slack" | "email" | "teams",
+        type: row.type as 'slack' | 'email' | 'teams',
         name: row.name as string,
         config: JSON.parse(row.config as string),
         enabled: Boolean(row.enabled),
         events: JSON.parse(row.events as string),
-        collections: row.collections
-          ? JSON.parse(row.collections as string)
-          : null,
+        collections: row.collections ? JSON.parse(row.collections as string) : null,
         created_by: row.created_by as string,
         created_at: row.created_at as number,
         updated_at: row.updated_at as number,

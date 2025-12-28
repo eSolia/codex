@@ -3,7 +3,7 @@
    * Keyboard Shortcuts Modal
    * Displays all available keyboard shortcuts
    */
-  import { onMount } from "svelte";
+  import { onMount } from 'svelte';
 
   let { open = $bindable(false) }: { open?: boolean } = $props();
 
@@ -19,53 +19,53 @@
 
   const shortcutGroups: ShortcutGroup[] = [
     {
-      title: "Global",
+      title: 'Global',
       shortcuts: [
-        { keys: ["⌘", "K"], description: "Open command palette" },
-        { keys: ["⌘", "S"], description: "Save document" },
-        { keys: ["?"], description: "Show keyboard shortcuts" },
+        { keys: ['⌘', 'K'], description: 'Open command palette' },
+        { keys: ['⌘', 'S'], description: 'Save document' },
+        { keys: ['?'], description: 'Show keyboard shortcuts' },
       ],
     },
     {
-      title: "Navigation",
+      title: 'Navigation',
       shortcuts: [
-        { keys: ["G", "D"], description: "Go to Dashboard" },
-        { keys: ["G", "C"], description: "Go to Content" },
-        { keys: ["G", "F"], description: "Go to Fragments" },
-        { keys: ["G", "S"], description: "Go to Sites" },
-        { keys: ["G", "A"], description: "Go to Assets" },
+        { keys: ['G', 'D'], description: 'Go to Dashboard' },
+        { keys: ['G', 'C'], description: 'Go to Content' },
+        { keys: ['G', 'F'], description: 'Go to Fragments' },
+        { keys: ['G', 'S'], description: 'Go to Sites' },
+        { keys: ['G', 'A'], description: 'Go to Assets' },
       ],
     },
     {
-      title: "Text Formatting",
+      title: 'Text Formatting',
       shortcuts: [
-        { keys: ["⌘", "B"], description: "Bold" },
-        { keys: ["⌘", "I"], description: "Italic" },
-        { keys: ["⌘", "U"], description: "Underline" },
-        { keys: ["⌘", "⇧", "X"], description: "Strikethrough" },
-        { keys: ["⌘", "E"], description: "Inline code" },
+        { keys: ['⌘', 'B'], description: 'Bold' },
+        { keys: ['⌘', 'I'], description: 'Italic' },
+        { keys: ['⌘', 'U'], description: 'Underline' },
+        { keys: ['⌘', '⇧', 'X'], description: 'Strikethrough' },
+        { keys: ['⌘', 'E'], description: 'Inline code' },
       ],
     },
     {
-      title: "Blocks",
+      title: 'Blocks',
       shortcuts: [
-        { keys: ["/"], description: "Open slash commands menu" },
-        { keys: ["⌘", "⇧", "M"], description: "Insert Mermaid diagram" },
-        { keys: ["⌘", "⌥", "1"], description: "Heading 1" },
-        { keys: ["⌘", "⌥", "2"], description: "Heading 2" },
-        { keys: ["⌘", "⌥", "3"], description: "Heading 3" },
-        { keys: ["⌘", "⇧", "7"], description: "Ordered list" },
-        { keys: ["⌘", "⇧", "8"], description: "Bullet list" },
-        { keys: ["⌘", "⇧", "9"], description: "Task list" },
+        { keys: ['/'], description: 'Open slash commands menu' },
+        { keys: ['⌘', '⇧', 'M'], description: 'Insert Mermaid diagram' },
+        { keys: ['⌘', '⌥', '1'], description: 'Heading 1' },
+        { keys: ['⌘', '⌥', '2'], description: 'Heading 2' },
+        { keys: ['⌘', '⌥', '3'], description: 'Heading 3' },
+        { keys: ['⌘', '⇧', '7'], description: 'Ordered list' },
+        { keys: ['⌘', '⇧', '8'], description: 'Bullet list' },
+        { keys: ['⌘', '⇧', '9'], description: 'Task list' },
       ],
     },
     {
-      title: "Editor",
+      title: 'Editor',
       shortcuts: [
-        { keys: ["⌘", "Z"], description: "Undo" },
-        { keys: ["⌘", "⇧", "Z"], description: "Redo" },
-        { keys: ["⌘", "A"], description: "Select all" },
-        { keys: ["Esc"], description: "Clear selection / Close menu" },
+        { keys: ['⌘', 'Z'], description: 'Undo' },
+        { keys: ['⌘', '⇧', 'Z'], description: 'Redo' },
+        { keys: ['⌘', 'A'], description: 'Select all' },
+        { keys: ['Esc'], description: 'Clear selection / Close menu' },
       ],
     },
   ];
@@ -78,7 +78,7 @@
   onMount(() => {
     function handleKeydown(event: KeyboardEvent) {
       if (
-        event.key === "?" &&
+        event.key === '?' &&
         !event.metaKey &&
         !event.ctrlKey &&
         !(event.target instanceof HTMLInputElement) &&
@@ -87,13 +87,13 @@
         event.preventDefault();
         open = !open;
       }
-      if (event.key === "Escape" && open) {
+      if (event.key === 'Escape' && open) {
         close();
       }
     }
 
-    document.addEventListener("keydown", handleKeydown);
-    return () => document.removeEventListener("keydown", handleKeydown);
+    document.addEventListener('keydown', handleKeydown);
+    return () => document.removeEventListener('keydown', handleKeydown);
   });
 </script>
 
@@ -102,7 +102,7 @@
   <div
     class="fixed inset-0 bg-black/50 z-50"
     onclick={close}
-    onkeydown={(e) => e.key === "Escape" && close()}
+    onkeydown={(e) => e.key === 'Escape' && close()}
     role="button"
     tabindex="-1"
   ></div>
@@ -117,13 +117,14 @@
     <!-- Header -->
     <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
       <h2 class="text-lg font-semibold text-gray-900">Keyboard Shortcuts</h2>
-      <button
-        type="button"
-        class="p-1 text-gray-400 hover:text-gray-600 rounded"
-        onclick={close}
-      >
+      <button type="button" class="p-1 text-gray-400 hover:text-gray-600 rounded" onclick={close}>
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M6 18L18 6M6 6l12 12"
+          />
         </svg>
       </button>
     </div>

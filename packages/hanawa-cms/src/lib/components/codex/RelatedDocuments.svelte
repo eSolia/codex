@@ -4,7 +4,7 @@
    * InfoSec: Displays semantically similar content from Codex
    */
 
-  import { onMount } from "svelte";
+  import { onMount } from 'svelte';
 
   interface RelatedDoc {
     documentId: string;
@@ -36,22 +36,22 @@
       const response = await fetch(`/api/codex/related/${documentId}?limit=${maxItems}`);
 
       if (!response.ok) {
-        throw new Error("Failed to load related documents");
+        throw new Error('Failed to load related documents');
       }
 
       related = await response.json();
     } catch (e) {
-      error = e instanceof Error ? e.message : "Unknown error";
+      error = e instanceof Error ? e.message : 'Unknown error';
     } finally {
       loading = false;
     }
   }
 
   function getScoreColor(score: number): string {
-    if (score >= 0.9) return "text-green-600";
-    if (score >= 0.8) return "text-emerald-600";
-    if (score >= 0.7) return "text-blue-600";
-    return "text-gray-500";
+    if (score >= 0.9) return 'text-green-600';
+    if (score >= 0.8) return 'text-emerald-600';
+    if (score >= 0.7) return 'text-blue-600';
+    return 'text-gray-500';
   }
 </script>
 
@@ -86,7 +86,12 @@
     </div>
   {:else if related.length === 0}
     <div class="text-center py-6">
-      <svg class="w-8 h-8 mx-auto text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg
+        class="w-8 h-8 mx-auto text-gray-300"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
         <path
           stroke-linecap="round"
           stroke-linejoin="round"

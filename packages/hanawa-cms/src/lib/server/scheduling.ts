@@ -11,16 +11,11 @@
 
 /// <reference types="@cloudflare/workers-types" />
 
-import type { AuditService, AuditContext } from "./audit";
-import type { WorkflowService } from "./workflow";
+import type { AuditService, AuditContext } from './audit';
+import type { WorkflowService } from './workflow';
 
-export type ScheduledAction = "publish" | "unpublish" | "archive";
-export type ScheduledStatus =
-  | "pending"
-  | "processing"
-  | "completed"
-  | "failed"
-  | "cancelled";
+export type ScheduledAction = 'publish' | 'unpublish' | 'archive';
+export type ScheduledStatus = 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled';
 
 export interface ScheduledJob {
   id: string;
@@ -73,18 +68,15 @@ export function createSchedulingService(
     /**
      * Schedule a document action
      */
-    async schedule(
-      request: ScheduleRequest,
-      context: AuditContext
-    ): Promise<ScheduledJob> {
+    async schedule(request: ScheduleRequest, context: AuditContext): Promise<ScheduledJob> {
       const id = crypto.randomUUID();
       const now = Date.now();
 
       // Parse scheduled time
       let scheduledAt: number;
-      if (typeof request.scheduledAt === "string") {
+      if (typeof request.scheduledAt === 'string') {
         scheduledAt = new Date(request.scheduledAt).getTime();
-      } else if (typeof request.scheduledAt === "number") {
+      } else if (typeof request.scheduledAt === 'number') {
         scheduledAt = request.scheduledAt;
       } else {
         scheduledAt = request.scheduledAt.getTime();
@@ -92,11 +84,11 @@ export function createSchedulingService(
 
       // Validate timing
       if (scheduledAt <= now) {
-        throw new Error("Scheduled time must be in the future");
+        throw new Error('Scheduled time must be in the future');
       }
 
       // Check for embargo conflicts on publish
-      if (request.action === "publish") {
+      if (request.action === 'publish') {
         const doc = await db
           .prepare(`SELECT embargo_until FROM content WHERE id = ?`)
           .bind(request.documentId)
@@ -120,7 +112,7 @@ export function createSchedulingService(
 
       if (existing) {
         // Cancel the existing job (replaced by new schedule)
-        await this.cancel(existing.id, "Replaced by new schedule", context);
+        await this.cancel(existing.id, 'Replaced by new schedule', context);
       }
 
       await db
@@ -135,7 +127,7 @@ export function createSchedulingService(
           request.documentId,
           request.action,
           scheduledAt,
-          request.timezone || "UTC",
+          request.timezone || 'UTC',
           request.isEmbargo ? 1 : 0,
           request.notes || null,
           context.actorEmail,
@@ -144,7 +136,7 @@ export function createSchedulingService(
         .run();
 
       // If this is an embargo, update the document's embargo_until field
-      if (request.isEmbargo && request.action === "publish") {
+      if (request.isEmbargo && request.action === 'publish') {
         await db
           .prepare(`UPDATE content SET embargo_until = ? WHERE id = ?`)
           .bind(scheduledAt, request.documentId)
@@ -155,16 +147,16 @@ export function createSchedulingService(
       if (audit) {
         await audit.log(
           {
-            action: "schedule",
-            actionCategory: "workflow",
-            resourceType: "content",
+            action: 'schedule',
+            actionCategory: 'workflow',
+            resourceType: 'content',
             resourceId: request.documentId,
             changeSummary: `Scheduled ${request.action} for ${new Date(scheduledAt).toISOString()}`,
             metadata: {
               jobId: id,
               scheduledAt,
               scheduledAction: request.action,
-              timezone: request.timezone || "UTC",
+              timezone: request.timezone || 'UTC',
               isEmbargo: request.isEmbargo || false,
             },
           },
@@ -178,15 +170,11 @@ export function createSchedulingService(
     /**
      * Cancel a scheduled job
      */
-    async cancel(
-      jobId: string,
-      reason?: string,
-      context?: AuditContext
-    ): Promise<void> {
+    async cancel(jobId: string, reason?: string, context?: AuditContext): Promise<void> {
       const job = await this.get(jobId);
-      if (!job) throw new Error("Scheduled job not found");
-      if (job.status !== "pending") {
-        throw new Error("Can only cancel pending jobs");
+      if (!job) throw new Error('Scheduled job not found');
+      if (job.status !== 'pending') {
+        throw new Error('Can only cancel pending jobs');
       }
 
       await db
@@ -198,16 +186,11 @@ export function createSchedulingService(
                notes = COALESCE(?, notes)
            WHERE id = ?`
         )
-        .bind(
-          context?.actorEmail || "system",
-          Date.now(),
-          reason,
-          jobId
-        )
+        .bind(context?.actorEmail || 'system', Date.now(), reason, jobId)
         .run();
 
       // If this was an embargo job, clear the embargo
-      if (job.isEmbargo && job.action === "publish") {
+      if (job.isEmbargo && job.action === 'publish') {
         await db
           .prepare(`UPDATE content SET embargo_until = NULL WHERE id = ?`)
           .bind(job.documentId)
@@ -218,9 +201,9 @@ export function createSchedulingService(
       if (audit && context) {
         await audit.log(
           {
-            action: "unschedule",
-            actionCategory: "workflow",
-            resourceType: "content",
+            action: 'unschedule',
+            actionCategory: 'workflow',
+            resourceType: 'content',
             resourceId: job.documentId,
             changeSummary: `Cancelled scheduled ${job.action}`,
             metadata: { jobId, reason },
@@ -250,13 +233,11 @@ export function createSchedulingService(
     /**
      * Process a single scheduled job
      */
-    async processJob(
-      jobId: string
-    ): Promise<{ success: boolean; error?: string }> {
+    async processJob(jobId: string): Promise<{ success: boolean; error?: string }> {
       const job = await this.get(jobId);
-      if (!job) return { success: false, error: "Job not found" };
-      if (job.status !== "pending") {
-        return { success: false, error: "Job not pending" };
+      if (!job) return { success: false, error: 'Job not found' };
+      if (job.status !== 'pending') {
+        return { success: false, error: 'Job not pending' };
       }
 
       // Mark as processing
@@ -267,12 +248,12 @@ export function createSchedulingService(
 
       try {
         const systemContext: AuditContext = {
-          actorId: "system",
-          actorEmail: "scheduler@hanawa.internal",
-          actorName: "Scheduled Task",
+          actorId: 'system',
+          actorEmail: 'scheduler@hanawa.internal',
+          actorName: 'Scheduled Task',
         };
 
-        if (job.action === "publish") {
+        if (job.action === 'publish') {
           // Try to use workflow if available, otherwise direct update
           if (workflow) {
             const result = await workflow.submit(
@@ -281,7 +262,7 @@ export function createSchedulingService(
               systemContext
             );
             if (!result.success) {
-              throw new Error(result.error || "Workflow transition failed");
+              throw new Error(result.error || 'Workflow transition failed');
             }
           } else {
             // Direct publish
@@ -298,17 +279,17 @@ export function createSchedulingService(
           if (audit) {
             await audit.log(
               {
-                action: "publish",
-                actionCategory: "workflow",
-                resourceType: "content",
+                action: 'publish',
+                actionCategory: 'workflow',
+                resourceType: 'content',
                 resourceId: job.documentId,
-                changeSummary: "Scheduled publish executed",
+                changeSummary: 'Scheduled publish executed',
                 metadata: { jobId },
               },
               systemContext
             );
           }
-        } else if (job.action === "unpublish") {
+        } else if (job.action === 'unpublish') {
           await db
             .prepare(
               `UPDATE content
@@ -321,17 +302,17 @@ export function createSchedulingService(
           if (audit) {
             await audit.log(
               {
-                action: "unpublish",
-                actionCategory: "workflow",
-                resourceType: "content",
+                action: 'unpublish',
+                actionCategory: 'workflow',
+                resourceType: 'content',
                 resourceId: job.documentId,
-                changeSummary: "Scheduled unpublish executed",
+                changeSummary: 'Scheduled unpublish executed',
                 metadata: { jobId },
               },
               systemContext
             );
           }
-        } else if (job.action === "archive") {
+        } else if (job.action === 'archive') {
           await db
             .prepare(
               `UPDATE content
@@ -344,11 +325,11 @@ export function createSchedulingService(
           if (audit) {
             await audit.log(
               {
-                action: "archive",
-                actionCategory: "workflow",
-                resourceType: "content",
+                action: 'archive',
+                actionCategory: 'workflow',
+                resourceType: 'content',
                 resourceId: job.documentId,
-                changeSummary: "Scheduled archive executed",
+                changeSummary: 'Scheduled archive executed',
                 metadata: { jobId },
               },
               systemContext
@@ -368,8 +349,7 @@ export function createSchedulingService(
 
         return { success: true };
       } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : "Unknown error";
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 
         // Update retry count and potentially fail
         const newRetryCount = job.retryCount + 1;
@@ -404,10 +384,7 @@ export function createSchedulingService(
      * Get a scheduled job by ID
      */
     async get(jobId: string): Promise<ScheduledJob | null> {
-      const row = await db
-        .prepare(`SELECT * FROM scheduled_jobs WHERE id = ?`)
-        .bind(jobId)
-        .first();
+      const row = await db.prepare(`SELECT * FROM scheduled_jobs WHERE id = ?`).bind(jobId).first();
 
       return row ? this.rowToJob(row) : null;
     },
@@ -431,9 +408,7 @@ export function createSchedulingService(
     /**
      * Get pending scheduled job for a document (if any)
      */
-    async getPendingForDocument(
-      documentId: string
-    ): Promise<ScheduledJob | null> {
+    async getPendingForDocument(documentId: string): Promise<ScheduledJob | null> {
       const row = await db
         .prepare(
           `SELECT * FROM scheduled_jobs
@@ -472,11 +447,14 @@ export function createSchedulingService(
       query += ` ORDER BY sj.scheduled_at ASC LIMIT ?`;
       params.push(limit);
 
-      const { results } = await db.prepare(query).bind(...params).all();
+      const { results } = await db
+        .prepare(query)
+        .bind(...params)
+        .all();
 
       return results.map((row) => ({
         ...this.rowToJob(row),
-        documentTitle: (row.document_title as string) || "Untitled",
+        documentTitle: (row.document_title as string) || 'Untitled',
       }));
     },
 
@@ -504,20 +482,21 @@ export function createSchedulingService(
       query += ` ORDER BY COALESCE(sj.processed_at, sj.scheduled_at) DESC LIMIT ?`;
       params.push(limit);
 
-      const { results } = await db.prepare(query).bind(...params).all();
+      const { results } = await db
+        .prepare(query)
+        .bind(...params)
+        .all();
 
       return results.map((row) => ({
         ...this.rowToJob(row),
-        documentTitle: (row.document_title as string) || "Untitled",
+        documentTitle: (row.document_title as string) || 'Untitled',
       }));
     },
 
     /**
      * Check embargo status for a document
      */
-    async isUnderEmbargo(
-      documentId: string
-    ): Promise<{ embargoed: boolean; until?: number }> {
+    async isUnderEmbargo(documentId: string): Promise<{ embargoed: boolean; until?: number }> {
       const doc = await db
         .prepare(`SELECT embargo_until FROM content WHERE id = ?`)
         .bind(documentId)
@@ -539,10 +518,7 @@ export function createSchedulingService(
     /**
      * Clear embargo for a document
      */
-    async clearEmbargo(
-      documentId: string,
-      context: AuditContext
-    ): Promise<void> {
+    async clearEmbargo(documentId: string, context: AuditContext): Promise<void> {
       await db
         .prepare(`UPDATE content SET embargo_until = NULL WHERE id = ?`)
         .bind(documentId)
@@ -551,11 +527,11 @@ export function createSchedulingService(
       if (audit) {
         await audit.log(
           {
-            action: "update",
-            actionCategory: "workflow",
-            resourceType: "content",
+            action: 'update',
+            actionCategory: 'workflow',
+            resourceType: 'content',
             resourceId: documentId,
-            changeSummary: "Embargo cleared",
+            changeSummary: 'Embargo cleared',
             metadata: { embargoCleared: true },
           },
           context
@@ -601,7 +577,7 @@ export function createSchedulingService(
         documentId: row.document_id as string,
         action: row.action as ScheduledAction,
         scheduledAt: row.scheduled_at as number,
-        timezone: (row.timezone as string) || "UTC",
+        timezone: (row.timezone as string) || 'UTC',
         status: row.status as ScheduledStatus,
         processedAt: row.processed_at as number | undefined,
         errorMessage: row.error_message as string | undefined,

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { PageData } from "./$types";
+  import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();
 
@@ -9,7 +9,7 @@
   ): Record<string, Array<{ category: string; [key: string]: unknown }>> {
     return fragments.reduce(
       (acc, fragment) => {
-        const cat = fragment.category || "Uncategorized";
+        const cat = fragment.category || 'Uncategorized';
         if (!acc[cat]) acc[cat] = [];
         acc[cat].push(fragment);
         return acc;
@@ -18,7 +18,9 @@
     );
   }
 
-  let groupedFragments = $derived(groupByCategory(data.fragments ?? []));
+  let groupedFragments = $derived(
+    groupByCategory((data.fragments ?? []) as Array<{ category: string; [key: string]: unknown }>)
+  );
 </script>
 
 <svelte:head>
@@ -30,26 +32,14 @@
   <div class="flex items-center justify-between">
     <div>
       <h1 class="text-3xl font-bold text-esolia-navy">Fragments</h1>
-      <p class="mt-1 text-gray-600">
-        Reusable content blocks for proposals and documents
-      </p>
+      <p class="mt-1 text-gray-600">Reusable content blocks for proposals and documents</p>
     </div>
     <a
       href="/fragments/new"
       class="inline-flex items-center px-4 py-2 bg-esolia-orange text-esolia-navy rounded-lg hover:bg-esolia-orange/90 transition-colors font-medium"
     >
-      <svg
-        class="w-5 h-5 mr-2"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M12 4v16m8-8H4"
-        />
+      <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
       </svg>
       New Fragment
     </a>
@@ -87,13 +77,8 @@
     <div class="space-y-8">
       {#each Object.entries(groupedFragments) as [category, fragments]}
         <div>
-          <h2
-            class="text-lg font-semibold text-gray-900 mb-4 flex items-center"
-          >
-            <span
-              class="w-2 h-2 bg-esolia-orange rounded-full mr-2"
-              aria-hidden="true"
-            ></span>
+          <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <span class="w-2 h-2 bg-esolia-orange rounded-full mr-2" aria-hidden="true"></span>
             {category}
             <span class="ml-2 text-sm font-normal text-gray-500">
               ({fragments.length})
@@ -143,9 +128,7 @@
         />
       </svg>
       <h3 class="mt-4 text-lg font-medium text-gray-900">No fragments yet</h3>
-      <p class="mt-2 text-gray-500">
-        Create reusable content blocks for proposals and documents.
-      </p>
+      <p class="mt-2 text-gray-500">Create reusable content blocks for proposals and documents.</p>
       <a
         href="/fragments/new"
         class="mt-4 inline-flex items-center px-4 py-2 bg-esolia-orange text-esolia-navy rounded-lg hover:bg-esolia-orange/90 transition-colors font-medium"

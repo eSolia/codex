@@ -6,7 +6,7 @@
 
   interface ScheduledJob {
     id: string;
-    action: "publish" | "unpublish" | "archive";
+    action: 'publish' | 'unpublish' | 'archive';
     scheduledAt: number;
     timezone: string;
     status: string;
@@ -15,7 +15,7 @@
 
   interface ScheduleRequest {
     documentId: string;
-    action: "publish" | "unpublish";
+    action: 'publish' | 'unpublish';
     scheduledAt: string;
     timezone: string;
     isEmbargo: boolean;
@@ -52,22 +52,22 @@
   }
 
   function formatDateTimeLocal(date: Date): string {
-    const pad = (n: number) => n.toString().padStart(2, "0");
+    const pad = (n: number) => n.toString().padStart(2, '0');
     return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
   }
 
   function formatDisplayTime(timestamp: number): string {
     return new Date(timestamp).toLocaleString(undefined, {
-      dateStyle: "medium",
-      timeStyle: "short",
+      dateStyle: 'medium',
+      timeStyle: 'short',
     });
   }
 
   let scheduledDate = $state(getDefaultTime());
   let timezone = $state(Intl.DateTimeFormat().resolvedOptions().timeZone);
-  let action = $state<"publish" | "unpublish">("publish");
+  let action = $state<'publish' | 'unpublish'>('publish');
   let isEmbargo = $state(false);
-  let notes = $state("");
+  let notes = $state('');
   let submitting = $state(false);
 
   // Quick select options
@@ -85,9 +85,7 @@
 
   let scheduledTime = $derived(new Date(scheduledDate).getTime());
   let isValidTime = $derived(scheduledTime > Date.now());
-  let isBeforeEmbargo = $derived(
-    embargoUntil ? scheduledTime < embargoUntil : false
-  );
+  let isBeforeEmbargo = $derived(embargoUntil ? scheduledTime < embargoUntil : false);
   let canSubmit = $derived(isValidTime && !isBeforeEmbargo && !submitting);
 
   async function handleSubmit() {
@@ -115,11 +113,11 @@
   }
 
   const timezones = [
-    { value: "Asia/Tokyo", label: "Asia/Tokyo (JST)" },
-    { value: "America/New_York", label: "America/New_York (ET)" },
-    { value: "America/Los_Angeles", label: "America/Los_Angeles (PT)" },
-    { value: "Europe/London", label: "Europe/London (GMT/BST)" },
-    { value: "UTC", label: "UTC" },
+    { value: 'Asia/Tokyo', label: 'Asia/Tokyo (JST)' },
+    { value: 'America/New_York', label: 'America/New_York (ET)' },
+    { value: 'America/Los_Angeles', label: 'America/Los_Angeles (PT)' },
+    { value: 'Europe/London', label: 'Europe/London (GMT/BST)' },
+    { value: 'UTC', label: 'UTC' },
   ];
 </script>
 
@@ -142,8 +140,15 @@
     <div class="p-4 space-y-4">
       <!-- Existing schedule warning -->
       {#if existingSchedule}
-        <div class="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm">
-          <svg class="w-4 h-4 text-amber-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div
+          class="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm"
+        >
+          <svg
+            class="w-4 h-4 text-amber-600 flex-shrink-0"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
@@ -153,7 +158,9 @@
           </svg>
           <div class="flex-1">
             <span class="text-amber-800">
-              Currently scheduled to {existingSchedule.action} on {formatDisplayTime(existingSchedule.scheduledAt)}
+              Currently scheduled to {existingSchedule.action} on {formatDisplayTime(
+                existingSchedule.scheduledAt
+              )}
             </span>
           </div>
           <button
@@ -172,22 +179,48 @@
         <div class="grid grid-cols-2 gap-2">
           <button
             type="button"
-            onclick={() => (action = "publish")}
-            class="px-4 py-2.5 rounded-lg border text-sm font-medium transition-colors {action === 'publish' ? 'border-esolia-navy bg-esolia-navy/5 text-esolia-navy' : 'border-gray-200 text-gray-700 hover:border-gray-300'}"
+            onclick={() => (action = 'publish')}
+            class="px-4 py-2.5 rounded-lg border text-sm font-medium transition-colors {action ===
+            'publish'
+              ? 'border-esolia-navy bg-esolia-navy/5 text-esolia-navy'
+              : 'border-gray-200 text-gray-700 hover:border-gray-300'}"
           >
-            <svg class="w-4 h-4 inline-block mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+            <svg
+              class="w-4 h-4 inline-block mr-1.5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
+              />
             </svg>
             Publish
           </button>
           <button
             type="button"
-            onclick={() => (action = "unpublish")}
-            disabled={currentStatus !== "published"}
-            class="px-4 py-2.5 rounded-lg border text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed {action === 'unpublish' ? 'border-esolia-navy bg-esolia-navy/5 text-esolia-navy' : 'border-gray-200 text-gray-700'}"
+            onclick={() => (action = 'unpublish')}
+            disabled={currentStatus !== 'published'}
+            class="px-4 py-2.5 rounded-lg border text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed {action ===
+            'unpublish'
+              ? 'border-esolia-navy bg-esolia-navy/5 text-esolia-navy'
+              : 'border-gray-200 text-gray-700'}"
           >
-            <svg class="w-4 h-4 inline-block mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+            <svg
+              class="w-4 h-4 inline-block mr-1.5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"
+              />
             </svg>
             Unpublish
           </button>
@@ -230,9 +263,17 @@
 
       <!-- Date/time picker -->
       <div>
-        <label for="schedule-datetime" class="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-2">
+        <label
+          for="schedule-datetime"
+          class="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-2"
+        >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+            />
           </svg>
           Date & Time
         </label>
@@ -254,7 +295,9 @@
 
       <!-- Timezone -->
       <div>
-        <label for="schedule-timezone" class="block text-sm font-medium text-gray-700 mb-2">Timezone</label>
+        <label for="schedule-timezone" class="block text-sm font-medium text-gray-700 mb-2"
+          >Timezone</label
+        >
         <select
           id="schedule-timezone"
           bind:value={timezone}
@@ -267,7 +310,7 @@
       </div>
 
       <!-- Embargo checkbox (only for publish) -->
-      {#if action === "publish"}
+      {#if action === 'publish'}
         <label class="flex items-start gap-3 cursor-pointer">
           <input
             type="checkbox"
@@ -313,15 +356,31 @@
       >
         {#if submitting}
           <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            <circle
+              class="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              stroke-width="4"
+            />
+            <path
+              class="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+            />
           </svg>
         {:else}
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
         {/if}
-        Schedule {action === "publish" ? "Publish" : "Unpublish"}
+        Schedule {action === 'publish' ? 'Publish' : 'Unpublish'}
       </button>
     </div>
   </div>

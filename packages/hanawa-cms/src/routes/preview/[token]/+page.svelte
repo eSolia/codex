@@ -5,8 +5,8 @@
    *
    * InfoSec: Watermarking, screenshot shield, session logging
    */
-  import type { PageData } from "./$types";
-  import ScreenshotShield from "$lib/components/security/ScreenshotShield.svelte";
+  import type { PageData } from './$types';
+  import ScreenshotShield from '$lib/components/security/ScreenshotShield.svelte';
 
   let { data }: { data: PageData } = $props();
 </script>
@@ -33,10 +33,10 @@
             : 'bg-blue-50 border border-blue-200'}"
       >
         <div class="flex items-center gap-2">
-          {#if data.sensitivity === "embargoed"}
+          {#if data.sensitivity === 'embargoed'}
             <span class="text-red-600">🔒</span>
             <span class="font-medium text-red-800">Embargoed Preview</span>
-          {:else if data.sensitivity === "confidential"}
+          {:else if data.sensitivity === 'confidential'}
             <span class="text-yellow-600">⚠️</span>
             <span class="font-medium text-yellow-800">Confidential Preview</span>
           {:else}
@@ -52,7 +52,7 @@
               : 'text-blue-700'}"
         >
           This is a preview. Content may change before publication.
-          {#if data.sensitivity !== "normal"}
+          {#if data.sensitivity !== 'normal'}
             All viewing activity is logged.
           {/if}
         </p>

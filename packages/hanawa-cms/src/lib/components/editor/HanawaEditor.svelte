@@ -5,20 +5,20 @@
    *
    * InfoSec: Privacy mode, sensitivity classification, audit logging
    */
-  import { onMount, onDestroy } from "svelte";
-  import type { Editor } from "@tiptap/core";
-  import { createEditor, destroyEditor } from "$lib/editor/editor";
-  import EditorToolbar from "./EditorToolbar.svelte";
-  import SaveIndicator from "./SaveIndicator.svelte";
-  import MediaPicker from "../MediaPicker.svelte";
+  import { onMount, onDestroy } from 'svelte';
+  import type { Editor } from '@tiptap/core';
+  import { createEditor, destroyEditor } from '$lib/editor/editor';
+  import EditorToolbar from './EditorToolbar.svelte';
+  import SaveIndicator from './SaveIndicator.svelte';
+  import MediaPicker from '../MediaPicker.svelte';
 
   // Props using Svelte 5 runes
   let {
-    content = $bindable(""),
+    content = $bindable(''),
     editable = true,
-    placeholder = "Start writing...",
+    placeholder = 'Start writing...',
     privacyMode = false,
-    sensitivity = "normal" as "normal" | "confidential" | "embargoed",
+    sensitivity = 'normal' as 'normal' | 'confidential' | 'embargoed',
     autosave = false,
     autosaveDelay = 2000,
     onchange,
@@ -28,7 +28,7 @@
     editable?: boolean;
     placeholder?: string;
     privacyMode?: boolean;
-    sensitivity?: "normal" | "confidential" | "embargoed";
+    sensitivity?: 'normal' | 'confidential' | 'embargoed';
     autosave?: boolean;
     autosaveDelay?: number;
     onchange?: (html: string) => void;
@@ -43,24 +43,24 @@
   let mediaPickerOpen = $state(false);
 
   // Save state
-  type SaveStatus = "idle" | "saving" | "saved" | "error" | "unsaved";
-  let saveStatus = $state<SaveStatus>("idle");
+  type SaveStatus = 'idle' | 'saving' | 'saved' | 'error' | 'unsaved';
+  let saveStatus = $state<SaveStatus>('idle');
   let lastSaved = $state<Date | null>(null);
   let saveError = $state<string | null>(null);
   let autosaveTimeout: ReturnType<typeof setTimeout> | null = null;
-  let initialContent = "";
+  let initialContent = '';
 
   // Sensitivity styling
   const sensitivityStyles = {
-    normal: "",
-    confidential: "ring-2 ring-yellow-400",
-    embargoed: "ring-2 ring-red-400",
+    normal: '',
+    confidential: 'ring-2 ring-yellow-400',
+    embargoed: 'ring-2 ring-red-400',
   };
 
   const sensitivityLabels = {
     normal: null,
-    confidential: "⚠️ Confidential",
-    embargoed: "🔒 Embargoed",
+    confidential: '⚠️ Confidential',
+    embargoed: '🔒 Embargoed',
   };
 
   onMount(() => {
@@ -78,8 +78,8 @@
         if (onchange) onchange(html);
 
         // Track unsaved changes
-        if (html !== initialContent && saveStatus !== "saving") {
-          saveStatus = "unsaved";
+        if (html !== initialContent && saveStatus !== 'saving') {
+          saveStatus = 'unsaved';
 
           // Autosave logic
           if (autosave && onsave) {
@@ -106,25 +106,25 @@
 
   // Save function
   async function triggerSave() {
-    if (!onsave || saveStatus === "saving") return;
+    if (!onsave || saveStatus === 'saving') return;
 
-    saveStatus = "saving";
+    saveStatus = 'saving';
     saveError = null;
 
     try {
       await onsave();
-      saveStatus = "saved";
+      saveStatus = 'saved';
       lastSaved = new Date();
       initialContent = content; // Reset baseline
     } catch (e) {
-      saveStatus = "error";
-      saveError = e instanceof Error ? e.message : "Save failed";
+      saveStatus = 'error';
+      saveError = e instanceof Error ? e.message : 'Save failed';
     }
   }
 
   // Keyboard shortcut for save
   function handleKeydown(event: KeyboardEvent) {
-    if ((event.metaKey || event.ctrlKey) && event.key === "s") {
+    if ((event.metaKey || event.ctrlKey) && event.key === 's') {
       event.preventDefault();
       triggerSave();
     }
@@ -134,12 +134,25 @@
   let readingTime = $derived(Math.max(1, Math.ceil(wordCount / 200)));
 
   // Handle image insertion from media picker
-  function handleImageSelect(asset: { url?: string; alt_text?: string; filename: string }) {
+  function handleImageSelect(asset: {
+    id: string;
+    filename: string;
+    path: string;
+    mime_type: string | null;
+    size: number | null;
+    alt_text: string | null;
+    alt_text_ja: string | null;
+    url?: string;
+  }) {
     if (editor && asset.url) {
-      editor.chain().focus().setImage({
-        src: asset.url,
-        alt: asset.alt_text || asset.filename,
-      }).run();
+      editor
+        .chain()
+        .focus()
+        .setImage({
+          src: asset.url,
+          alt: asset.alt_text || asset.filename,
+        })
+        .run();
     }
     mediaPickerOpen = false;
   }
@@ -160,7 +173,7 @@
     if (editor && !editor.isDestroyed) {
       // Re-configure privacy mask extension
       editor.extensionManager.extensions
-        .filter((ext) => ext.name === "privacyMask")
+        .filter((ext) => ext.name === 'privacyMask')
         .forEach((ext) => {
           ext.options.privacyMode = privacyMode;
         });
@@ -171,20 +184,24 @@
 </script>
 
 <div
-  class="hanawa-editor-container bg-white rounded-lg shadow-sm border border-gray-200 {sensitivityStyles[sensitivity]}"
+  class="hanawa-editor-container bg-white rounded-lg shadow-sm border border-gray-200 {sensitivityStyles[
+    sensitivity
+  ]}"
   role="application"
   aria-label="Rich text editor"
 >
   <!-- Sensitivity Banner -->
   {#if sensitivityLabels[sensitivity]}
     <div
-      class="px-4 py-2 text-sm font-medium border-b {sensitivity === 'embargoed' ? 'bg-red-50 text-red-800 border-red-200' : 'bg-yellow-50 text-yellow-800 border-yellow-200'}"
+      class="px-4 py-2 text-sm font-medium border-b {sensitivity === 'embargoed'
+        ? 'bg-red-50 text-red-800 border-red-200'
+        : 'bg-yellow-50 text-yellow-800 border-yellow-200'}"
     >
       {sensitivityLabels[sensitivity]}
       <span class="text-xs opacity-75 ml-2">
-        {sensitivity === "embargoed"
-          ? "No preview links until embargo lifts"
-          : "Preview requires approval"}
+        {sensitivity === 'embargoed'
+          ? 'No preview links until embargo lifts'
+          : 'Preview requires approval'}
       </span>
     </div>
   {/if}
@@ -223,6 +240,9 @@
     </div>
   </div>
 </div>
+
+<!-- Media Picker Modal -->
+<MediaPicker bind:open={mediaPickerOpen} acceptTypes={['image/*']} onselect={handleImageSelect} />
 
 <style>
   .editor-content :global(.is-editor-empty:first-child::before) {
@@ -281,10 +301,3 @@
     margin: 1rem 0;
   }
 </style>
-
-<!-- Media Picker Modal -->
-<MediaPicker
-  bind:open={mediaPickerOpen}
-  acceptTypes={["image/*"]}
-  onselect={handleImageSelect}
-/>

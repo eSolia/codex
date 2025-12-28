@@ -37,7 +37,7 @@ export interface Content {
   body_translations: Record<string, string>;
   frontmatter: Record<string, unknown>;
   excerpt: string | null;
-  status: "draft" | "review" | "published" | "archived";
+  status: 'draft' | 'review' | 'published' | 'archived';
   language: string;
   published_at: string | null;
   created_at: string;
@@ -56,7 +56,7 @@ export interface Fragment {
   description: string | null;
   tags: string[];
   version: string;
-  status: "active" | "deprecated" | "draft";
+  status: 'active' | 'deprecated' | 'draft';
   created_at: string;
   updated_at: string;
 }
@@ -81,7 +81,7 @@ export interface User {
   id: string;
   email: string;
   name: string | null;
-  role: "admin" | "editor" | "viewer";
+  role: 'admin' | 'editor' | 'viewer';
   access_id: string | null;
   preferences: Record<string, unknown>;
   created_at: string;
@@ -89,16 +89,16 @@ export interface User {
 }
 
 // Editor-specific types
-export type CalloutType = "info" | "warning" | "danger" | "success";
+export type CalloutType = 'info' | 'warning' | 'danger' | 'success';
 export type StatusType =
-  | "compliant"
-  | "non-compliant"
-  | "in-progress"
-  | "pending-review"
-  | "not-applicable";
+  | 'compliant'
+  | 'non-compliant'
+  | 'in-progress'
+  | 'pending-review'
+  | 'not-applicable';
 
 export interface FragmentReference {
   id: string;
-  lang?: "en" | "ja";
+  lang?: 'en' | 'ja';
   filter?: string;
 }

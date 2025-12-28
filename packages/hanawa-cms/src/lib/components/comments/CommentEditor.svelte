@@ -18,10 +18,10 @@
   }
 
   let {
-    placeholder = "Write a comment...",
-    initialContent = "",
-    submitLabel = "Comment",
-    cancelLabel = "Cancel",
+    placeholder = 'Write a comment...',
+    initialContent = '',
+    submitLabel = 'Comment',
+    cancelLabel = 'Cancel',
     showCancel = false,
     autoFocus = false,
     disabled = false,
@@ -33,14 +33,16 @@
   let content = $state(initialContent);
   let textarea: HTMLTextAreaElement;
   let showMentionMenu = $state(false);
-  let mentionQuery = $state("");
+  let mentionQuery = $state('');
   let mentionStartPos = $state(0);
   let submitting = $state(false);
 
   let filteredSuggestions = $derived(
-    mentionSuggestions.filter((s) =>
-      (s.name?.toLowerCase() || s.email.toLowerCase()).includes(mentionQuery.toLowerCase())
-    ).slice(0, 5)
+    mentionSuggestions
+      .filter((s) =>
+        (s.name?.toLowerCase() || s.email.toLowerCase()).includes(mentionQuery.toLowerCase())
+      )
+      .slice(0, 5)
   );
 
   let isValid = $derived(content.trim().length > 0);
@@ -51,7 +53,7 @@
     submitting = true;
     try {
       await onSubmit?.(content.trim());
-      content = "";
+      content = '';
     } finally {
       submitting = false;
     }
@@ -59,7 +61,7 @@
 
   function handleKeydown(e: KeyboardEvent) {
     // Submit on Cmd/Ctrl+Enter
-    if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
       e.preventDefault();
       handleSubmit();
       return;
@@ -67,11 +69,11 @@
 
     // Handle mention menu
     if (showMentionMenu) {
-      if (e.key === "Escape") {
+      if (e.key === 'Escape') {
         showMentionMenu = false;
         return;
       }
-      if (e.key === "Tab" || e.key === "Enter") {
+      if (e.key === 'Tab' || e.key === 'Enter') {
         if (filteredSuggestions.length > 0) {
           e.preventDefault();
           insertMention(filteredSuggestions[0]);
@@ -111,7 +113,7 @@
 
   function autoResize() {
     if (!textarea) return;
-    textarea.style.height = "auto";
+    textarea.style.height = 'auto';
     textarea.style.height = `${Math.min(textarea.scrollHeight, 200)}px`;
   }
 </script>
@@ -171,16 +173,14 @@
 
   <!-- Actions -->
   <div class="mt-2 flex items-center justify-between">
-    <p class="text-xs text-gray-400">
-      Tip: Use @ to mention, Cmd+Enter to submit
-    </p>
+    <p class="text-xs text-gray-400">Tip: Use @ to mention, Cmd+Enter to submit</p>
 
     <div class="flex gap-2">
       {#if showCancel}
         <button
           type="button"
           onclick={onCancel}
-          disabled={disabled}
+          {disabled}
           class="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 disabled:opacity-50"
         >
           {cancelLabel}
@@ -197,7 +197,14 @@
       >
         {#if submitting}
           <svg class="animate-spin h-3.5 w-3.5" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+            <circle
+              class="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              stroke-width="4"
+            />
             <path
               class="opacity-75"
               fill="currentColor"

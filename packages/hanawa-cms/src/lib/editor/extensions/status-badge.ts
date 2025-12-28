@@ -6,20 +6,20 @@
  * InfoSec: Status IDs sanitized to prevent injection
  */
 
-import { Node, mergeAttributes } from "@tiptap/core";
+import { Node, mergeAttributes } from '@tiptap/core';
 
 export type StatusType =
-  | "compliant"
-  | "non-compliant"
-  | "in-progress"
-  | "not-applicable"
-  | "pending-review";
+  | 'compliant'
+  | 'non-compliant'
+  | 'in-progress'
+  | 'not-applicable'
+  | 'pending-review';
 
 export interface StatusBadgeOptions {
   HTMLAttributes: Record<string, unknown>;
 }
 
-declare module "@tiptap/core" {
+declare module '@tiptap/core' {
   interface Commands<ReturnType> {
     statusBadge: {
       setStatusBadge: (status: StatusType, id?: string) => ReturnType;
@@ -29,15 +29,15 @@ declare module "@tiptap/core" {
 }
 
 const STATUS_ORDER: StatusType[] = [
-  "pending-review",
-  "in-progress",
-  "compliant",
-  "non-compliant",
-  "not-applicable",
+  'pending-review',
+  'in-progress',
+  'compliant',
+  'non-compliant',
+  'not-applicable',
 ];
 
 export const StatusBadge = Node.create<StatusBadgeOptions>({
-  name: "statusBadge",
+  name: 'statusBadge',
 
   addOptions() {
     return {
@@ -45,7 +45,7 @@ export const StatusBadge = Node.create<StatusBadgeOptions>({
     };
   },
 
-  group: "inline",
+  group: 'inline',
 
   inline: true,
 
@@ -54,21 +54,18 @@ export const StatusBadge = Node.create<StatusBadgeOptions>({
   addAttributes() {
     return {
       status: {
-        default: "pending-review",
-        parseHTML: (element) =>
-          element.getAttribute("data-status") || "pending-review",
+        default: 'pending-review',
+        parseHTML: (element) => element.getAttribute('data-status') || 'pending-review',
         renderHTML: (attributes) => ({
-          "data-status": attributes.status,
+          'data-status': attributes.status,
         }),
       },
       id: {
         default: null,
-        parseHTML: (element) => element.getAttribute("data-status-id"),
+        parseHTML: (element) => element.getAttribute('data-status-id'),
         // InfoSec: Sanitize ID to prevent XSS (OWASP A03)
         renderHTML: (attributes) =>
-          attributes.id
-            ? { "data-status-id": String(attributes.id).replace(/[<>"'&]/g, "") }
-            : {},
+          attributes.id ? { 'data-status-id': String(attributes.id).replace(/[<>"'&]/g, '') } : {},
       },
     };
   },
@@ -85,27 +82,27 @@ export const StatusBadge = Node.create<StatusBadgeOptions>({
     const status = node.attrs.status as StatusType;
 
     const statusClasses: Record<StatusType, string> = {
-      compliant: "bg-green-100 text-green-800 border-green-200",
-      "non-compliant": "bg-red-100 text-red-800 border-red-200",
-      "in-progress": "bg-yellow-100 text-yellow-800 border-yellow-200",
-      "not-applicable": "bg-gray-100 text-gray-800 border-gray-200",
-      "pending-review": "bg-blue-100 text-blue-800 border-blue-200",
+      compliant: 'bg-green-100 text-green-800 border-green-200',
+      'non-compliant': 'bg-red-100 text-red-800 border-red-200',
+      'in-progress': 'bg-yellow-100 text-yellow-800 border-yellow-200',
+      'not-applicable': 'bg-gray-100 text-gray-800 border-gray-200',
+      'pending-review': 'bg-blue-100 text-blue-800 border-blue-200',
     };
 
     const statusLabels: Record<StatusType, string> = {
-      compliant: "Compliant",
-      "non-compliant": "Non-Compliant",
-      "in-progress": "In Progress",
-      "not-applicable": "N/A",
-      "pending-review": "Pending Review",
+      compliant: 'Compliant',
+      'non-compliant': 'Non-Compliant',
+      'in-progress': 'In Progress',
+      'not-applicable': 'N/A',
+      'pending-review': 'Pending Review',
     };
 
     return [
-      "span",
+      'span',
       mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, {
         class: `status-badge inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${statusClasses[status]}`,
-        "data-status": status,
-        contenteditable: "false",
+        'data-status': status,
+        contenteditable: 'false',
       }),
       statusLabels[status],
     ];
@@ -149,7 +146,7 @@ export const StatusBadge = Node.create<StatusBadgeOptions>({
 
   addKeyboardShortcuts() {
     return {
-      "Mod-Shift-s": () => this.editor.commands.cycleStatus(),
+      'Mod-Shift-s': () => this.editor.commands.cycleStatus(),
     };
   },
 });

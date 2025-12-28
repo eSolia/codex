@@ -6,10 +6,10 @@
    * InfoSec: No sensitive data exposure in status messages
    */
 
-  type SaveStatus = "idle" | "saving" | "saved" | "error" | "unsaved";
+  type SaveStatus = 'idle' | 'saving' | 'saved' | 'error' | 'unsaved';
 
   let {
-    status = "idle" as SaveStatus,
+    status = 'idle' as SaveStatus,
     lastSaved = null as Date | null,
     error = null as string | null,
   }: {
@@ -26,7 +26,7 @@
     const diffMins = Math.floor(diffSecs / 60);
     const diffHours = Math.floor(diffMins / 60);
 
-    if (diffSecs < 10) return "Just now";
+    if (diffSecs < 10) return 'Just now';
     if (diffSecs < 60) return `${diffSecs}s ago`;
     if (diffMins < 60) return `${diffMins}m ago`;
     if (diffHours < 24) return `${diffHours}h ago`;
@@ -36,36 +36,36 @@
   // Status config
   const statusConfig = {
     idle: {
-      icon: "○",
-      text: "Ready",
-      class: "text-gray-400",
+      icon: '○',
+      text: 'Ready',
+      class: 'text-gray-400',
     },
     saving: {
-      icon: "◐",
-      text: "Saving...",
-      class: "text-blue-500 animate-pulse",
+      icon: '◐',
+      text: 'Saving...',
+      class: 'text-blue-500 animate-pulse',
     },
     saved: {
-      icon: "●",
-      text: "Saved",
-      class: "text-emerald-500",
+      icon: '●',
+      text: 'Saved',
+      class: 'text-emerald-500',
     },
     error: {
-      icon: "✕",
-      text: "Error",
-      class: "text-red-500",
+      icon: '✕',
+      text: 'Error',
+      class: 'text-red-500',
     },
     unsaved: {
-      icon: "◌",
-      text: "Unsaved changes",
-      class: "text-amber-500",
+      icon: '◌',
+      text: 'Unsaved changes',
+      class: 'text-amber-500',
     },
   };
 
   let config = $derived(statusConfig[status]);
 
   // Update relative time every 30 seconds
-  let displayTime = $state("");
+  let displayTime = $state('');
   $effect(() => {
     if (lastSaved) {
       displayTime = formatRelativeTime(lastSaved);
@@ -77,13 +77,13 @@
   });
 </script>
 
-<div class="save-indicator flex items-center gap-2 text-xs {config.class}" title={error || ""}>
+<div class="save-indicator flex items-center gap-2 text-xs {config.class}" title={error || ''}>
   <span class="text-sm">{config.icon}</span>
   <span>{config.text}</span>
-  {#if status === "saved" && lastSaved}
+  {#if status === 'saved' && lastSaved}
     <span class="text-gray-400">({displayTime})</span>
   {/if}
-  {#if status === "error" && error}
+  {#if status === 'error' && error}
     <span class="text-red-400 truncate max-w-32" title={error}>{error}</span>
   {/if}
 </div>

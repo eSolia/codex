@@ -5,23 +5,27 @@
  * InfoSec: Token validation, password check, email restriction (OWASP A01)
  */
 
-import { json, error } from "@sveltejs/kit";
-import type { RequestHandler } from "./$types";
-import { createPreviewService } from "$lib/server/previews";
+import { json, error } from '@sveltejs/kit';
+import type { RequestHandler } from './$types';
+import { createPreviewService } from '$lib/server/previews';
 
 /**
  * POST /api/previews/validate - Validate access to a preview
  */
 export const POST: RequestHandler = async ({ request, platform }) => {
   if (!platform?.env?.DB) {
-    throw error(500, "Database not available");
+    throw error(500, 'Database not available');
   }
 
   try {
-    const body = await request.json();
+    const body = (await request.json()) as {
+      token?: string;
+      email?: string;
+      password?: string;
+    };
 
     if (!body.token) {
-      throw error(400, "token is required");
+      throw error(400, 'token is required');
     }
 
     const previews = createPreviewService(platform.env.DB);
@@ -34,7 +38,7 @@ export const POST: RequestHandler = async ({ request, platform }) => {
     if (!result.valid) {
       return json(
         { valid: false, error: result.error },
-        { status: result.error === "Password required" ? 401 : 403 }
+        { status: result.error === 'Password required' ? 401 : 403 }
       );
     }
 
@@ -54,8 +58,8 @@ export const POST: RequestHandler = async ({ request, platform }) => {
       content: result.content,
     });
   } catch (err) {
-    console.error("Preview validate error:", err);
+    console.error('Preview validate error:', err);
     if (err instanceof Response) throw err;
-    throw error(500, "Failed to validate preview");
+    throw error(500, 'Failed to validate preview');
   }
 };

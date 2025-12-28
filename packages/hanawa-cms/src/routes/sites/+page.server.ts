@@ -3,7 +3,7 @@
  * InfoSec: Parameterized queries prevent SQL injection (OWASP A03)
  */
 
-import type { PageServerLoad } from "./$types";
+import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ platform }) => {
   if (!platform?.env?.DB) {
@@ -25,7 +25,7 @@ export const load: PageServerLoad = async ({ platform }) => {
       sites: result.results ?? [],
     };
   } catch (error) {
-    console.error("Sites load error:", error);
+    console.error('Sites load error:', error);
     return { sites: [] };
   }
 };

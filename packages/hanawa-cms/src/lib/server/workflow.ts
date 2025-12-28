@@ -8,12 +8,12 @@
 
 /// <reference types="@cloudflare/workers-types" />
 
-import type { AuditService, AuditContext } from "./audit";
-import type { VersionService } from "./versions";
+import type { AuditService, AuditContext } from './audit';
+import type { VersionService } from './versions';
 
-export type StageType = "draft" | "review" | "approval" | "published";
-export type ApprovalType = "any" | "all" | "sequential";
-export type TransitionType = "advance" | "reject" | "skip";
+export type StageType = 'draft' | 'review' | 'approval' | 'published';
+export type ApprovalType = 'any' | 'all' | 'sequential';
+export type TransitionType = 'advance' | 'reject' | 'skip';
 
 export interface WorkflowStage {
   id: string;
@@ -153,9 +153,7 @@ export function createWorkflowService(
      */
     async getStages(workflowId: string): Promise<WorkflowStage[]> {
       const { results } = await db
-        .prepare(
-          `SELECT * FROM workflow_stages WHERE workflow_id = ? ORDER BY stage_order`
-        )
+        .prepare(`SELECT * FROM workflow_stages WHERE workflow_id = ? ORDER BY stage_order`)
         .bind(workflowId)
         .all();
 
@@ -165,7 +163,7 @@ export function createWorkflowService(
         description: row.description as string | undefined,
         order: row.stage_order as number,
         type: row.stage_type as StageType,
-        approvalType: (row.approval_type as ApprovalType) || "any",
+        approvalType: (row.approval_type as ApprovalType) || 'any',
         requiredApprovers: row.required_approvers
           ? JSON.parse(row.required_approvers as string)
           : [],
@@ -190,9 +188,7 @@ export function createWorkflowService(
         toStageId: row.to_stage_id as string,
         type: row.transition_type as TransitionType,
         requiresComment: Boolean(row.requires_comment),
-        allowedRoles: row.allowed_roles
-          ? JSON.parse(row.allowed_roles as string)
-          : [],
+        allowedRoles: row.allowed_roles ? JSON.parse(row.allowed_roles as string) : [],
       }));
     },
 
@@ -220,35 +216,22 @@ export function createWorkflowService(
       const workflow = await this.getWorkflow(state.workflow_id as string);
       if (!workflow) return null;
 
-      const currentStage = workflow.stages.find(
-        (s) => s.id === state.current_stage_id
-      );
+      const currentStage = workflow.stages.find((s) => s.id === state.current_stage_id);
       if (!currentStage) return null;
 
-      const approvals: Approval[] = state.approvals
-        ? JSON.parse(state.approvals as string)
-        : [];
-      const rejections: Approval[] = state.rejections
-        ? JSON.parse(state.rejections as string)
-        : [];
+      const approvals: Approval[] = state.approvals ? JSON.parse(state.approvals as string) : [];
+      const rejections: Approval[] = state.rejections ? JSON.parse(state.rejections as string) : [];
 
       // Determine available transitions for current user
       const availableTransitions = workflow.transitions.filter((t) => {
         if (t.fromStageId !== state.current_stage_id) return false;
 
         // Check if user can trigger this transition
-        return t.allowedRoles.some(
-          (role) => userRoles.includes(role) || role === userId
-        );
+        return t.allowedRoles.some((role) => userRoles.includes(role) || role === userId);
       });
 
       // Check if user can approve at this stage
-      const canApprove = this.canUserApprove(
-        currentStage,
-        userId,
-        userRoles,
-        approvals
-      );
+      const canApprove = this.canUserApprove(currentStage, userId, userRoles, approvals);
 
       return {
         documentId,
@@ -263,9 +246,7 @@ export function createWorkflowService(
         progress: {
           current: currentStage.order,
           total: workflow.stages.length,
-          percentage: Math.round(
-            (currentStage.order / workflow.stages.length) * 100
-          ),
+          percentage: Math.round((currentStage.order / workflow.stages.length) * 100),
         },
       };
     },
@@ -273,16 +254,12 @@ export function createWorkflowService(
     /**
      * Initialize workflow for new document
      */
-    async initialize(
-      documentId: string,
-      workflowId: string,
-      context: AuditContext
-    ): Promise<void> {
+    async initialize(documentId: string, workflowId: string, context: AuditContext): Promise<void> {
       const workflow = await this.getWorkflow(workflowId);
-      if (!workflow) throw new Error("Workflow not found");
+      if (!workflow) throw new Error('Workflow not found');
 
       const firstStage = workflow.stages.find((s) => s.order === 1);
-      if (!firstStage) throw new Error("Workflow has no stages");
+      if (!firstStage) throw new Error('Workflow has no stages');
 
       await db
         .prepare(
@@ -295,21 +272,15 @@ export function createWorkflowService(
         .run();
 
       // Record in history
-      await this.recordHistory(
-        documentId,
-        null,
-        firstStage.id,
-        "advance",
-        context
-      );
+      await this.recordHistory(documentId, null, firstStage.id, 'advance', context);
 
       // Audit log
       if (audit) {
         await audit.log(
           {
-            action: "create",
-            actionCategory: "workflow",
-            resourceType: "document_workflow",
+            action: 'create',
+            actionCategory: 'workflow',
+            resourceType: 'document_workflow',
             resourceId: documentId,
             metadata: { workflowId, stageName: firstStage.name },
           },
@@ -332,15 +303,13 @@ export function createWorkflowService(
     }> {
       const state = await this.getState(documentId, context.actorId, []);
       if (!state) {
-        return { success: false, error: "Document has no workflow" };
+        return { success: false, error: 'Document has no workflow' };
       }
 
       // Find advance transition from current stage
-      const transition = state.availableTransitions.find(
-        (t) => t.type === "advance"
-      );
+      const transition = state.availableTransitions.find((t) => t.type === 'advance');
       if (!transition) {
-        return { success: false, error: "No available transition" };
+        return { success: false, error: 'No available transition' };
       }
 
       return this.executeTransition(documentId, transition.id, comment, context);
@@ -361,19 +330,17 @@ export function createWorkflowService(
     }> {
       const state = await this.getState(documentId, context.actorId, []);
       if (!state) {
-        return { success: false, error: "Document has no workflow" };
+        return { success: false, error: 'Document has no workflow' };
       }
 
       if (!state.canCurrentUserApprove) {
-        return { success: false, error: "User cannot approve at this stage" };
+        return { success: false, error: 'User cannot approve at this stage' };
       }
 
       // Check if already approved
-      const alreadyApproved = state.approvals.some(
-        (a) => a.userId === context.actorId
-      );
+      const alreadyApproved = state.approvals.some((a) => a.userId === context.actorId);
       if (alreadyApproved) {
-        return { success: false, error: "Already approved by this user" };
+        return { success: false, error: 'Already approved by this user' };
       }
 
       // Add approval
@@ -387,9 +354,7 @@ export function createWorkflowService(
       const approvals = [...state.approvals, newApproval];
 
       await db
-        .prepare(
-          `UPDATE document_workflow_state SET approvals = ? WHERE document_id = ?`
-        )
+        .prepare(`UPDATE document_workflow_state SET approvals = ? WHERE document_id = ?`)
         .bind(JSON.stringify(approvals), documentId)
         .run();
 
@@ -397,9 +362,9 @@ export function createWorkflowService(
       if (audit) {
         await audit.log(
           {
-            action: "approve",
-            actionCategory: "workflow",
-            resourceType: "document",
+            action: 'approve',
+            actionCategory: 'workflow',
+            resourceType: 'document',
             resourceId: documentId,
             changeSummary: `Approved at ${state.currentStage.name}`,
             metadata: { stageId: state.currentStage.id, comment },
@@ -409,21 +374,16 @@ export function createWorkflowService(
       }
 
       // Check if stage requirements are met
-      const requirementsMet = this.areRequirementsMet(
-        state.currentStage,
-        approvals
-      );
+      const requirementsMet = this.areRequirementsMet(state.currentStage, approvals);
 
       if (requirementsMet) {
         // Auto-advance to next stage
-        const advanceTransition = state.availableTransitions.find(
-          (t) => t.type === "advance"
-        );
+        const advanceTransition = state.availableTransitions.find((t) => t.type === 'advance');
         if (advanceTransition) {
           const result = await this.executeTransition(
             documentId,
             advanceTransition.id,
-            "Auto-advanced after approval requirements met",
+            'Auto-advanced after approval requirements met',
             context
           );
           return { success: true, advanced: true, newStage: result.newStage };
@@ -446,20 +406,18 @@ export function createWorkflowService(
       error?: string;
     }> {
       if (!comment) {
-        return { success: false, error: "Comment required for rejection" };
+        return { success: false, error: 'Comment required for rejection' };
       }
 
       const state = await this.getState(documentId, context.actorId, []);
       if (!state) {
-        return { success: false, error: "Document has no workflow" };
+        return { success: false, error: 'Document has no workflow' };
       }
 
       // Find reject transition from current stage
-      const transition = state.availableTransitions.find(
-        (t) => t.type === "reject"
-      );
+      const transition = state.availableTransitions.find((t) => t.type === 'reject');
       if (!transition) {
-        return { success: false, error: "No rejection path available" };
+        return { success: false, error: 'No rejection path available' };
       }
 
       return this.executeTransition(documentId, transition.id, comment, context);
@@ -480,33 +438,31 @@ export function createWorkflowService(
     }> {
       const state = await this.getState(documentId, context.actorId, []);
       if (!state) {
-        return { success: false, error: "Document has no workflow" };
+        return { success: false, error: 'Document has no workflow' };
       }
 
-      const transition = state.availableTransitions.find(
-        (t) => t.id === transitionId
-      );
+      const transition = state.availableTransitions.find((t) => t.id === transitionId);
       if (!transition) {
-        return { success: false, error: "Transition not available" };
+        return { success: false, error: 'Transition not available' };
       }
 
       if (transition.requiresComment && !comment) {
-        return { success: false, error: "Comment required for this transition" };
+        return { success: false, error: 'Comment required for this transition' };
       }
 
       const workflow = await this.getWorkflow(state.workflowId);
       if (!workflow) {
-        return { success: false, error: "Workflow not found" };
+        return { success: false, error: 'Workflow not found' };
       }
 
       const newStage = workflow.stages.find((s) => s.id === transition.toStageId);
       if (!newStage) {
-        return { success: false, error: "Target stage not found" };
+        return { success: false, error: 'Target stage not found' };
       }
 
       // Update workflow state
       const rejectionData =
-        transition.type === "reject"
+        transition.type === 'reject'
           ? JSON.stringify([
               {
                 userId: context.actorId,
@@ -515,7 +471,7 @@ export function createWorkflowService(
                 comment,
               },
             ])
-          : "[]";
+          : '[]';
 
       await db
         .prepare(
@@ -524,13 +480,7 @@ export function createWorkflowService(
                approvals = '[]', rejections = ?, entered_stage_at = ?
            WHERE document_id = ?`
         )
-        .bind(
-          newStage.id,
-          state.currentStage.id,
-          rejectionData,
-          Date.now(),
-          documentId
-        )
+        .bind(newStage.id, state.currentStage.id, rejectionData, Date.now(), documentId)
         .run();
 
       // Record history
@@ -544,7 +494,7 @@ export function createWorkflowService(
       );
 
       // If publishing, create version snapshot
-      if (newStage.type === "published" && versions) {
+      if (newStage.type === 'published' && versions) {
         const doc = await db
           .prepare(`SELECT body, title FROM content WHERE id = ?`)
           .bind(documentId)
@@ -555,11 +505,11 @@ export function createWorkflowService(
             documentId,
             {
               content: doc.body as string,
-              contentFormat: "html",
+              contentFormat: 'html',
               title: doc.title as string,
-              versionType: "publish",
-              versionLabel: "Published",
-              versionNotes: comment || "Published via workflow",
+              versionType: 'publish',
+              versionLabel: 'Published',
+              versionNotes: comment || 'Published via workflow',
             },
             context
           );
@@ -567,9 +517,7 @@ export function createWorkflowService(
 
         // Update document status
         await db
-          .prepare(
-            `UPDATE content SET status = 'published', published_at = ? WHERE id = ?`
-          )
+          .prepare(`UPDATE content SET status = 'published', published_at = ? WHERE id = ?`)
           .bind(Date.now(), documentId)
           .run();
       }
@@ -578,11 +526,11 @@ export function createWorkflowService(
       if (audit) {
         await audit.log(
           {
-            action: transition.type === "advance" ? "submit_review" : "reject",
-            actionCategory: "workflow",
-            resourceType: "document",
+            action: transition.type === 'advance' ? 'submit_review' : 'reject',
+            actionCategory: 'workflow',
+            resourceType: 'document',
             resourceId: documentId,
-            changeSummary: `${transition.type === "advance" ? "Advanced" : "Rejected"} from ${state.currentStage.name} to ${newStage.name}`,
+            changeSummary: `${transition.type === 'advance' ? 'Advanced' : 'Rejected'} from ${state.currentStage.name} to ${newStage.name}`,
             metadata: {
               fromStage: state.currentStage.id,
               toStage: newStage.id,
@@ -632,13 +580,11 @@ export function createWorkflowService(
       userRoles: string[],
       existingApprovals: Approval[]
     ): boolean {
-      if (stage.type !== "review" && stage.type !== "approval") {
+      if (stage.type !== 'review' && stage.type !== 'approval') {
         return false;
       }
 
-      const alreadyApproved = existingApprovals.some(
-        (a) => a.userId === userId
-      );
+      const alreadyApproved = existingApprovals.some((a) => a.userId === userId);
       if (alreadyApproved) return false;
 
       // Check if user matches required approvers
@@ -651,14 +597,14 @@ export function createWorkflowService(
      * Check if stage requirements are met
      */
     areRequirementsMet(stage: WorkflowStage, approvals: Approval[]): boolean {
-      if (stage.type === "draft") return true;
-      if (stage.type === "published") return true;
+      if (stage.type === 'draft') return true;
+      if (stage.type === 'published') return true;
 
-      if (stage.approvalType === "any") {
+      if (stage.approvalType === 'any') {
         return approvals.length >= stage.minApprovals;
       }
 
-      if (stage.approvalType === "all") {
+      if (stage.approvalType === 'all') {
         return stage.requiredApprovers.every((approver) =>
           approvals.some((a) => a.email === approver || a.userId === approver)
         );
@@ -703,9 +649,7 @@ export function createWorkflowService(
     /**
      * Get default workflow for a collection
      */
-    async getDefaultWorkflow(
-      collection?: string
-    ): Promise<WorkflowDefinition | null> {
+    async getDefaultWorkflow(collection?: string): Promise<WorkflowDefinition | null> {
       const workflows = await this.getWorkflows(collection);
 
       // First, try to find a default workflow for the collection

@@ -5,8 +5,8 @@
  * InfoSec: File type validation, size limits (OWASP A04)
  */
 
-import type { D1Database, R2Bucket } from "@cloudflare/workers-types";
-import type { AuditService, AuditContext } from "./audit";
+import type { D1Database, R2Bucket } from '@cloudflare/workers-types';
+import type { AuditService, AuditContext } from './audit';
 
 export interface Asset {
   id: string;
@@ -38,42 +38,34 @@ export interface UploadOptions {
 // InfoSec: Allowed MIME types (whitelist approach)
 const ALLOWED_MIME_TYPES = new Set([
   // Images
-  "image/jpeg",
-  "image/png",
-  "image/gif",
-  "image/webp",
-  "image/svg+xml",
-  "image/avif",
+  'image/jpeg',
+  'image/png',
+  'image/gif',
+  'image/webp',
+  'image/svg+xml',
+  'image/avif',
   // Documents
-  "application/pdf",
+  'application/pdf',
   // Data
-  "text/csv",
-  "application/json",
+  'text/csv',
+  'application/json',
 ]);
 
 // InfoSec: Maximum file size (10MB)
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
-export function createMediaService(
-  db: D1Database,
-  r2: R2Bucket,
-  audit?: AuditService
-) {
-  const baseUrl = ""; // Will be set from R2 public URL or CF Images
+export function createMediaService(db: D1Database, r2: R2Bucket, audit?: AuditService) {
+  const baseUrl = ''; // Will be set from R2 public URL or CF Images
 
   return {
     /**
      * Upload a file to R2 and create asset record
      */
-    async upload(
-      file: File,
-      options: UploadOptions,
-      context: AuditContext
-    ): Promise<Asset> {
+    async upload(file: File, options: UploadOptions, context: AuditContext): Promise<Asset> {
       // InfoSec: Validate file type
       if (!ALLOWED_MIME_TYPES.has(file.type)) {
         throw new Error(
-          `File type not allowed: ${file.type}. Allowed: ${[...ALLOWED_MIME_TYPES].join(", ")}`
+          `File type not allowed: ${file.type}. Allowed: ${[...ALLOWED_MIME_TYPES].join(', ')}`
         );
       }
 
@@ -88,8 +80,8 @@ export function createMediaService(
       const id = crypto.randomUUID();
       const timestamp = Date.now();
       const safeFilename = this.sanitizeFilename(file.name);
-      const folder = options.folder || "/";
-      const r2Path = `assets/${options.siteId || "global"}${folder}${timestamp}-${safeFilename}`;
+      const folder = options.folder || '/';
+      const r2Path = `assets/${options.siteId || 'global'}${folder}${timestamp}-${safeFilename}`;
 
       // Upload to R2
       const arrayBuffer = await file.arrayBuffer();
@@ -133,9 +125,9 @@ export function createMediaService(
       if (audit) {
         await audit.log(
           {
-            action: "upload",
-            actionCategory: "content",
-            resourceType: "asset",
+            action: 'upload',
+            actionCategory: 'content',
+            resourceType: 'asset',
             resourceId: id,
             resourceTitle: safeFilename,
             metadata: {
@@ -155,10 +147,7 @@ export function createMediaService(
      * Get asset by ID
      */
     async get(id: string): Promise<Asset> {
-      const row = await db
-        .prepare("SELECT * FROM assets WHERE id = ?")
-        .bind(id)
-        .first();
+      const row = await db.prepare('SELECT * FROM assets WHERE id = ?').bind(id).first();
 
       if (!row) {
         throw new Error(`Asset not found: ${id}`);
@@ -182,28 +171,27 @@ export function createMediaService(
       const params: unknown[] = [];
 
       if (options.siteId) {
-        conditions.push("site_id = ?");
+        conditions.push('site_id = ?');
         params.push(options.siteId);
       }
 
       if (options.folder) {
-        conditions.push("folder = ?");
+        conditions.push('folder = ?');
         params.push(options.folder);
       }
 
       if (options.mimeType) {
-        conditions.push("mime_type LIKE ?");
+        conditions.push('mime_type LIKE ?');
         params.push(`${options.mimeType}%`);
       }
 
       if (options.search) {
-        conditions.push("(filename LIKE ? OR alt_text LIKE ? OR caption LIKE ?)");
+        conditions.push('(filename LIKE ? OR alt_text LIKE ? OR caption LIKE ?)');
         const searchPattern = `%${options.search}%`;
         params.push(searchPattern, searchPattern, searchPattern);
       }
 
-      const whereClause =
-        conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+      const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
       // Get total count
       const countResult = await db
@@ -217,9 +205,7 @@ export function createMediaService(
       const offset = options.offset || 0;
 
       const { results } = await db
-        .prepare(
-          `SELECT * FROM assets ${whereClause} ORDER BY created_at DESC LIMIT ? OFFSET ?`
-        )
+        .prepare(`SELECT * FROM assets ${whereClause} ORDER BY created_at DESC LIMIT ? OFFSET ?`)
         .bind(...params, limit, offset)
         .all();
 
@@ -247,43 +233,43 @@ export function createMediaService(
       const params: unknown[] = [];
 
       if (updates.altText !== undefined) {
-        setClauses.push("alt_text = ?");
+        setClauses.push('alt_text = ?');
         params.push(updates.altText);
       }
 
       if (updates.altTextJa !== undefined) {
-        setClauses.push("alt_text_ja = ?");
+        setClauses.push('alt_text_ja = ?');
         params.push(updates.altTextJa);
       }
 
       if (updates.caption !== undefined) {
-        setClauses.push("caption = ?");
+        setClauses.push('caption = ?');
         params.push(updates.caption);
       }
 
       if (updates.folder !== undefined) {
-        setClauses.push("folder = ?");
+        setClauses.push('folder = ?');
         params.push(updates.folder);
       }
 
       if (updates.tags !== undefined) {
-        setClauses.push("tags = ?");
+        setClauses.push('tags = ?');
         params.push(JSON.stringify(updates.tags));
       }
 
       params.push(id);
 
       await db
-        .prepare(`UPDATE assets SET ${setClauses.join(", ")} WHERE id = ?`)
+        .prepare(`UPDATE assets SET ${setClauses.join(', ')} WHERE id = ?`)
         .bind(...params)
         .run();
 
       if (audit) {
         await audit.log(
           {
-            action: "update",
-            actionCategory: "content",
-            resourceType: "asset",
+            action: 'update',
+            actionCategory: 'content',
+            resourceType: 'asset',
             resourceId: id,
             metadata: updates,
           },
@@ -304,14 +290,14 @@ export function createMediaService(
       await r2.delete(asset.path);
 
       // Delete from D1
-      await db.prepare("DELETE FROM assets WHERE id = ?").bind(id).run();
+      await db.prepare('DELETE FROM assets WHERE id = ?').bind(id).run();
 
       if (audit) {
         await audit.log(
           {
-            action: "delete",
-            actionCategory: "content",
-            resourceType: "asset",
+            action: 'delete',
+            actionCategory: 'content',
+            resourceType: 'asset',
             resourceId: id,
             resourceTitle: asset.filename,
             metadata: { path: asset.path },
@@ -335,13 +321,11 @@ export function createMediaService(
      * Get unique folders
      */
     async getFolders(siteId?: string): Promise<string[]> {
-      const condition = siteId ? "WHERE site_id = ?" : "";
+      const condition = siteId ? 'WHERE site_id = ?' : '';
       const params = siteId ? [siteId] : [];
 
       const { results } = await db
-        .prepare(
-          `SELECT DISTINCT folder FROM assets ${condition} ORDER BY folder`
-        )
+        .prepare(`SELECT DISTINCT folder FROM assets ${condition} ORDER BY folder`)
         .bind(...params)
         .all();
 
@@ -352,8 +336,8 @@ export function createMediaService(
     sanitizeFilename(filename: string): string {
       // InfoSec: Remove path traversal, special chars
       return filename
-        .replace(/[^\w\s.-]/g, "")
-        .replace(/\s+/g, "-")
+        .replace(/[^\w\s.-]/g, '')
+        .replace(/\s+/g, '-')
         .toLowerCase()
         .slice(0, 100);
     },
@@ -371,7 +355,7 @@ export function createMediaService(
         alt_text_ja: row.alt_text_ja as string | null,
         caption: row.caption as string | null,
         folder: row.folder as string,
-        tags: JSON.parse((row.tags as string) || "[]"),
+        tags: JSON.parse((row.tags as string) || '[]'),
         created_at: row.created_at as string,
         updated_at: row.updated_at as string,
         url: `/${row.path}`, // Public URL

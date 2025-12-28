@@ -5,40 +5,41 @@
  * InfoSec: Admin-only access (OWASP A01)
  */
 
-import { json, error } from "@sveltejs/kit";
-import type { RequestHandler } from "./$types";
-import { createDeliveryService } from "$lib/server/delivery";
+import { json, error } from '@sveltejs/kit';
+import type { RequestHandler } from './$types';
+import { createDeliveryService } from '$lib/server/delivery';
 
 /**
  * GET /api/v1/keys/[id] - Get API key details (not the key itself)
  */
 export const GET: RequestHandler = async ({ params, platform, locals }) => {
   if (!platform?.env?.DB) {
-    throw error(500, "Database not available");
+    throw error(500, 'Database not available');
   }
 
   if (!locals.auditContext) {
-    throw error(401, "Authentication required");
+    throw error(401, 'Authentication required');
   }
 
   try {
+    // Note: Type assertion needed due to workers-types version mismatch
     const delivery = createDeliveryService(
       platform.env.DB,
-      platform.env.KV,
-      platform.env.R2,
+      platform.env.KV as unknown as import('@cloudflare/workers-types').KVNamespace | undefined,
+      platform.env.R2 as unknown as import('@cloudflare/workers-types').R2Bucket | undefined,
       locals.audit
     );
     const key = await delivery.getApiKey(params.id);
 
     if (!key) {
-      throw error(404, "API key not found");
+      throw error(404, 'API key not found');
     }
 
     return json({ key });
   } catch (err) {
     if (err instanceof Response) throw err;
-    console.error("API key get error:", err);
-    throw error(500, "Failed to get API key");
+    console.error('API key get error:', err);
+    throw error(500, 'Failed to get API key');
   }
 };
 
@@ -46,40 +47,36 @@ export const GET: RequestHandler = async ({ params, platform, locals }) => {
  * PATCH /api/v1/keys/[id] - Revoke an API key
  * InfoSec: Revoked keys cannot be used but remain for audit
  */
-export const PATCH: RequestHandler = async ({
-  params,
-  request,
-  platform,
-  locals,
-}) => {
+export const PATCH: RequestHandler = async ({ params, request, platform, locals }) => {
   if (!platform?.env?.DB) {
-    throw error(500, "Database not available");
+    throw error(500, 'Database not available');
   }
 
   if (!locals.auditContext) {
-    throw error(401, "Authentication required");
+    throw error(401, 'Authentication required');
   }
 
   try {
-    const body = await request.json();
+    const body = (await request.json()) as { action?: string };
 
-    if (body.action !== "revoke") {
+    if (body.action !== 'revoke') {
       throw error(400, "Only 'revoke' action is supported");
     }
 
+    // Note: Type assertion needed due to workers-types version mismatch
     const delivery = createDeliveryService(
       platform.env.DB,
-      platform.env.KV,
-      platform.env.R2,
+      platform.env.KV as unknown as import('@cloudflare/workers-types').KVNamespace | undefined,
+      platform.env.R2 as unknown as import('@cloudflare/workers-types').R2Bucket | undefined,
       locals.audit
     );
     await delivery.revokeApiKey(params.id, locals.auditContext);
 
-    return json({ success: true, message: "API key revoked" });
+    return json({ success: true, message: 'API key revoked' });
   } catch (err) {
     if (err instanceof Response) throw err;
-    console.error("API key revoke error:", err);
-    throw error(500, "Failed to revoke API key");
+    console.error('API key revoke error:', err);
+    throw error(500, 'Failed to revoke API key');
   }
 };
 
@@ -88,18 +85,19 @@ export const PATCH: RequestHandler = async ({
  */
 export const DELETE: RequestHandler = async ({ params, platform, locals }) => {
   if (!platform?.env?.DB) {
-    throw error(500, "Database not available");
+    throw error(500, 'Database not available');
   }
 
   if (!locals.auditContext) {
-    throw error(401, "Authentication required");
+    throw error(401, 'Authentication required');
   }
 
   try {
+    // Note: Type assertion needed due to workers-types version mismatch
     const delivery = createDeliveryService(
       platform.env.DB,
-      platform.env.KV,
-      platform.env.R2,
+      platform.env.KV as unknown as import('@cloudflare/workers-types').KVNamespace | undefined,
+      platform.env.R2 as unknown as import('@cloudflare/workers-types').R2Bucket | undefined,
       locals.audit
     );
     await delivery.deleteApiKey(params.id, locals.auditContext);
@@ -108,11 +106,11 @@ export const DELETE: RequestHandler = async ({ params, platform, locals }) => {
   } catch (err) {
     if (err instanceof Response) throw err;
 
-    if (err instanceof Error && err.message.includes("not found")) {
-      throw error(404, "API key not found");
+    if (err instanceof Error && err.message.includes('not found')) {
+      throw error(404, 'API key not found');
     }
 
-    console.error("API key delete error:", err);
-    throw error(500, "Failed to delete API key");
+    console.error('API key delete error:', err);
+    throw error(500, 'Failed to delete API key');
   }
 };

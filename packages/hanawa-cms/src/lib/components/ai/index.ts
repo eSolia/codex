@@ -3,5 +3,5 @@
  * InfoSec: UI for Claude-powered writing assistance
  */
 
-export { default as AICommandMenu } from "./AICommandMenu.svelte";
-export { default as AIResponsePanel } from "./AIResponsePanel.svelte";
+export { default as AICommandMenu } from './AICommandMenu.svelte';
+export { default as AIResponsePanel } from './AIResponsePanel.svelte';

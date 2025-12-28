@@ -1,16 +1,16 @@
 // See https://svelte.dev/docs/kit/types#app.d.ts
 // for information about these interfaces
-import type { AuditService, AuditContext } from "$lib/server/audit";
-import type { VersionService } from "$lib/server/versions";
-import type { WorkflowService } from "$lib/server/workflow";
-import type { CommentsService } from "$lib/server/comments";
-import type { SchedulingService } from "$lib/server/scheduling";
-import type { LocalizationService } from "$lib/server/localization";
-import type { AIService } from "$lib/server/ai";
-import type { CodexService } from "$lib/server/codex";
-import type { MediaService } from "$lib/server/media";
-import type { WebhookService } from "$lib/server/webhooks";
-import type { DeliveryService } from "$lib/server/delivery";
+import type { AuditService, AuditContext } from '$lib/server/audit';
+import type { VersionService } from '$lib/server/versions';
+import type { WorkflowService } from '$lib/server/workflow';
+import type { CommentsService } from '$lib/server/comments';
+import type { SchedulingService } from '$lib/server/scheduling';
+import type { LocalizationService } from '$lib/server/localization';
+import type { AIService } from '$lib/server/ai';
+import type { CodexService } from '$lib/server/codex';
+import type { MediaService } from '$lib/server/media';
+import type { WebhookService } from '$lib/server/webhooks';
+import type { DeliveryService } from '$lib/server/delivery';
 
 declare global {
   namespace App {
@@ -24,7 +24,7 @@ declare global {
         id: string;
         email: string;
         name: string;
-        role: "admin" | "editor" | "viewer";
+        role: 'admin' | 'editor' | 'viewer';
       };
       // Core services
       requestId?: string;

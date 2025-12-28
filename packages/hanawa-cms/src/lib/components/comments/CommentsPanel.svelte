@@ -4,8 +4,8 @@
    * InfoSec: Sidebar panel for document comments with filtering
    */
 
-  import CommentEditor from "./CommentEditor.svelte";
-  import CommentThreadComponent from "./CommentThread.svelte";
+  import CommentEditor from './CommentEditor.svelte';
+  import CommentThreadComponent from './CommentThread.svelte';
 
   interface CommentAuthor {
     id: string;
@@ -17,8 +17,8 @@
     id: string;
     content: string;
     contentHtml?: string;
-    type: "inline" | "document" | "suggestion";
-    status: "open" | "resolved" | "rejected";
+    type: 'inline' | 'document' | 'suggestion';
+    status: 'open' | 'resolved' | 'rejected';
     suggestionText?: string;
     author: CommentAuthor;
     createdAt: number;
@@ -30,7 +30,7 @@
     id: string;
     rootComment: Comment;
     replies: Comment[];
-    status: "open" | "resolved" | "rejected";
+    status: 'open' | 'resolved' | 'rejected';
     participantCount: number;
     lastActivity: number;
   }
@@ -47,7 +47,7 @@
     currentUserEmail: string;
     loading?: boolean;
     mentionSuggestions?: { email: string; name?: string }[];
-    onCreate?: (content: string, type?: "document" | "suggestion") => void | Promise<void>;
+    onCreate?: (content: string, type?: 'document' | 'suggestion') => void | Promise<void>;
     onReply?: (threadId: string, content: string) => void | Promise<void>;
     onEdit?: (commentId: string, content: string) => void | Promise<void>;
     onDelete?: (commentId: string) => void | Promise<void>;
@@ -73,25 +73,25 @@
     onReaction,
   }: Props = $props();
 
-  type FilterType = "all" | "open" | "resolved" | "mine";
-  let filter = $state<FilterType>("open");
+  type FilterType = 'all' | 'open' | 'resolved' | 'mine';
+  let filter = $state<FilterType>('open');
   let showNewCommentBox = $state(false);
 
   let filterTabs = $derived([
-    { key: "open" as FilterType, label: "Open", count: counts.open },
-    { key: "resolved" as FilterType, label: "Resolved", count: counts.resolved },
-    { key: "all" as FilterType, label: "All", count: counts.total },
-    { key: "mine" as FilterType, label: "Mine", count: null as number | null },
+    { key: 'open' as FilterType, label: 'Open', count: counts.open },
+    { key: 'resolved' as FilterType, label: 'Resolved', count: counts.resolved },
+    { key: 'all' as FilterType, label: 'All', count: counts.total },
+    { key: 'mine' as FilterType, label: 'Mine', count: null as number | null },
   ]);
 
   let filteredThreads = $derived(() => {
     let filtered = threads;
 
-    if (filter === "open") {
-      filtered = threads.filter((t) => t.status === "open");
-    } else if (filter === "resolved") {
-      filtered = threads.filter((t) => t.status === "resolved");
-    } else if (filter === "mine") {
+    if (filter === 'open') {
+      filtered = threads.filter((t) => t.status === 'open');
+    } else if (filter === 'resolved') {
+      filtered = threads.filter((t) => t.status === 'resolved');
+    } else if (filter === 'mine') {
       filtered = threads.filter(
         (t) =>
           t.rootComment.author.email === currentUserEmail ||
@@ -103,7 +103,7 @@
   });
 
   async function handleCreate(content: string) {
-    await onCreate?.(content, "document");
+    await onCreate?.(content, 'document');
     showNewCommentBox = false;
   }
 </script>
@@ -123,7 +123,9 @@
         </svg>
         Comments
         {#if counts.open > 0}
-          <span class="text-xs font-normal px-1.5 py-0.5 bg-esolia-orange/20 text-esolia-navy rounded">
+          <span
+            class="text-xs font-normal px-1.5 py-0.5 bg-esolia-orange/20 text-esolia-navy rounded"
+          >
             {counts.open} open
           </span>
         {/if}
@@ -137,7 +139,12 @@
           title="Add comment"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 4v16m8-8H4"
+            />
           </svg>
         </button>
       {/if}
@@ -184,7 +191,14 @@
     {#if loading}
       <div class="flex justify-center py-8">
         <svg class="animate-spin h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+          <circle
+            class="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            stroke-width="4"
+          />
           <path
             class="opacity-75"
             fill="currentColor"
@@ -194,7 +208,12 @@
       </div>
     {:else if filteredThreads().length === 0}
       <div class="flex flex-col items-center justify-center py-12 px-4 text-center">
-        <svg class="w-12 h-12 text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg
+          class="w-12 h-12 text-gray-300 mb-3"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
           <path
             stroke-linecap="round"
             stroke-linejoin="round"
@@ -203,20 +222,20 @@
           />
         </svg>
         <p class="text-sm text-gray-500">
-          {#if filter === "open"}
+          {#if filter === 'open'}
             No open comments
-          {:else if filter === "resolved"}
+          {:else if filter === 'resolved'}
             No resolved comments
-          {:else if filter === "mine"}
+          {:else if filter === 'mine'}
             You haven't commented yet
           {:else}
             No comments yet
           {/if}
         </p>
-        {#if filter !== "all" && threads.length > 0}
+        {#if filter !== 'all' && threads.length > 0}
           <button
             type="button"
-            onclick={() => (filter = "all")}
+            onclick={() => (filter = 'all')}
             class="mt-2 text-sm text-esolia-navy hover:underline"
           >
             View all comments

@@ -6,22 +6,22 @@
    * InfoSec: Screenshot deterrence, watermarking, audit logging
    * Reference: docs/concepts/cms-content-security.md
    */
-  import { onMount, type Snippet } from "svelte";
+  import { onMount, type Snippet } from 'svelte';
 
   let {
     viewerEmail,
     documentId,
-    sensitivity = "normal",
+    sensitivity = 'normal',
     children,
   }: {
     viewerEmail: string;
     documentId: string;
-    sensitivity?: "normal" | "confidential" | "embargoed";
+    sensitivity?: 'normal' | 'confidential' | 'embargoed';
     children: Snippet;
   } = $props();
 
   let shieldActive = $state(false);
-  let warningMessage = $state("");
+  let warningMessage = $state('');
   let viewStartTime = $state(Date.now());
   let elapsed = $state(0);
 
@@ -37,20 +37,20 @@
     // Screenshot key detection
     const handleKeydown = (e: KeyboardEvent) => {
       const isScreenshotAttempt =
-        (e.metaKey && e.shiftKey && ["3", "4", "5", "s"].includes(e.key)) ||
-        e.key === "PrintScreen";
+        (e.metaKey && e.shiftKey && ['3', '4', '5', 's'].includes(e.key)) ||
+        e.key === 'PrintScreen';
 
-      if (isScreenshotAttempt && sensitivity !== "normal") {
-        activateShield("Screenshot attempt detected");
-        logSecurityEvent("screenshot_attempt");
+      if (isScreenshotAttempt && sensitivity !== 'normal') {
+        activateShield('Screenshot attempt detected');
+        logSecurityEvent('screenshot_attempt');
       }
     };
 
     // Tab visibility change
     const handleVisibility = () => {
-      if (document.hidden && sensitivity === "embargoed") {
-        activateShield("Content hidden—tab not in focus");
-        logSecurityEvent("tab_unfocus");
+      if (document.hidden && sensitivity === 'embargoed') {
+        activateShield('Content hidden—tab not in focus');
+        logSecurityEvent('tab_unfocus');
       } else if (!document.hidden) {
         deactivateShield();
       }
@@ -58,37 +58,37 @@
 
     // Window blur
     const handleBlur = () => {
-      if (sensitivity === "embargoed") {
-        activateShield("Window lost focus");
+      if (sensitivity === 'embargoed') {
+        activateShield('Window lost focus');
         setTimeout(deactivateShield, 2000);
-        logSecurityEvent("window_blur");
+        logSecurityEvent('window_blur');
       }
     };
 
     // Right-click prevention for confidential+
     const handleContextMenu = (e: MouseEvent) => {
-      if (sensitivity !== "normal") {
+      if (sensitivity !== 'normal') {
         e.preventDefault();
-        activateShield("Right-click disabled for security");
+        activateShield('Right-click disabled for security');
         setTimeout(deactivateShield, 1500);
       }
     };
 
-    document.addEventListener("keydown", handleKeydown);
-    document.addEventListener("visibilitychange", handleVisibility);
-    window.addEventListener("blur", handleBlur);
-    document.addEventListener("contextmenu", handleContextMenu);
+    document.addEventListener('keydown', handleKeydown);
+    document.addEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('blur', handleBlur);
+    document.addEventListener('contextmenu', handleContextMenu);
 
     // Log view start
-    logSecurityEvent("view_started");
+    logSecurityEvent('view_started');
 
     return () => {
       clearInterval(timer);
-      document.removeEventListener("keydown", handleKeydown);
-      document.removeEventListener("visibilitychange", handleVisibility);
-      window.removeEventListener("blur", handleBlur);
-      document.removeEventListener("contextmenu", handleContextMenu);
-      logSecurityEvent("view_ended");
+      document.removeEventListener('keydown', handleKeydown);
+      document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('blur', handleBlur);
+      document.removeEventListener('contextmenu', handleContextMenu);
+      logSecurityEvent('view_ended');
     };
   });
 
@@ -99,14 +99,14 @@
 
   function deactivateShield() {
     shieldActive = false;
-    warningMessage = "";
+    warningMessage = '';
   }
 
   async function logSecurityEvent(event: string) {
     try {
-      await fetch("/api/audit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      await fetch('/api/audit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           event,
           documentId,
@@ -123,14 +123,14 @@
   function hashCode(str: string): number {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
-      hash = ((hash << 5) - hash) + str.charCodeAt(i);
+      hash = (hash << 5) - hash + str.charCodeAt(i);
       hash |= 0;
     }
     return Math.abs(hash);
   }
 </script>
 
-{#if sensitivity !== "normal"}
+{#if sensitivity !== 'normal'}
   <div class="shield-container">
     <!-- Visible watermark -->
     <div class="watermark visible" aria-hidden="true">
@@ -140,9 +140,7 @@
     <!-- Semi-visible pattern watermark -->
     <div class="watermark pattern" aria-hidden="true">
       {#each Array(15) as _, i}
-        <span
-          style="left: {(i * 7) + 2}%; top: {((i * 11) % 90) + 5}%"
-        >
+        <span style="left: {i * 7 + 2}%; top: {((i * 11) % 90) + 5}%">
           {fingerprint}
         </span>
       {/each}
@@ -152,7 +150,7 @@
     <svg class="watermark dots" viewBox="0 0 1000 1000" aria-hidden="true">
       {#each Array(40) as _, i}
         {@const x = (hashCode(fingerprint + i) % 900) + 50}
-        {@const y = (hashCode(fingerprint + i + "y") % 900) + 50}
+        {@const y = (hashCode(fingerprint + i + 'y') % 900) + 50}
         <circle cx={x} cy={y} r="1.5" fill="rgba(0,0,0,0.015)" />
       {/each}
     </svg>
@@ -166,12 +164,7 @@
     {#if shieldActive}
       <div class="capture-shield" role="alert">
         <div class="shield-content">
-          <svg
-            class="shield-icon"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-          >
+          <svg class="shield-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
             <path d="M12 8v4M12 16h.01" />
           </svg>
@@ -189,9 +182,7 @@
         Viewing as: <strong>{viewerEmail}</strong>
       </div>
       <div class="session-info">
-        Session logged • {Math.floor(elapsed / 60)}:{(elapsed % 60)
-          .toString()
-          .padStart(2, "0")}
+        Session logged • {Math.floor(elapsed / 60)}:{(elapsed % 60).toString().padStart(2, '0')}
       </div>
     </div>
   </div>

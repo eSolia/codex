@@ -4,9 +4,9 @@
    * InfoSec: Dashboard showing documents pending translation
    */
 
-  type Locale = "en" | "ja";
-  type TranslationStatus = "pending" | "in_progress" | "review" | "complete";
-  type DocumentType = "content" | "fragment";
+  type Locale = 'en' | 'ja';
+  type TranslationStatus = 'pending' | 'in_progress' | 'review' | 'complete';
+  type DocumentType = 'content' | 'fragment';
 
   interface TranslationItem {
     id: string;
@@ -38,20 +38,20 @@
     onMarkComplete,
   }: Props = $props();
 
-  type FilterStatus = "all" | TranslationStatus;
-  let filterStatus = $state<FilterStatus>("all");
-  let filterAssigned = $state<"all" | "mine" | "unassigned">("all");
+  type FilterStatus = 'all' | TranslationStatus;
+  let filterStatus = $state<FilterStatus>('all');
+  let filterAssigned = $state<'all' | 'mine' | 'unassigned'>('all');
 
   let filteredItems = $derived(() => {
     let filtered = items;
 
-    if (filterStatus !== "all") {
+    if (filterStatus !== 'all') {
       filtered = filtered.filter((item) => item.status === filterStatus);
     }
 
-    if (filterAssigned === "mine" && currentUserEmail) {
+    if (filterAssigned === 'mine' && currentUserEmail) {
       filtered = filtered.filter((item) => item.assignedTo === currentUserEmail);
-    } else if (filterAssigned === "unassigned") {
+    } else if (filterAssigned === 'unassigned') {
       filtered = filtered.filter((item) => !item.assignedTo);
     }
 
@@ -65,7 +65,7 @@
     const hours = Math.floor(diff / 3600000);
     const days = Math.floor(hours / 24);
 
-    if (hours < 1) return "just now";
+    if (hours < 1) return 'just now';
     if (hours < 24) return `${hours}h ago`;
     if (days < 7) return `${days}d ago`;
     return date.toLocaleDateString();
@@ -73,16 +73,16 @@
 
   function getStatusColor(status: TranslationStatus) {
     const colors = {
-      pending: { bg: "bg-gray-100", text: "text-gray-600" },
-      in_progress: { bg: "bg-amber-100", text: "text-amber-700" },
-      review: { bg: "bg-blue-100", text: "text-blue-700" },
-      complete: { bg: "bg-green-100", text: "text-green-700" },
+      pending: { bg: 'bg-gray-100', text: 'text-gray-600' },
+      in_progress: { bg: 'bg-amber-100', text: 'text-amber-700' },
+      review: { bg: 'bg-blue-100', text: 'text-blue-700' },
+      complete: { bg: 'bg-green-100', text: 'text-green-700' },
     };
     return colors[status];
   }
 
   function getLocaleFlag(locale: Locale): string {
-    return locale === "en" ? "🇺🇸" : "🇯🇵";
+    return locale === 'en' ? '🇺🇸' : '🇯🇵';
   }
 </script>
 
@@ -116,7 +116,7 @@
     </div>
 
     <div class="text-sm text-gray-500">
-      {filteredItems().length} item{filteredItems().length !== 1 ? "s" : ""}
+      {filteredItems().length} item{filteredItems().length !== 1 ? 's' : ''}
     </div>
   </div>
 
@@ -134,7 +134,12 @@
     </div>
   {:else if filteredItems().length === 0}
     <div class="text-center py-12 text-gray-500">
-      <svg class="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg
+        class="w-12 h-12 mx-auto mb-3 text-gray-300"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
         <path
           stroke-linecap="round"
           stroke-linejoin="round"
@@ -149,11 +154,14 @@
       <table class="w-full">
         <thead class="bg-gray-50 border-b border-gray-200">
           <tr>
-            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Document</th>
+            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Document</th
+            >
             <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Locale</th>
             <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Progress</th>
-            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Assigned</th>
+            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Progress</th
+            >
+            <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Assigned</th
+            >
             <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Updated</th>
             <th class="px-4 py-2"></th>
           </tr>
@@ -165,7 +173,9 @@
             <tr class="hover:bg-gray-50">
               <td class="px-4 py-3">
                 <div class="flex items-center gap-2">
-                  <span class="text-[10px] font-medium px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 uppercase">
+                  <span
+                    class="text-[10px] font-medium px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 uppercase"
+                  >
                     {item.documentType}
                   </span>
                   {#if onOpen}
@@ -185,14 +195,16 @@
               </td>
 
               <td class="px-4 py-3">
-                <span class="text-base" title={item.locale === "en" ? "English" : "Japanese"}>
+                <span class="text-base" title={item.locale === 'en' ? 'English' : 'Japanese'}>
                   {getLocaleFlag(item.locale)}
                 </span>
               </td>
 
               <td class="px-4 py-3">
-                <span class="text-xs font-medium px-2 py-0.5 rounded {statusColor.bg} {statusColor.text}">
-                  {item.status.replace("_", " ")}
+                <span
+                  class="text-xs font-medium px-2 py-0.5 rounded {statusColor.bg} {statusColor.text}"
+                >
+                  {item.status.replace('_', ' ')}
                 </span>
               </td>
 
@@ -210,7 +222,7 @@
 
               <td class="px-4 py-3 text-sm text-gray-600">
                 {#if item.assignedTo}
-                  {item.assignedTo.split("@")[0]}
+                  {item.assignedTo.split('@')[0]}
                 {:else}
                   <span class="text-gray-400">—</span>
                 {/if}
@@ -230,12 +242,17 @@
                       title="Assign to me"
                     >
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                        />
                       </svg>
                     </button>
                   {/if}
 
-                  {#if item.status !== "complete" && onMarkComplete}
+                  {#if item.status !== 'complete' && onMarkComplete}
                     <button
                       type="button"
                       onclick={() => onMarkComplete(item.documentId, item.locale)}
@@ -243,7 +260,12 @@
                       title="Mark complete"
                     >
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M5 13l4 4L19 7"
+                        />
                       </svg>
                     </button>
                   {/if}

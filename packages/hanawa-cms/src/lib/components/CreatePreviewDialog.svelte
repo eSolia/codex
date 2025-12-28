@@ -20,19 +20,14 @@
     onclose?: () => void;
   }
 
-  let {
-    open = $bindable(false),
-    documentId,
-    oncreate,
-    onclose,
-  }: Props = $props();
+  let { open = $bindable(false), documentId, oncreate, onclose }: Props = $props();
 
-  let name = $state("");
-  let expiresIn = $state("7d");
+  let name = $state('');
+  let expiresIn = $state('7d');
   let usePassword = $state(false);
-  let password = $state("");
+  let password = $state('');
   let useEmailRestriction = $state(false);
-  let allowedEmails = $state("");
+  let allowedEmails = $state('');
   let maxViews = $state<number | null>(null);
 
   let loading = $state(false);
@@ -51,24 +46,24 @@
     error = null;
 
     try {
-      const response = await fetch("/api/previews", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/api/previews', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           documentId,
           name: name || undefined,
           expiresIn,
           password: usePassword ? password : undefined,
           allowedEmails: useEmailRestriction
-            ? allowedEmails.split(",").map((e) => e.trim().toLowerCase())
+            ? allowedEmails.split(',').map((e) => e.trim().toLowerCase())
             : undefined,
           maxViews: maxViews || undefined,
         }),
       });
 
       if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        throw new Error(data.message || "Failed to create preview");
+        const data = (await response.json().catch(() => ({}))) as { message?: string };
+        throw new Error(data.message || 'Failed to create preview');
       }
 
       created = await response.json();
@@ -77,7 +72,7 @@
         oncreate(created);
       }
     } catch (err) {
-      error = err instanceof Error ? err.message : "Failed to create preview";
+      error = err instanceof Error ? err.message : 'Failed to create preview';
     } finally {
       loading = false;
     }
@@ -92,11 +87,11 @@
       setTimeout(() => (copied = false), 2000);
     } catch {
       // Fallback for older browsers
-      const input = document.createElement("input");
+      const input = document.createElement('input');
       input.value = getPreviewUrl(created);
       document.body.appendChild(input);
       input.select();
-      document.execCommand("copy");
+      document.execCommand('copy');
       document.body.removeChild(input);
       copied = true;
       setTimeout(() => (copied = false), 2000);
@@ -106,12 +101,12 @@
   function handleClose() {
     open = false;
     // Reset state
-    name = "";
-    expiresIn = "7d";
+    name = '';
+    expiresIn = '7d';
     usePassword = false;
-    password = "";
+    password = '';
     useEmailRestriction = false;
-    allowedEmails = "";
+    allowedEmails = '';
     maxViews = null;
     created = null;
     error = null;
@@ -119,7 +114,7 @@
   }
 
   function handleKeydown(event: KeyboardEvent) {
-    if (event.key === "Escape") {
+    if (event.key === 'Escape') {
       handleClose();
     }
   }
@@ -131,12 +126,12 @@
   }
 
   function formatExpiry(expiresAt: number): string {
-    return new Date(expiresAt).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
+    return new Date(expiresAt).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
     });
   }
 </script>
@@ -154,11 +149,16 @@
     <div class="modal-content">
       <div class="modal-header">
         <h2 id="dialog-title">
-          {created ? "Preview Created" : "Create Preview"}
+          {created ? 'Preview Created' : 'Create Preview'}
         </h2>
         <button type="button" class="close-button" onclick={handleClose}>
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            />
           </svg>
         </button>
       </div>
@@ -168,22 +168,27 @@
           <!-- Success State -->
           <div class="success-state">
             <div class="success-icon">
-              <svg class="w-12 h-12 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <svg
+                class="w-12 h-12 text-green-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
               </svg>
             </div>
 
             <p class="success-message">Your preview link is ready to share</p>
 
             <div class="link-container">
-              <input
-                type="text"
-                readonly
-                value={getPreviewUrl(created)}
-                class="link-input"
-              />
+              <input type="text" readonly value={getPreviewUrl(created)} class="link-input" />
               <button type="button" class="copy-button" onclick={copyLink}>
-                {copied ? "Copied!" : "Copy"}
+                {copied ? 'Copied!' : 'Copy'}
               </button>
             </div>
 
@@ -199,11 +204,21 @@
           </div>
         {:else}
           <!-- Create Form -->
-          <form onsubmit|preventDefault={createPreview}>
+          <form
+            onsubmit={(e) => {
+              e.preventDefault();
+              createPreview();
+            }}
+          >
             {#if error}
               <div class="error-message" role="alert">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
                 <span>{error}</span>
               </div>
@@ -272,7 +287,7 @@
             </div>
 
             <button type="submit" class="submit-button" disabled={loading}>
-              {loading ? "Creating..." : "Create Preview"}
+              {loading ? 'Creating...' : 'Create Preview'}
             </button>
           </form>
         {/if}
@@ -355,8 +370,8 @@
     cursor: pointer;
   }
 
-  .form-group input[type="text"],
-  .form-group input[type="number"],
+  .form-group input[type='text'],
+  .form-group input[type='number'],
   .form-group select {
     width: 100%;
     padding: 0.5rem 0.75rem;

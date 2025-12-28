@@ -5,14 +5,14 @@
    *
    * InfoSec: No external data sources, navigation validated
    */
-  import { goto } from "$app/navigation";
-  import { onMount } from "svelte";
+  import { goto } from '$app/navigation';
+  import { onMount } from 'svelte';
 
   // Props
   let { open = $bindable(false) }: { open?: boolean } = $props();
 
   // State
-  let query = $state("");
+  let query = $state('');
   let selectedIndex = $state(0);
   let inputElement: HTMLInputElement;
 
@@ -22,7 +22,7 @@
     title: string;
     description?: string;
     icon: string;
-    category: "navigation" | "action" | "create";
+    category: 'navigation' | 'action' | 'create';
     keywords: string[];
     action: () => void | Promise<void>;
     shortcut?: string;
@@ -31,96 +31,98 @@
   const commands: Command[] = [
     // Navigation
     {
-      id: "go-dashboard",
-      title: "Go to Dashboard",
-      icon: "🏠",
-      category: "navigation",
-      keywords: ["home", "dashboard", "main"],
-      action: () => goto("/"),
-      shortcut: "G D",
+      id: 'go-dashboard',
+      title: 'Go to Dashboard',
+      icon: '🏠',
+      category: 'navigation',
+      keywords: ['home', 'dashboard', 'main'],
+      action: () => goto('/'),
+      shortcut: 'G D',
     },
     {
-      id: "go-content",
-      title: "Go to Content",
-      icon: "📄",
-      category: "navigation",
-      keywords: ["content", "documents", "pages"],
-      action: () => goto("/content"),
-      shortcut: "G C",
+      id: 'go-content',
+      title: 'Go to Content',
+      icon: '📄',
+      category: 'navigation',
+      keywords: ['content', 'documents', 'pages'],
+      action: () => goto('/content'),
+      shortcut: 'G C',
     },
     {
-      id: "go-fragments",
-      title: "Go to Fragments",
-      icon: "🧩",
-      category: "navigation",
-      keywords: ["fragments", "blocks", "reusable"],
-      action: () => goto("/fragments"),
-      shortcut: "G F",
+      id: 'go-fragments',
+      title: 'Go to Fragments',
+      icon: '🧩',
+      category: 'navigation',
+      keywords: ['fragments', 'blocks', 'reusable'],
+      action: () => goto('/fragments'),
+      shortcut: 'G F',
     },
     {
-      id: "go-sites",
-      title: "Go to Sites",
-      icon: "🌐",
-      category: "navigation",
-      keywords: ["sites", "websites"],
-      action: () => goto("/sites"),
-      shortcut: "G S",
+      id: 'go-sites',
+      title: 'Go to Sites',
+      icon: '🌐',
+      category: 'navigation',
+      keywords: ['sites', 'websites'],
+      action: () => goto('/sites'),
+      shortcut: 'G S',
     },
     {
-      id: "go-assets",
-      title: "Go to Assets",
-      icon: "🖼️",
-      category: "navigation",
-      keywords: ["assets", "media", "images", "files"],
-      action: () => goto("/assets"),
-      shortcut: "G A",
+      id: 'go-assets',
+      title: 'Go to Assets',
+      icon: '🖼️',
+      category: 'navigation',
+      keywords: ['assets', 'media', 'images', 'files'],
+      action: () => goto('/assets'),
+      shortcut: 'G A',
     },
 
     // Create actions
     {
-      id: "create-content",
-      title: "Create New Content",
-      description: "Create a new document",
-      icon: "➕",
-      category: "create",
-      keywords: ["new", "create", "add", "document"],
-      action: () => goto("/content/new"),
-      shortcut: "C",
+      id: 'create-content',
+      title: 'Create New Content',
+      description: 'Create a new document',
+      icon: '➕',
+      category: 'create',
+      keywords: ['new', 'create', 'add', 'document'],
+      action: () => goto('/content/new'),
+      shortcut: 'C',
     },
     {
-      id: "create-fragment",
-      title: "Create New Fragment",
-      description: "Create a reusable content block",
-      icon: "➕",
-      category: "create",
-      keywords: ["new", "create", "fragment", "block"],
-      action: () => goto("/fragments/new"),
+      id: 'create-fragment',
+      title: 'Create New Fragment',
+      description: 'Create a reusable content block',
+      icon: '➕',
+      category: 'create',
+      keywords: ['new', 'create', 'fragment', 'block'],
+      action: () => goto('/fragments/new'),
     },
 
     // Actions
     {
-      id: "toggle-theme",
-      title: "Toggle Dark Mode",
-      description: "Switch between light and dark theme",
-      icon: "🌙",
-      category: "action",
-      keywords: ["theme", "dark", "light", "mode"],
+      id: 'toggle-theme',
+      title: 'Toggle Dark Mode',
+      description: 'Switch between light and dark theme',
+      icon: '🌙',
+      category: 'action',
+      keywords: ['theme', 'dark', 'light', 'mode'],
       action: () => {
-        document.documentElement.classList.toggle("dark");
+        document.documentElement.classList.toggle('dark');
       },
     },
     {
-      id: "keyboard-shortcuts",
-      title: "Keyboard Shortcuts",
-      description: "View all keyboard shortcuts",
-      icon: "⌨️",
-      category: "action",
-      keywords: ["keyboard", "shortcuts", "help", "keys"],
+      id: 'keyboard-shortcuts',
+      title: 'Keyboard Shortcuts',
+      description: 'View all keyboard shortcuts',
+      icon: '⌨️',
+      category: 'action',
+      keywords: ['keyboard', 'shortcuts', 'help', 'keys'],
       action: () => {
         // Will be implemented with shortcuts modal
-        alert("Keyboard shortcuts:\n\n⌘K - Command Palette\n⌘S - Save\n/ - Slash commands in editor");
+        alert(
+          'Keyboard shortcuts:\n\n⌘K - Command Palette\n⌘S - Save\n/ - Slash commands in editor'
+        );
       },
-      shortcut: "?",
+      shortcut: '?',
     },
   ];
 
@@ -156,19 +158,19 @@
   // Handle keyboard navigation
   function handleKeydown(event: KeyboardEvent) {
     switch (event.key) {
-      case "ArrowDown":
+      case 'ArrowDown':
         event.preventDefault();
         selectedIndex = Math.min(selectedIndex + 1, filteredCommands.length - 1);
         break;
-      case "ArrowUp":
+      case 'ArrowUp':
         event.preventDefault();
         selectedIndex = Math.max(selectedIndex - 1, 0);
         break;
-      case "Enter":
+      case 'Enter':
         event.preventDefault();
         executeCommand(selectedIndex);
         break;
-      case "Escape":
+      case 'Escape':
         event.preventDefault();
         close();
         break;
@@ -185,7 +187,7 @@
 
   function close() {
     open = false;
-    query = "";
+    query = '';
     selectedIndex = 0;
   }
 
@@ -193,25 +195,25 @@
   onMount(() => {
     function handleGlobalKeydown(event: KeyboardEvent) {
       // ⌘K or Ctrl+K to open
-      if ((event.metaKey || event.ctrlKey) && event.key === "k") {
+      if ((event.metaKey || event.ctrlKey) && event.key === 'k') {
         event.preventDefault();
         open = !open;
         if (!open) {
-          query = "";
+          query = '';
           selectedIndex = 0;
         }
       }
     }
 
-    document.addEventListener("keydown", handleGlobalKeydown);
-    return () => document.removeEventListener("keydown", handleGlobalKeydown);
+    document.addEventListener('keydown', handleGlobalKeydown);
+    return () => document.removeEventListener('keydown', handleGlobalKeydown);
   });
 
   // Category labels
   const categoryLabels: Record<string, string> = {
-    navigation: "Navigation",
-    action: "Actions",
-    create: "Create",
+    navigation: 'Navigation',
+    action: 'Actions',
+    create: 'Create',
   };
 
   // Group commands by category
@@ -229,7 +231,7 @@
   // Flat index for keyboard navigation
   function getFlatIndex(category: string, indexInCategory: number): number {
     let index = 0;
-    for (const cat of ["navigation", "create", "action"]) {
+    for (const cat of ['navigation', 'create', 'action']) {
       if (cat === category) {
         return index + indexInCategory;
       }
@@ -244,7 +246,7 @@
   <div
     class="fixed inset-0 bg-black/50 z-50"
     onclick={close}
-    onkeydown={(e) => e.key === "Escape" && close()}
+    onkeydown={(e) => e.key === 'Escape' && close()}
     role="button"
     tabindex="-1"
   ></div>
@@ -258,12 +260,7 @@
   >
     <!-- Search Input -->
     <div class="flex items-center gap-3 px-4 py-3 border-b border-gray-200">
-      <svg
-        class="w-5 h-5 text-gray-400"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
+      <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path
           stroke-linecap="round"
           stroke-linejoin="round"
@@ -289,7 +286,7 @@
           No commands found for "{query}"
         </div>
       {:else}
-        {#each ["navigation", "create", "action"] as category}
+        {#each ['navigation', 'create', 'action'] as category}
           {#if groupedCommands[category]?.length}
             <div class="px-2 pt-2">
               <div class="px-2 py-1 text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -301,8 +298,8 @@
                   type="button"
                   class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors
                     {flatIndex === selectedIndex
-                      ? 'bg-esolia-navy text-white'
-                      : 'hover:bg-gray-100'}"
+                    ? 'bg-esolia-navy text-white'
+                    : 'hover:bg-gray-100'}"
                   onclick={() => executeCommand(flatIndex)}
                   onmouseenter={() => (selectedIndex = flatIndex)}
                 >

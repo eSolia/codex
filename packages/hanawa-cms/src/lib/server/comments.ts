@@ -8,10 +8,10 @@
 
 /// <reference types="@cloudflare/workers-types" />
 
-import type { AuditService, AuditContext } from "./audit";
+import type { AuditService, AuditContext } from './audit';
 
-export type CommentType = "inline" | "document" | "suggestion";
-export type CommentStatus = "open" | "resolved" | "rejected";
+export type CommentType = 'inline' | 'document' | 'suggestion';
+export type CommentStatus = 'open' | 'resolved' | 'rejected';
 
 export interface CommentAnchor {
   start: number;
@@ -86,7 +86,7 @@ export function createCommentsService(db: D1Database, audit?: AuditService) {
       let threadId: string;
       if (data.parentId) {
         const parent = await this.get(data.parentId);
-        if (!parent) throw new Error("Parent comment not found");
+        if (!parent) throw new Error('Parent comment not found');
         threadId = parent.threadId;
       } else {
         threadId = id;
@@ -144,9 +144,9 @@ export function createCommentsService(db: D1Database, audit?: AuditService) {
       if (audit) {
         await audit.log(
           {
-            action: "comment_create",
-            actionCategory: "comment",
-            resourceType: "comment",
+            action: 'comment_create',
+            actionCategory: 'comment',
+            resourceType: 'comment',
             resourceId: id,
             metadata: {
               documentId,
@@ -213,34 +213,28 @@ export function createCommentsService(db: D1Database, audit?: AuditService) {
     /**
      * Update comment content
      */
-    async update(
-      commentId: string,
-      content: string,
-      context: AuditContext
-    ): Promise<Comment> {
+    async update(commentId: string, content: string, context: AuditContext): Promise<Comment> {
       const comment = await this.get(commentId);
-      if (!comment) throw new Error("Comment not found");
+      if (!comment) throw new Error('Comment not found');
 
       if (comment.author.email !== context.actorEmail) {
-        throw new Error("Can only edit your own comments");
+        throw new Error('Can only edit your own comments');
       }
 
       const contentHtml = this.renderMarkdown(content);
       const now = Date.now();
 
       await db
-        .prepare(
-          `UPDATE comments SET content = ?, content_html = ?, updated_at = ? WHERE id = ?`
-        )
+        .prepare(`UPDATE comments SET content = ?, content_html = ?, updated_at = ? WHERE id = ?`)
         .bind(content, contentHtml, now, commentId)
         .run();
 
       if (audit) {
         await audit.log(
           {
-            action: "comment_update",
-            actionCategory: "comment",
-            resourceType: "comment",
+            action: 'comment_update',
+            actionCategory: 'comment',
+            resourceType: 'comment',
             resourceId: commentId,
             valueBefore: comment.content,
             valueAfter: content,
@@ -261,7 +255,7 @@ export function createCommentsService(db: D1Database, audit?: AuditService) {
       context: AuditContext
     ): Promise<void> {
       const comment = await this.get(commentId);
-      if (!comment) throw new Error("Comment not found");
+      if (!comment) throw new Error('Comment not found');
 
       await db
         .prepare(
@@ -275,9 +269,9 @@ export function createCommentsService(db: D1Database, audit?: AuditService) {
       if (audit) {
         await audit.log(
           {
-            action: "comment_resolve",
-            actionCategory: "comment",
-            resourceType: "comment",
+            action: 'comment_resolve',
+            actionCategory: 'comment',
+            resourceType: 'comment',
             resourceId: commentId,
             metadata: { threadId: comment.threadId, note },
           },
@@ -291,7 +285,7 @@ export function createCommentsService(db: D1Database, audit?: AuditService) {
      */
     async reopen(commentId: string, context: AuditContext): Promise<void> {
       const comment = await this.get(commentId);
-      if (!comment) throw new Error("Comment not found");
+      if (!comment) throw new Error('Comment not found');
 
       await db
         .prepare(
@@ -305,11 +299,11 @@ export function createCommentsService(db: D1Database, audit?: AuditService) {
       if (audit) {
         await audit.log(
           {
-            action: "comment_update",
-            actionCategory: "comment",
-            resourceType: "comment",
+            action: 'comment_update',
+            actionCategory: 'comment',
+            resourceType: 'comment',
             resourceId: commentId,
-            changeSummary: "Reopened thread",
+            changeSummary: 'Reopened thread',
           },
           context
         );
@@ -321,10 +315,10 @@ export function createCommentsService(db: D1Database, audit?: AuditService) {
      */
     async delete(commentId: string, context: AuditContext): Promise<void> {
       const comment = await this.get(commentId);
-      if (!comment) throw new Error("Comment not found");
+      if (!comment) throw new Error('Comment not found');
 
       if (comment.author.email !== context.actorEmail) {
-        throw new Error("Can only delete your own comments");
+        throw new Error('Can only delete your own comments');
       }
 
       await db
@@ -335,9 +329,9 @@ export function createCommentsService(db: D1Database, audit?: AuditService) {
       if (audit) {
         await audit.log(
           {
-            action: "comment_delete",
-            actionCategory: "comment",
-            resourceType: "comment",
+            action: 'comment_delete',
+            actionCategory: 'comment',
+            resourceType: 'comment',
             resourceId: commentId,
           },
           context
@@ -353,10 +347,10 @@ export function createCommentsService(db: D1Database, audit?: AuditService) {
       context: AuditContext
     ): Promise<{ from: number; to: number; text: string }> {
       const comment = await this.get(commentId);
-      if (!comment) throw new Error("Comment not found");
-      if (comment.type !== "suggestion") throw new Error("Not a suggestion");
-      if (!comment.suggestionText) throw new Error("No suggestion text");
-      if (!comment.anchor) throw new Error("No anchor position");
+      if (!comment) throw new Error('Comment not found');
+      if (comment.type !== 'suggestion') throw new Error('Not a suggestion');
+      if (!comment.suggestionText) throw new Error('No suggestion text');
+      if (!comment.anchor) throw new Error('No anchor position');
 
       const change = {
         from: comment.anchor.start,
@@ -364,16 +358,16 @@ export function createCommentsService(db: D1Database, audit?: AuditService) {
         text: comment.suggestionText,
       };
 
-      await this.resolve(commentId, "Suggestion accepted", context);
+      await this.resolve(commentId, 'Suggestion accepted', context);
 
       if (audit) {
         await audit.log(
           {
-            action: "comment_update",
-            actionCategory: "comment",
-            resourceType: "comment",
+            action: 'comment_update',
+            actionCategory: 'comment',
+            resourceType: 'comment',
             resourceId: commentId,
-            changeSummary: "Suggestion accepted",
+            changeSummary: 'Suggestion accepted',
             metadata: { change },
           },
           context
@@ -386,24 +380,14 @@ export function createCommentsService(db: D1Database, audit?: AuditService) {
     /**
      * Add reaction to comment
      */
-    async addReaction(
-      commentId: string,
-      reaction: string,
-      context: AuditContext
-    ): Promise<void> {
+    async addReaction(commentId: string, reaction: string, context: AuditContext): Promise<void> {
       await db
         .prepare(
           `INSERT INTO comment_reactions (id, comment_id, user_email, reaction, created_at)
            VALUES (?, ?, ?, ?, ?)
            ON CONFLICT(comment_id, user_email, reaction) DO NOTHING`
         )
-        .bind(
-          crypto.randomUUID(),
-          commentId,
-          context.actorEmail,
-          reaction,
-          Date.now()
-        )
+        .bind(crypto.randomUUID(), commentId, context.actorEmail, reaction, Date.now())
         .run();
     },
 
@@ -427,13 +411,9 @@ export function createCommentsService(db: D1Database, audit?: AuditService) {
     /**
      * Get reactions for a comment
      */
-    async getReactions(
-      commentId: string
-    ): Promise<Record<string, string[]>> {
+    async getReactions(commentId: string): Promise<Record<string, string[]>> {
       const { results } = await db
-        .prepare(
-          `SELECT reaction, user_email FROM comment_reactions WHERE comment_id = ?`
-        )
+        .prepare(`SELECT reaction, user_email FROM comment_reactions WHERE comment_id = ?`)
         .bind(commentId)
         .all();
 
@@ -454,9 +434,7 @@ export function createCommentsService(db: D1Database, audit?: AuditService) {
      */
     async getUnreadMentions(
       userEmail: string
-    ): Promise<
-      { commentId: string; documentId: string; excerpt: string; mentionedAt: number }[]
-    > {
+    ): Promise<{ commentId: string; documentId: string; excerpt: string; mentionedAt: number }[]> {
       const { results } = await db
         .prepare(
           `SELECT cm.comment_id, c.document_id, c.content, cm.notified_at
@@ -479,12 +457,9 @@ export function createCommentsService(db: D1Database, audit?: AuditService) {
     /**
      * Mark mentions as read
      */
-    async markMentionsRead(
-      userEmail: string,
-      commentIds?: string[]
-    ): Promise<void> {
+    async markMentionsRead(userEmail: string, commentIds?: string[]): Promise<void> {
       if (commentIds && commentIds.length > 0) {
-        const placeholders = commentIds.map(() => "?").join(",");
+        const placeholders = commentIds.map(() => '?').join(',');
         await db
           .prepare(
             `UPDATE comment_mentions SET read_at = ?
@@ -540,10 +515,10 @@ export function createCommentsService(db: D1Database, audit?: AuditService) {
       // Simplified markdown rendering
       // In production, use a proper markdown library
       return content
-        .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
-        .replace(/\*(.*?)\*/g, "<em>$1</em>")
-        .replace(/`(.*?)`/g, "<code>$1</code>")
-        .replace(/\n/g, "<br>");
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        .replace(/`(.*?)`/g, '<code>$1</code>')
+        .replace(/\n/g, '<br>');
     },
 
     rowToComment(row: Record<string, unknown>): Comment {
@@ -603,10 +578,7 @@ export function createCommentsService(db: D1Database, audit?: AuditService) {
           const thread = threads.get(comment.threadId);
           if (thread) {
             thread.replies.push(comment);
-            thread.lastActivity = Math.max(
-              thread.lastActivity,
-              comment.createdAt
-            );
+            thread.lastActivity = Math.max(thread.lastActivity, comment.createdAt);
           }
         }
       }
@@ -618,16 +590,12 @@ export function createCommentsService(db: D1Database, audit?: AuditService) {
         thread.participantCount = participants.size;
       }
 
-      return [...threads.values()].sort(
-        (a, b) => b.lastActivity - a.lastActivity
-      );
+      return [...threads.values()].sort((a, b) => b.lastActivity - a.lastActivity);
     },
 
     async getThreadParticipants(threadId: string): Promise<string[]> {
       const { results } = await db
-        .prepare(
-          `SELECT DISTINCT author_email FROM comments WHERE thread_id = ?`
-        )
+        .prepare(`SELECT DISTINCT author_email FROM comments WHERE thread_id = ?`)
         .bind(threadId)
         .all();
 

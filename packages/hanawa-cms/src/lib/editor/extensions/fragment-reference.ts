@@ -6,14 +6,14 @@
  * InfoSec: Fragment IDs validated server-side before rendering
  */
 
-import { Node, mergeAttributes } from "@tiptap/core";
+import { Node, mergeAttributes } from '@tiptap/core';
 
 export interface FragmentReferenceOptions {
   HTMLAttributes: Record<string, unknown>;
   onFragmentLoad?: (id: string, lang: string) => Promise<string | null>;
 }
 
-declare module "@tiptap/core" {
+declare module '@tiptap/core' {
   interface Commands<ReturnType> {
     fragmentReference: {
       insertFragment: (id: string, lang?: string) => ReturnType;
@@ -23,7 +23,7 @@ declare module "@tiptap/core" {
 }
 
 export const FragmentReference = Node.create<FragmentReferenceOptions>({
-  name: "fragmentReference",
+  name: 'fragmentReference',
 
   addOptions() {
     return {
@@ -32,7 +32,7 @@ export const FragmentReference = Node.create<FragmentReferenceOptions>({
     };
   },
 
-  group: "block",
+  group: 'block',
 
   atom: true,
 
@@ -40,20 +40,17 @@ export const FragmentReference = Node.create<FragmentReferenceOptions>({
     return {
       fragmentId: {
         default: null,
-        parseHTML: (element) => element.getAttribute("data-fragment-id"),
+        parseHTML: (element) => element.getAttribute('data-fragment-id'),
         // InfoSec: Sanitize fragment ID (OWASP A03)
         renderHTML: (attributes) => ({
-          "data-fragment-id": String(attributes.fragmentId || "").replace(
-            /[^a-zA-Z0-9\-_/]/g,
-            ""
-          ),
+          'data-fragment-id': String(attributes.fragmentId || '').replace(/[^a-zA-Z0-9\-_/]/g, ''),
         }),
       },
       lang: {
-        default: "en",
-        parseHTML: (element) => element.getAttribute("data-fragment-lang") || "en",
+        default: 'en',
+        parseHTML: (element) => element.getAttribute('data-fragment-lang') || 'en',
         renderHTML: (attributes) => ({
-          "data-fragment-lang": attributes.lang,
+          'data-fragment-lang': attributes.lang,
         }),
       },
       preview: {
@@ -91,7 +88,7 @@ export const FragmentReference = Node.create<FragmentReferenceOptions>({
 
     let content: string;
     if (loading) {
-      content = "Loading fragment...";
+      content = 'Loading fragment...';
     } else if (error) {
       content = `Error: ${error}`;
     } else if (preview) {
@@ -101,42 +98,34 @@ export const FragmentReference = Node.create<FragmentReferenceOptions>({
     }
 
     return [
-      "div",
+      'div',
       mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, {
-        class: `fragment-reference border-l-4 border-esolia-orange bg-gray-50 p-4 my-4 rounded-r ${loading ? "opacity-50" : ""} ${error ? "border-red-500 bg-red-50" : ""}`,
-        "data-fragment-id": fragmentId,
-        "data-fragment-lang": lang,
-        contenteditable: "false",
+        class: `fragment-reference border-l-4 border-esolia-orange bg-gray-50 p-4 my-4 rounded-r ${loading ? 'opacity-50' : ''} ${error ? 'border-red-500 bg-red-50' : ''}`,
+        'data-fragment-id': fragmentId,
+        'data-fragment-lang': lang,
+        contenteditable: 'false',
       }),
       [
-        "div",
-        { class: "flex items-center justify-between mb-2" },
+        'div',
+        { class: 'flex items-center justify-between mb-2' },
         [
-          "span",
-          { class: "text-xs font-medium text-gray-500 uppercase" },
+          'span',
+          { class: 'text-xs font-medium text-gray-500 uppercase' },
           `Fragment • ${lang.toUpperCase()}`,
         ],
-        [
-          "code",
-          { class: "text-xs bg-white px-2 py-1 rounded border" },
-          fragmentId,
-        ],
+        ['code', { class: 'text-xs bg-white px-2 py-1 rounded border' }, fragmentId],
       ],
-      [
-        "div",
-        { class: "fragment-preview text-sm" },
-        content,
-      ],
+      ['div', { class: 'fragment-preview text-sm' }, content],
     ];
   },
 
   addCommands() {
     return {
       insertFragment:
-        (id: string, lang = "en") =>
+        (id: string, lang = 'en') =>
         ({ commands }) => {
           // InfoSec: Sanitize fragment ID before insertion
-          const sanitizedId = id.replace(/[^a-zA-Z0-9\-_/]/g, "");
+          const sanitizedId = id.replace(/[^a-zA-Z0-9\-_/]/g, '');
           return commands.insertContent({
             type: this.name,
             attrs: { fragmentId: sanitizedId, lang },

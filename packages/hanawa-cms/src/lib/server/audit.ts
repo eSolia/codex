@@ -11,48 +11,43 @@
 // Action types for audit logging
 export type AuditAction =
   // Content
-  | "create"
-  | "update"
-  | "update_field"
-  | "delete"
-  | "restore"
-  | "archive"
+  | 'create'
+  | 'update'
+  | 'update_field'
+  | 'delete'
+  | 'restore'
+  | 'archive'
   // Workflow
-  | "submit_review"
-  | "approve"
-  | "reject"
-  | "request_changes"
-  | "publish"
-  | "unpublish"
-  | "schedule"
-  | "unschedule"
+  | 'submit_review'
+  | 'approve'
+  | 'reject'
+  | 'request_changes'
+  | 'publish'
+  | 'unpublish'
+  | 'schedule'
+  | 'unschedule'
   // Access
-  | "view"
-  | "download"
-  | "export"
-  | "share_preview"
-  | "preview_view"
+  | 'view'
+  | 'download'
+  | 'export'
+  | 'share_preview'
+  | 'preview_view'
   // System
-  | "login"
-  | "logout"
-  | "permission_grant"
-  | "permission_revoke"
-  | "settings_update"
+  | 'login'
+  | 'logout'
+  | 'permission_grant'
+  | 'permission_revoke'
+  | 'settings_update'
   // Media
-  | "upload"
-  | "revoke"
+  | 'upload'
+  | 'revoke'
   // Comments
-  | "comment_create"
-  | "comment_update"
-  | "comment_delete"
-  | "comment_resolve";
+  | 'comment_create'
+  | 'comment_update'
+  | 'comment_delete'
+  | 'comment_resolve';
 
-export type ActionCategory =
-  | "content"
-  | "workflow"
-  | "access"
-  | "system"
-  | "comment";
+export type ActionCategory = 'content' | 'workflow' | 'access' | 'system' | 'comment';
 
 export interface AuditEntry {
   action: AuditAction;
@@ -106,16 +101,14 @@ export interface AuditLogRow {
  * Compute SHA-256 checksum for tamper detection
  * InfoSec: Ensures audit log integrity
  */
-async function computeChecksum(
-  data: Record<string, unknown>
-): Promise<string> {
+async function computeChecksum(data: Record<string, unknown>): Promise<string> {
   const { checksum, ...rest } = data;
   const json = JSON.stringify(rest, Object.keys(rest).sort());
   const buffer = new TextEncoder().encode(json);
-  const hash = await crypto.subtle.digest("SHA-256", buffer);
+  const hash = await crypto.subtle.digest('SHA-256', buffer);
   return Array.from(new Uint8Array(hash))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
 }
 
 /**
@@ -145,9 +138,7 @@ export function createAuditService(db: D1Database) {
         resource_title: entry.resourceTitle || null,
         collection: entry.collection || null,
         field_path: entry.fieldPath || null,
-        value_before: entry.valueBefore
-          ? JSON.stringify(entry.valueBefore)
-          : null,
+        value_before: entry.valueBefore ? JSON.stringify(entry.valueBefore) : null,
         value_after: entry.valueAfter ? JSON.stringify(entry.valueAfter) : null,
         change_summary: entry.changeSummary || null,
         ip_address: context.ipAddress || null,
@@ -225,7 +216,7 @@ export function createAuditService(db: D1Database) {
       const params: unknown[] = [resourceType, resourceId];
 
       if (actions?.length) {
-        query += ` AND action IN (${actions.map(() => "?").join(", ")})`;
+        query += ` AND action IN (${actions.map(() => '?').join(', ')})`;
         params.push(...actions);
       }
 
@@ -236,7 +227,7 @@ export function createAuditService(db: D1Database) {
         .prepare(query)
         .bind(...params)
         .all();
-      return (results as unknown) as AuditLogRow[];
+      return results as unknown as AuditLogRow[];
     },
 
     /**
@@ -267,7 +258,7 @@ export function createAuditService(db: D1Database) {
         .prepare(query)
         .bind(...params)
         .all();
-      return (results as unknown) as AuditLogRow[];
+      return results as unknown as AuditLogRow[];
     },
 
     /**
@@ -290,30 +281,22 @@ export function createAuditService(db: D1Database) {
       const params: unknown[] = [];
 
       if (filters.actions?.length) {
-        conditions.push(
-          `action IN (${filters.actions.map(() => "?").join(", ")})`
-        );
+        conditions.push(`action IN (${filters.actions.map(() => '?').join(', ')})`);
         params.push(...filters.actions);
       }
 
       if (filters.categories?.length) {
-        conditions.push(
-          `action_category IN (${filters.categories.map(() => "?").join(", ")})`
-        );
+        conditions.push(`action_category IN (${filters.categories.map(() => '?').join(', ')})`);
         params.push(...filters.categories);
       }
 
       if (filters.actors?.length) {
-        conditions.push(
-          `actor_email IN (${filters.actors.map(() => "?").join(", ")})`
-        );
+        conditions.push(`actor_email IN (${filters.actors.map(() => '?').join(', ')})`);
         params.push(...filters.actors);
       }
 
       if (filters.resourceTypes?.length) {
-        conditions.push(
-          `resource_type IN (${filters.resourceTypes.map(() => "?").join(", ")})`
-        );
+        conditions.push(`resource_type IN (${filters.resourceTypes.map(() => '?').join(', ')})`);
         params.push(...filters.resourceTypes);
       }
 
@@ -337,9 +320,7 @@ export function createAuditService(db: D1Database) {
         params.push(pattern, pattern, pattern);
       }
 
-      const whereClause = conditions.length
-        ? `WHERE ${conditions.join(" AND ")}`
-        : "";
+      const whereClause = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
 
       // Get total count
       const countResult = await db
@@ -361,7 +342,7 @@ export function createAuditService(db: D1Database) {
         .all();
 
       return {
-        entries: (results as unknown) as AuditLogRow[],
+        entries: results as unknown as AuditLogRow[],
         total: countResult?.count || 0,
       };
     },
@@ -387,7 +368,7 @@ export function createAuditService(db: D1Database) {
           conditions.push(`timestamp <= ?`);
           params.push(until);
         }
-        query += ` WHERE ${conditions.join(" AND ")}`;
+        query += ` WHERE ${conditions.join(' AND ')}`;
       }
 
       const { results } = await db
@@ -399,7 +380,7 @@ export function createAuditService(db: D1Database) {
       let invalid = 0;
       const invalidEntries: string[] = [];
 
-      for (const row of (results as unknown) as AuditLogRow[]) {
+      for (const row of results as unknown as AuditLogRow[]) {
         if (!row.checksum) {
           // Old entries without checksum are considered valid
           valid++;
@@ -444,9 +425,7 @@ export function createAuditService(db: D1Database) {
     /**
      * Get recent activity summary
      */
-    async getRecentActivity(
-      limit: number = 20
-    ): Promise<AuditLogRow[]> {
+    async getRecentActivity(limit: number = 20): Promise<AuditLogRow[]> {
       const { results } = await db
         .prepare(
           `SELECT * FROM audit_log
@@ -456,7 +435,7 @@ export function createAuditService(db: D1Database) {
         .bind(limit)
         .all();
 
-      return (results as unknown) as AuditLogRow[];
+      return results as unknown as AuditLogRow[];
     },
   };
 }

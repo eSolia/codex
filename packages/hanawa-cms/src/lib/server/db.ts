@@ -1,13 +1,6 @@
 // Database utilities for Hanawa CMS
 
-import type {
-  Site,
-  ContentType,
-  Content,
-  Fragment,
-  Asset,
-  User,
-} from "$lib/types";
+import type { Site, ContentType, Content, Fragment, Asset, User } from '$lib/types';
 
 // Helper to parse JSON fields from D1
 function parseJson<T>(value: string | null, fallback: T): T {
@@ -28,11 +21,8 @@ function transformSite(row: Record<string, unknown>): Site {
     domain: row.domain as string | null,
     description: row.description as string | null,
     default_language: row.default_language as string,
-    languages: parseJson<string[]>(row.languages as string, ["ja", "en"]),
-    settings: parseJson<Record<string, unknown>>(
-      row.settings as string,
-      {}
-    ),
+    languages: parseJson<string[]>(row.languages as string, ['ja', 'en']),
+    settings: parseJson<Record<string, unknown>>(row.settings as string, {}),
     created_at: row.created_at as string,
     updated_at: row.updated_at as string,
   };
@@ -46,21 +36,12 @@ function transformContent(row: Record<string, unknown>): Content {
     slug: row.slug as string,
     path: row.path as string | null,
     title: row.title as string,
-    title_translations: parseJson<Record<string, string>>(
-      row.title_translations as string,
-      {}
-    ),
+    title_translations: parseJson<Record<string, string>>(row.title_translations as string, {}),
     body: row.body as string | null,
-    body_translations: parseJson<Record<string, string>>(
-      row.body_translations as string,
-      {}
-    ),
-    frontmatter: parseJson<Record<string, unknown>>(
-      row.frontmatter as string,
-      {}
-    ),
+    body_translations: parseJson<Record<string, string>>(row.body_translations as string, {}),
+    frontmatter: parseJson<Record<string, unknown>>(row.frontmatter as string, {}),
     excerpt: row.excerpt as string | null,
-    status: row.status as Content["status"],
+    status: row.status as Content['status'],
     language: row.language as string,
     published_at: row.published_at as string | null,
     created_at: row.created_at as string,
@@ -81,7 +62,7 @@ function transformFragment(row: Record<string, unknown>): Fragment {
     description: row.description as string | null,
     tags: parseJson<string[]>(row.tags as string, []),
     version: row.version as string,
-    status: row.status as Fragment["status"],
+    status: row.status as Fragment['status'],
     created_at: row.created_at as string,
     updated_at: row.updated_at as string,
   };
@@ -89,34 +70,23 @@ function transformFragment(row: Record<string, unknown>): Fragment {
 
 // Sites
 export async function getSites(db: D1Database): Promise<Site[]> {
-  const result = await db
-    .prepare("SELECT * FROM sites ORDER BY name")
-    .all();
+  const result = await db.prepare('SELECT * FROM sites ORDER BY name').all();
   return result.results.map(transformSite);
 }
 
 export async function getSite(db: D1Database, id: string): Promise<Site | null> {
-  const result = await db
-    .prepare("SELECT * FROM sites WHERE id = ?")
-    .bind(id)
-    .first();
+  const result = await db.prepare('SELECT * FROM sites WHERE id = ?').bind(id).first();
   return result ? transformSite(result as Record<string, unknown>) : null;
 }
 
-export async function getSiteBySlug(
-  db: D1Database,
-  slug: string
-): Promise<Site | null> {
-  const result = await db
-    .prepare("SELECT * FROM sites WHERE slug = ?")
-    .bind(slug)
-    .first();
+export async function getSiteBySlug(db: D1Database, slug: string): Promise<Site | null> {
+  const result = await db.prepare('SELECT * FROM sites WHERE slug = ?').bind(slug).first();
   return result ? transformSite(result as Record<string, unknown>) : null;
 }
 
 export async function createSite(
   db: D1Database,
-  site: Omit<Site, "created_at" | "updated_at">
+  site: Omit<Site, 'created_at' | 'updated_at'>
 ): Promise<Site> {
   await db
     .prepare(
@@ -143,21 +113,21 @@ export async function getContentBySite(
   siteId: string,
   options?: { status?: string; limit?: number; offset?: number }
 ): Promise<Content[]> {
-  let query = "SELECT * FROM content WHERE site_id = ?";
+  let query = 'SELECT * FROM content WHERE site_id = ?';
   const params: (string | number)[] = [siteId];
 
   if (options?.status) {
-    query += " AND status = ?";
+    query += ' AND status = ?';
     params.push(options.status);
   }
 
-  query += " ORDER BY updated_at DESC";
+  query += ' ORDER BY updated_at DESC';
 
   if (options?.limit) {
-    query += " LIMIT ?";
+    query += ' LIMIT ?';
     params.push(options.limit);
     if (options?.offset) {
-      query += " OFFSET ?";
+      query += ' OFFSET ?';
       params.push(options.offset);
     }
   }
@@ -169,20 +139,14 @@ export async function getContentBySite(
   return result.results.map(transformContent);
 }
 
-export async function getContent(
-  db: D1Database,
-  id: string
-): Promise<Content | null> {
-  const result = await db
-    .prepare("SELECT * FROM content WHERE id = ?")
-    .bind(id)
-    .first();
+export async function getContent(db: D1Database, id: string): Promise<Content | null> {
+  const result = await db.prepare('SELECT * FROM content WHERE id = ?').bind(id).first();
   return result ? transformContent(result as Record<string, unknown>) : null;
 }
 
 export async function createContent(
   db: D1Database,
-  content: Omit<Content, "created_at" | "updated_at">
+  content: Omit<Content, 'created_at' | 'updated_at'>
 ): Promise<Content> {
   await db
     .prepare(
@@ -222,23 +186,23 @@ export async function updateContent(
   const values: unknown[] = [];
 
   if (updates.title !== undefined) {
-    fields.push("title = ?");
+    fields.push('title = ?');
     values.push(updates.title);
   }
   if (updates.body !== undefined) {
-    fields.push("body = ?");
+    fields.push('body = ?');
     values.push(updates.body);
   }
   if (updates.status !== undefined) {
-    fields.push("status = ?");
+    fields.push('status = ?');
     values.push(updates.status);
   }
   if (updates.frontmatter !== undefined) {
-    fields.push("frontmatter = ?");
+    fields.push('frontmatter = ?');
     values.push(JSON.stringify(updates.frontmatter));
   }
   if (updates.published_at !== undefined) {
-    fields.push("published_at = ?");
+    fields.push('published_at = ?');
     values.push(updates.published_at);
   }
 
@@ -246,7 +210,7 @@ export async function updateContent(
   values.push(id);
 
   await db
-    .prepare(`UPDATE content SET ${fields.join(", ")} WHERE id = ?`)
+    .prepare(`UPDATE content SET ${fields.join(', ')} WHERE id = ?`)
     .bind(...values)
     .run();
 
@@ -258,29 +222,29 @@ export async function getFragments(
   db: D1Database,
   options?: { siteId?: string | null; category?: string; status?: string }
 ): Promise<Fragment[]> {
-  let query = "SELECT * FROM fragments WHERE 1=1";
+  let query = 'SELECT * FROM fragments WHERE 1=1';
   const params: (string | null)[] = [];
 
   if (options?.siteId !== undefined) {
     if (options.siteId === null) {
-      query += " AND site_id IS NULL";
+      query += ' AND site_id IS NULL';
     } else {
-      query += " AND (site_id = ? OR site_id IS NULL)";
+      query += ' AND (site_id = ? OR site_id IS NULL)';
       params.push(options.siteId);
     }
   }
 
   if (options?.category) {
-    query += " AND category = ?";
+    query += ' AND category = ?';
     params.push(options.category);
   }
 
   if (options?.status) {
-    query += " AND status = ?";
+    query += ' AND status = ?';
     params.push(options.status);
   }
 
-  query += " ORDER BY category, name";
+  query += ' ORDER BY category, name';
 
   const result = await db
     .prepare(query)
@@ -289,14 +253,8 @@ export async function getFragments(
   return result.results.map(transformFragment);
 }
 
-export async function getFragment(
-  db: D1Database,
-  id: string
-): Promise<Fragment | null> {
-  const result = await db
-    .prepare("SELECT * FROM fragments WHERE id = ?")
-    .bind(id)
-    .first();
+export async function getFragment(db: D1Database, id: string): Promise<Fragment | null> {
+  const result = await db.prepare('SELECT * FROM fragments WHERE id = ?').bind(id).first();
   return result ? transformFragment(result as Record<string, unknown>) : null;
 }
 
@@ -307,8 +265,8 @@ export async function getFragmentBySlug(
 ): Promise<Fragment | null> {
   const query =
     siteId === null
-      ? "SELECT * FROM fragments WHERE slug = ? AND site_id IS NULL"
-      : "SELECT * FROM fragments WHERE slug = ? AND (site_id = ? OR site_id IS NULL) ORDER BY site_id DESC LIMIT 1";
+      ? 'SELECT * FROM fragments WHERE slug = ? AND site_id IS NULL'
+      : 'SELECT * FROM fragments WHERE slug = ? AND (site_id = ? OR site_id IS NULL) ORDER BY site_id DESC LIMIT 1';
 
   const result =
     siteId === null
@@ -320,7 +278,7 @@ export async function getFragmentBySlug(
 
 export async function createFragment(
   db: D1Database,
-  fragment: Omit<Fragment, "created_at" | "updated_at">
+  fragment: Omit<Fragment, 'created_at' | 'updated_at'>
 ): Promise<Fragment> {
   await db
     .prepare(
@@ -355,27 +313,27 @@ export async function updateFragment(
   const values: unknown[] = [];
 
   if (updates.name !== undefined) {
-    fields.push("name = ?");
+    fields.push('name = ?');
     values.push(updates.name);
   }
   if (updates.content_en !== undefined) {
-    fields.push("content_en = ?");
+    fields.push('content_en = ?');
     values.push(updates.content_en);
   }
   if (updates.content_ja !== undefined) {
-    fields.push("content_ja = ?");
+    fields.push('content_ja = ?');
     values.push(updates.content_ja);
   }
   if (updates.category !== undefined) {
-    fields.push("category = ?");
+    fields.push('category = ?');
     values.push(updates.category);
   }
   if (updates.status !== undefined) {
-    fields.push("status = ?");
+    fields.push('status = ?');
     values.push(updates.status);
   }
   if (updates.tags !== undefined) {
-    fields.push("tags = ?");
+    fields.push('tags = ?');
     values.push(JSON.stringify(updates.tags));
   }
 
@@ -383,7 +341,7 @@ export async function updateFragment(
   values.push(id);
 
   await db
-    .prepare(`UPDATE fragments SET ${fields.join(", ")} WHERE id = ?`)
+    .prepare(`UPDATE fragments SET ${fields.join(', ')} WHERE id = ?`)
     .bind(...values)
     .run();
 
@@ -391,7 +349,7 @@ export async function updateFragment(
 }
 
 // Generate unique IDs
-export function generateId(prefix: string = ""): string {
+export function generateId(prefix: string = ''): string {
   const timestamp = Date.now().toString(36);
   const random = Math.random().toString(36).substring(2, 8);
   return prefix ? `${prefix}_${timestamp}${random}` : `${timestamp}${random}`;

@@ -5,20 +5,20 @@
  * InfoSec: All block content validated via Zod schemas
  */
 
-import { z } from "zod";
+import { z } from 'zod';
 
 // Block types
 export const BlockType = z.enum([
-  "paragraph",
-  "heading",
-  "mermaid",
-  "code",
-  "image",
-  "table",
-  "blockquote",
-  "callout",
-  "fragment",
-  "hr",
+  'paragraph',
+  'heading',
+  'mermaid',
+  'code',
+  'image',
+  'table',
+  'blockquote',
+  'callout',
+  'fragment',
+  'hr',
 ]);
 
 export type BlockType = z.infer<typeof BlockType>;
@@ -26,7 +26,7 @@ export type BlockType = z.infer<typeof BlockType>;
 // Base block structure
 export const BlockMetaSchema = z.object({
   collapsed: z.boolean().optional(),
-  language: z.enum(["en", "ja", "both"]).optional(),
+  language: z.enum(['en', 'ja', 'both']).optional(),
 });
 
 export type BlockMeta = z.infer<typeof BlockMetaSchema>;
@@ -63,7 +63,7 @@ export const ImageDataSchema = z.object({
 });
 
 export const CalloutDataSchema = z.object({
-  type: z.enum(["info", "warning", "danger", "success"]),
+  type: z.enum(['info', 'warning', 'danger', 'success']),
   title: z.string().optional(),
   title_ja: z.string().optional(),
   content: z.string(),
@@ -117,13 +117,13 @@ export type Block = z.infer<typeof BlockSchema>;
 export const BlockDocumentSchema = z.object({
   version: z.literal(1),
   blocks: z.array(BlockSchema),
-  locale: z.enum(["en", "ja", "both"]),
+  locale: z.enum(['en', 'ja', 'both']),
 });
 
 export type BlockDocument = z.infer<typeof BlockDocumentSchema>;
 
 // Content format type
-export const ContentFormat = z.enum(["html", "blocks"]);
+export const ContentFormat = z.enum(['html', 'blocks']);
 export type ContentFormat = z.infer<typeof ContentFormat>;
 
 // Helper functions
@@ -131,7 +131,7 @@ export type ContentFormat = z.infer<typeof ContentFormat>;
 /**
  * Create an empty block document
  */
-export function createEmptyDocument(locale: "en" | "ja" | "both" = "en"): BlockDocument {
+export function createEmptyDocument(locale: 'en' | 'ja' | 'both' = 'en'): BlockDocument {
   return {
     version: 1,
     blocks: [],
@@ -154,17 +154,14 @@ export function createBlock(type: BlockType, data: BlockData, meta?: BlockMeta):
 /**
  * Migrate HTML content to a single-block document
  */
-export function migrateHtmlToBlocks(
-  html: string,
-  html_ja?: string
-): BlockDocument {
+export function migrateHtmlToBlocks(html: string, html_ja?: string): BlockDocument {
   return {
     version: 1,
-    locale: html_ja ? "both" : "en",
+    locale: html_ja ? 'both' : 'en',
     blocks: [
       {
         id: crypto.randomUUID(),
-        type: "paragraph",
+        type: 'paragraph',
         data: {
           content: html,
           content_ja: html_ja,

@@ -24,14 +24,9 @@
     onSelect?: (result: SearchResult) => void;
   }
 
-  let {
-    placeholder = "Search knowledge base...",
-    collection,
-    locale,
-    onSelect,
-  }: Props = $props();
+  let { placeholder = 'Search knowledge base...', collection, locale, onSelect }: Props = $props();
 
-  let query = $state("");
+  let query = $state('');
   let results = $state<SearchResult[]>([]);
   let searching = $state(false);
   let error = $state<string | null>(null);
@@ -53,18 +48,18 @@
 
     try {
       const params = new URLSearchParams({ q: query });
-      if (collection) params.set("collection", collection);
-      if (locale) params.set("locale", locale);
+      if (collection) params.set('collection', collection);
+      if (locale) params.set('locale', locale);
 
       const response = await fetch(`/api/codex/search?${params}`);
 
       if (!response.ok) {
-        throw new Error("Search failed");
+        throw new Error('Search failed');
       }
 
       results = await response.json();
     } catch (e) {
-      error = e instanceof Error ? e.message : "Unknown error";
+      error = e instanceof Error ? e.message : 'Unknown error';
       results = [];
     } finally {
       searching = false;
@@ -82,17 +77,17 @@
   }
 
   function getScoreLabel(score: number): string {
-    if (score >= 0.9) return "Excellent";
-    if (score >= 0.8) return "Very Good";
-    if (score >= 0.7) return "Good";
-    return "Partial";
+    if (score >= 0.9) return 'Excellent';
+    if (score >= 0.8) return 'Very Good';
+    if (score >= 0.7) return 'Good';
+    return 'Partial';
   }
 
   function getScoreColor(score: number): string {
-    if (score >= 0.9) return "bg-green-100 text-green-700";
-    if (score >= 0.8) return "bg-emerald-100 text-emerald-700";
-    if (score >= 0.7) return "bg-blue-100 text-blue-700";
-    return "bg-gray-100 text-gray-600";
+    if (score >= 0.9) return 'bg-green-100 text-green-700';
+    if (score >= 0.8) return 'bg-emerald-100 text-emerald-700';
+    if (score >= 0.7) return 'bg-blue-100 text-blue-700';
+    return 'bg-gray-100 text-gray-600';
   }
 
   function highlightMatch(text: string, query: string): string {
@@ -103,8 +98,8 @@
 
     for (const word of words) {
       if (word.length < 2) continue;
-      const regex = new RegExp(`(${word})`, "gi");
-      result = result.replace(regex, "<mark>$1</mark>");
+      const regex = new RegExp(`(${word})`, 'gi');
+      result = result.replace(regex, '<mark>$1</mark>');
     }
 
     return result;
@@ -117,7 +112,14 @@
     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
       {#if searching}
         <svg class="animate-spin h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+          <circle
+            class="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            stroke-width="4"
+          />
           <path
             class="opacity-75"
             fill="currentColor"
@@ -200,9 +202,7 @@
                 {result.metadata.headingPath}
               </span>
             {/if}
-            <span
-              class="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500 uppercase"
-            >
+            <span class="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500 uppercase">
               {result.metadata.collection}
             </span>
           </div>
@@ -211,7 +211,12 @@
     </div>
   {:else if query.length >= 3 && !searching && !error}
     <div class="mt-4 text-center py-6">
-      <svg class="w-8 h-8 mx-auto text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg
+        class="w-8 h-8 mx-auto text-gray-300"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
         <path
           stroke-linecap="round"
           stroke-linejoin="round"

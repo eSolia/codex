@@ -8,10 +8,10 @@
 
 /// <reference types="@cloudflare/workers-types" />
 
-import type { AuditService, AuditContext } from "./audit";
+import type { AuditService, AuditContext } from './audit';
 
-export type VersionType = "auto" | "manual" | "publish" | "restore";
-export type ContentFormat = "html" | "json" | "markdown";
+export type VersionType = 'auto' | 'manual' | 'publish' | 'restore';
+export type ContentFormat = 'html' | 'json' | 'markdown';
 
 export interface VersionData {
   content: string;
@@ -67,7 +67,7 @@ export interface VersionDiff {
     createdAt: number;
   };
   changes: Array<{
-    type: "title" | "content" | "metadata";
+    type: 'title' | 'content' | 'metadata';
     field?: string;
     before: string;
     after: string;
@@ -79,10 +79,10 @@ export interface VersionDiff {
  */
 async function computeHash(content: string): Promise<string> {
   const buffer = new TextEncoder().encode(content);
-  const hash = await crypto.subtle.digest("SHA-256", buffer);
+  const hash = await crypto.subtle.digest('SHA-256', buffer);
   return Array.from(new Uint8Array(hash))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
 }
 
 /**
@@ -115,10 +115,7 @@ export function createVersionService(db: D1Database, audit?: AuditService) {
         .first<{ id: string; content_hash: string; version_number: number }>();
 
       // Skip version creation for unchanged auto-saves
-      if (
-        lastVersion?.content_hash === contentHash &&
-        data.versionType === "auto"
-      ) {
+      if (lastVersion?.content_hash === contentHash && data.versionType === 'auto') {
         return null;
       }
 
@@ -151,7 +148,7 @@ export function createVersionService(db: D1Database, audit?: AuditService) {
           contentHash,
           data.title || null,
           data.metadata ? JSON.stringify(data.metadata) : null,
-          data.versionType || "auto",
+          data.versionType || 'auto',
           data.versionLabel || null,
           data.versionNotes || null,
           contentSize,
@@ -163,9 +160,9 @@ export function createVersionService(db: D1Database, audit?: AuditService) {
       if (audit) {
         await audit.log(
           {
-            action: data.versionType === "manual" ? "create" : "update",
-            actionCategory: "content",
-            resourceType: "document_version",
+            action: data.versionType === 'manual' ? 'create' : 'update',
+            actionCategory: 'content',
+            resourceType: 'document_version',
             resourceId: id,
             resourceTitle: data.title,
             metadata: {
@@ -237,9 +234,7 @@ export function createVersionService(db: D1Database, audit?: AuditService) {
         content: row.content as string,
         contentFormat: row.content_format as string,
         title: row.title as string | null,
-        metadata: row.metadata
-          ? JSON.parse(row.metadata as string)
-          : null,
+        metadata: row.metadata ? JSON.parse(row.metadata as string) : null,
         createdAt: row.created_at as number,
         createdByEmail: row.created_by_email as string,
         createdByName: row.created_by_name as string | null,
@@ -252,10 +247,7 @@ export function createVersionService(db: D1Database, audit?: AuditService) {
     /**
      * Get version at specific point in time
      */
-    async getAtTime(
-      documentId: string,
-      timestamp: number
-    ): Promise<string | null> {
+    async getAtTime(documentId: string, timestamp: number): Promise<string | null> {
       const row = await db
         .prepare(
           `SELECT id FROM document_versions
@@ -272,38 +264,30 @@ export function createVersionService(db: D1Database, audit?: AuditService) {
     /**
      * Compare two versions
      */
-    async compare(
-      versionIdA: string,
-      versionIdB: string
-    ): Promise<VersionDiff | null> {
-      const [versionA, versionB] = await Promise.all([
-        this.get(versionIdA),
-        this.get(versionIdB),
-      ]);
+    async compare(versionIdA: string, versionIdB: string): Promise<VersionDiff | null> {
+      const [versionA, versionB] = await Promise.all([this.get(versionIdA), this.get(versionIdB)]);
 
       if (!versionA || !versionB) return null;
 
       // Ensure A is before B
       const [before, after] =
-        versionA.createdAt <= versionB.createdAt
-          ? [versionA, versionB]
-          : [versionB, versionA];
+        versionA.createdAt <= versionB.createdAt ? [versionA, versionB] : [versionB, versionA];
 
-      const changes: VersionDiff["changes"] = [];
+      const changes: VersionDiff['changes'] = [];
 
       // Compare title
       if (before.title !== after.title) {
         changes.push({
-          type: "title",
-          before: before.title || "",
-          after: after.title || "",
+          type: 'title',
+          before: before.title || '',
+          after: after.title || '',
         });
       }
 
       // Compare content
       if (before.content !== after.content) {
         changes.push({
-          type: "content",
+          type: 'content',
           before: before.content,
           after: after.content,
         });
@@ -312,17 +296,14 @@ export function createVersionService(db: D1Database, audit?: AuditService) {
       // Compare metadata fields
       const beforeMeta = before.metadata || {};
       const afterMeta = after.metadata || {};
-      const allKeys = new Set([
-        ...Object.keys(beforeMeta),
-        ...Object.keys(afterMeta),
-      ]);
+      const allKeys = new Set([...Object.keys(beforeMeta), ...Object.keys(afterMeta)]);
 
       for (const key of allKeys) {
-        const beforeVal = JSON.stringify(beforeMeta[key] ?? "");
-        const afterVal = JSON.stringify(afterMeta[key] ?? "");
+        const beforeVal = JSON.stringify(beforeMeta[key] ?? '');
+        const afterVal = JSON.stringify(afterMeta[key] ?? '');
         if (beforeVal !== afterVal) {
           changes.push({
-            type: "metadata",
+            type: 'metadata',
             field: key,
             before: beforeVal,
             after: afterVal,
@@ -352,14 +333,10 @@ export function createVersionService(db: D1Database, audit?: AuditService) {
     /**
      * Restore to a previous version
      */
-    async restore(
-      documentId: string,
-      versionId: string,
-      context: AuditContext
-    ): Promise<string> {
+    async restore(documentId: string, versionId: string, context: AuditContext): Promise<string> {
       const targetVersion = await this.get(versionId);
       if (!targetVersion) {
-        throw new Error("Version not found");
+        throw new Error('Version not found');
       }
 
       // Create a new version with the old content
@@ -370,7 +347,7 @@ export function createVersionService(db: D1Database, audit?: AuditService) {
           contentFormat: targetVersion.contentFormat as ContentFormat,
           title: targetVersion.title || undefined,
           metadata: targetVersion.metadata || undefined,
-          versionType: "restore",
+          versionType: 'restore',
           versionNotes: `Restored from version ${targetVersion.versionNumber}`,
         },
         context
@@ -390,9 +367,9 @@ export function createVersionService(db: D1Database, audit?: AuditService) {
       if (audit) {
         await audit.log(
           {
-            action: "restore",
-            actionCategory: "content",
-            resourceType: "document",
+            action: 'restore',
+            actionCategory: 'content',
+            resourceType: 'document',
             resourceId: documentId,
             metadata: {
               restoredFromVersionId: versionId,
@@ -428,9 +405,9 @@ export function createVersionService(db: D1Database, audit?: AuditService) {
       if (audit && context) {
         await audit.log(
           {
-            action: "update",
-            actionCategory: "content",
-            resourceType: "document_version",
+            action: 'update',
+            actionCategory: 'content',
+            resourceType: 'document_version',
             resourceId: versionId,
             changeSummary: `Added label: "${label}"`,
           },
@@ -474,9 +451,7 @@ export function createVersionService(db: D1Database, audit?: AuditService) {
      */
     async count(documentId: string): Promise<number> {
       const result = await db
-        .prepare(
-          `SELECT COUNT(*) as count FROM document_versions WHERE document_id = ?`
-        )
+        .prepare(`SELECT COUNT(*) as count FROM document_versions WHERE document_id = ?`)
         .bind(documentId)
         .first<{ count: number }>();
 
@@ -506,9 +481,7 @@ export function createVersionService(db: D1Database, audit?: AuditService) {
         content: row.content as string,
         contentFormat: row.content_format as string,
         title: row.title as string | null,
-        metadata: row.metadata
-          ? JSON.parse(row.metadata as string)
-          : null,
+        metadata: row.metadata ? JSON.parse(row.metadata as string) : null,
         createdAt: row.created_at as number,
         createdByEmail: row.created_by_email as string,
         createdByName: row.created_by_name as string | null,

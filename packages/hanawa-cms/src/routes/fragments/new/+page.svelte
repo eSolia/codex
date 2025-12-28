@@ -1,13 +1,13 @@
 <script lang="ts">
-  import { enhance } from "$app/forms";
+  import { enhance } from '$app/forms';
 
-  let activeTab = $state<"en" | "ja">("en");
-  let name = $state("");
-  let category = $state("");
-  let description = $state("");
-  let contentEn = $state("");
-  let contentJa = $state("");
-  let tagsInput = $state("");
+  let activeTab = $state<'en' | 'ja'>('en');
+  let name = $state('');
+  let category = $state('');
+  let description = $state('');
+  let contentEn = $state('');
+  let contentJa = $state('');
+  let tagsInput = $state('');
   let isSubmitting = $state(false);
 </script>
 
@@ -26,9 +26,7 @@
   <!-- Header -->
   <div>
     <h1 class="text-3xl font-bold text-esolia-navy">Create New Fragment</h1>
-    <p class="mt-1 text-gray-600">
-      Reusable content block for proposals and documents
-    </p>
+    <p class="mt-1 text-gray-600">Reusable content block for proposals and documents</p>
   </div>
 
   <form
@@ -63,17 +61,15 @@
             >{name
               .toLowerCase()
               .trim()
-              .replace(/[^\w\s-]/g, "")
-              .replace(/[\s_-]+/g, "-") || "fragment-slug"}</code
+              .replace(/[^\w\s-]/g, '')
+              .replace(/[\s_-]+/g, '-') || 'fragment-slug'}</code
           >
         </p>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label for="category" class="block text-sm font-medium text-gray-700"
-            >Category</label
-          >
+          <label for="category" class="block text-sm font-medium text-gray-700">Category</label>
           <input
             type="text"
             id="category"
@@ -99,9 +95,7 @@
       </div>
 
       <div>
-        <label for="description" class="block text-sm font-medium text-gray-700"
-          >Description</label
-        >
+        <label for="description" class="block text-sm font-medium text-gray-700">Description</label>
         <textarea
           id="description"
           name="description"
@@ -120,12 +114,12 @@
           <button
             type="button"
             class="px-6 py-3 text-sm font-medium border-b-2 transition-colors"
-            class:border-esolia-navy={activeTab === "en"}
-            class:text-esolia-navy={activeTab === "en"}
-            class:border-transparent={activeTab !== "en"}
-            class:text-gray-500={activeTab !== "en"}
-            class:hover:text-gray-700={activeTab !== "en"}
-            onclick={() => (activeTab = "en")}
+            class:border-esolia-navy={activeTab === 'en'}
+            class:text-esolia-navy={activeTab === 'en'}
+            class:border-transparent={activeTab !== 'en'}
+            class:text-gray-500={activeTab !== 'en'}
+            class:hover:text-gray-700={activeTab !== 'en'}
+            onclick={() => (activeTab = 'en')}
           >
             English
             {#if contentEn}
@@ -135,12 +129,12 @@
           <button
             type="button"
             class="px-6 py-3 text-sm font-medium border-b-2 transition-colors"
-            class:border-esolia-navy={activeTab === "ja"}
-            class:text-esolia-navy={activeTab === "ja"}
-            class:border-transparent={activeTab !== "ja"}
-            class:text-gray-500={activeTab !== "ja"}
-            class:hover:text-gray-700={activeTab !== "ja"}
-            onclick={() => (activeTab = "ja")}
+            class:border-esolia-navy={activeTab === 'ja'}
+            class:text-esolia-navy={activeTab === 'ja'}
+            class:border-transparent={activeTab !== 'ja'}
+            class:text-gray-500={activeTab !== 'ja'}
+            class:hover:text-gray-700={activeTab !== 'ja'}
+            onclick={() => (activeTab = 'ja')}
           >
             Japanese
             {#if contentJa}
@@ -151,7 +145,7 @@
       </div>
 
       <div class="p-6">
-        {#if activeTab === "en"}
+        {#if activeTab === 'en'}
           <textarea
             name="content_en"
             bind:value={contentEn}
@@ -173,27 +167,15 @@
 
     <!-- Actions -->
     <div class="flex justify-between items-center mt-6">
-      <a href="/fragments" class="text-gray-600 hover:text-gray-800">
-        Cancel
-      </a>
+      <a href="/fragments" class="text-gray-600 hover:text-gray-800"> Cancel </a>
       <button
         type="submit"
         disabled={!name.trim() || isSubmitting}
         class="inline-flex items-center px-6 py-2 bg-esolia-orange text-esolia-navy rounded-lg hover:bg-esolia-orange/90 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {#if isSubmitting}
-          <svg
-            class="animate-spin -ml-1 mr-2 h-4 w-4"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <circle
-              class="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              stroke-width="4"
+          <svg class="animate-spin -ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
             ></circle>
             <path
               class="opacity-75"

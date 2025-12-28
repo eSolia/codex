@@ -1,5 +1,5 @@
 <script lang="ts">
-  import MediaLibrary from "$lib/components/MediaLibrary.svelte";
+  import MediaLibrary from '$lib/components/MediaLibrary.svelte';
 </script>
 
 <svelte:head>
@@ -15,6 +15,6 @@
 
   <!-- Media Library Component -->
   <div class="bg-white rounded-lg shadow p-6">
-    <MediaLibrary acceptTypes={["image/*", "application/pdf", "text/csv", "application/json"]} />
+    <MediaLibrary acceptTypes={['image/*', 'application/pdf', 'text/csv', 'application/json']} />
   </div>
 </div>

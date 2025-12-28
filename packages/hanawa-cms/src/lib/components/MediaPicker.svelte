@@ -6,7 +6,7 @@
   <MediaPicker bind:open onselect={handleSelect} />
 -->
 <script lang="ts">
-  import MediaLibrary from "./MediaLibrary.svelte";
+  import MediaLibrary from './MediaLibrary.svelte';
 
   interface Asset {
     id: string;
@@ -30,7 +30,7 @@
   let {
     open = $bindable(false),
     siteId,
-    acceptTypes = ["image/*"],
+    acceptTypes = ['image/*'],
     onselect,
     onclose,
   }: Props = $props();
@@ -55,7 +55,7 @@
   }
 
   function handleKeydown(event: KeyboardEvent) {
-    if (event.key === "Escape") {
+    if (event.key === 'Escape') {
       handleClose();
     }
   }
@@ -82,24 +82,22 @@
         <h2 id="picker-title">Select Media</h2>
         <button type="button" class="close-button" onclick={handleClose}>
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            />
           </svg>
         </button>
       </div>
 
       <div class="modal-body">
-        <MediaLibrary
-          {siteId}
-          {acceptTypes}
-          selectable
-          onselect={handleSelect}
-        />
+        <MediaLibrary {siteId} {acceptTypes} selectable onselect={handleSelect} />
       </div>
 
       <div class="modal-footer">
-        <button type="button" class="cancel-button" onclick={handleClose}>
-          Cancel
-        </button>
+        <button type="button" class="cancel-button" onclick={handleClose}> Cancel </button>
         <button
           type="button"
           class="insert-button"
@@ -128,7 +126,9 @@
   .modal-content {
     background: white;
     border-radius: 0.75rem;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    box-shadow:
+      0 20px 25px -5px rgba(0, 0, 0, 0.1),
+      0 10px 10px -5px rgba(0, 0, 0, 0.04);
     width: 100%;
     max-width: 56rem;
     max-height: 90vh;

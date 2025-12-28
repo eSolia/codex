@@ -3,18 +3,18 @@
  * InfoSec: Centralized security controls following OWASP Top 10
  */
 
-import { error, type Handle } from "@sveltejs/kit";
-import { createAuditService, type AuditContext } from "$lib/server/audit";
-import { createVersionService } from "$lib/server/versions";
-import { createWorkflowService } from "$lib/server/workflow";
-import { createCommentsService } from "$lib/server/comments";
-import { createSchedulingService } from "$lib/server/scheduling";
-import { createLocalizationService } from "$lib/server/localization";
-import { createAIService } from "$lib/server/ai";
-import { createCodexService } from "$lib/server/codex";
-import { createMediaService } from "$lib/server/media";
-import { createWebhookService } from "$lib/server/webhooks";
-import { createDeliveryService } from "$lib/server/delivery";
+import { error, type Handle } from '@sveltejs/kit';
+import { createAuditService, type AuditContext } from '$lib/server/audit';
+import { createVersionService } from '$lib/server/versions';
+import { createWorkflowService } from '$lib/server/workflow';
+import { createCommentsService } from '$lib/server/comments';
+import { createSchedulingService } from '$lib/server/scheduling';
+import { createLocalizationService } from '$lib/server/localization';
+import { createAIService } from '$lib/server/ai';
+import { createCodexService } from '$lib/server/codex';
+import { createMediaService } from '$lib/server/media';
+import { createWebhookService } from '$lib/server/webhooks';
+import { createDeliveryService } from '$lib/server/delivery';
 
 /**
  * Validate CSRF for API routes.
@@ -22,28 +22,26 @@ import { createDeliveryService } from "$lib/server/delivery";
  * OWASP A08: Software and Data Integrity Failures
  */
 function validateCsrf(request: Request, url: URL): void {
-  const isApiRoute = url.pathname.startsWith("/api/");
-  const isStateChangingMethod = ["POST", "PUT", "PATCH", "DELETE"].includes(
-    request.method
-  );
+  const isApiRoute = url.pathname.startsWith('/api/');
+  const isStateChangingMethod = ['POST', 'PUT', 'PATCH', 'DELETE'].includes(request.method);
 
   if (!isApiRoute || !isStateChangingMethod) return;
 
-  const origin = request.headers.get("origin");
+  const origin = request.headers.get('origin');
 
   if (!origin) {
-    const referer = request.headers.get("referer");
+    const referer = request.headers.get('referer');
     if (referer) {
       const refererUrl = new URL(referer);
       if (refererUrl.origin !== url.origin) {
-        throw error(403, "CSRF check failed: invalid referer");
+        throw error(403, 'CSRF check failed: invalid referer');
       }
     }
     return; // Same-origin requests without headers are OK
   }
 
   if (origin !== url.origin) {
-    throw error(403, "CSRF check failed: origin mismatch");
+    throw error(403, 'CSRF check failed: origin mismatch');
   }
 }
 
@@ -53,11 +51,7 @@ function validateCsrf(request: Request, url: URL): void {
  */
 const rateLimitMap = new Map<string, number[]>();
 
-function checkRateLimit(
-  ip: string,
-  limit: number,
-  windowMs: number
-): boolean {
+function checkRateLimit(ip: string, limit: number, windowMs: number): boolean {
   const now = Date.now();
   const requests = rateLimitMap.get(ip) || [];
   const recent = requests.filter((t) => t > now - windowMs);
@@ -76,11 +70,11 @@ export const handle: Handle = async ({ event, resolve }) => {
   validateCsrf(event.request, event.url);
 
   // InfoSec: Rate limiting for sensitive endpoints
-  if (event.url.pathname.startsWith("/api/auth")) {
+  if (event.url.pathname.startsWith('/api/auth')) {
     const ip = event.getClientAddress();
     if (!checkRateLimit(ip, 10, 60000)) {
       // 10 attempts per minute
-      throw error(429, "Too many requests");
+      throw error(429, 'Too many requests');
     }
   }
 
@@ -89,22 +83,20 @@ export const handle: Handle = async ({ event, resolve }) => {
   event.locals.requestId = requestId;
 
   // Extract actor from Cloudflare Access headers (or use defaults for dev)
-  const cfAccessEmail = event.request.headers.get(
-    "cf-access-authenticated-user-email"
-  );
-  const cfAccessId = event.request.headers.get("cf-access-jwt-assertion");
+  const cfAccessEmail = event.request.headers.get('cf-access-authenticated-user-email');
+  const cfAccessId = event.request.headers.get('cf-access-jwt-assertion');
 
   // Set up audit context
-  const actorEmail = cfAccessEmail || "dev@hanawa.local";
+  const actorEmail = cfAccessEmail || 'dev@hanawa.local';
   const actorId = cfAccessId || actorEmail;
 
   const auditContext: AuditContext = {
     actorId,
     actorEmail,
-    actorName: actorEmail.split("@")[0],
+    actorName: actorEmail.split('@')[0],
     ipAddress: event.getClientAddress(),
-    userAgent: event.request.headers.get("user-agent") || undefined,
-    sessionId: event.cookies.get("session_id") || undefined,
+    userAgent: event.request.headers.get('user-agent') || undefined,
+    sessionId: event.cookies.get('session_id') || undefined,
     requestId,
   };
 
@@ -136,7 +128,7 @@ export const handle: Handle = async ({ event, resolve }) => {
     if (r2) {
       const media = createMediaService(
         db,
-        r2 as unknown as import("@cloudflare/workers-types").R2Bucket,
+        r2 as unknown as import('@cloudflare/workers-types').R2Bucket,
         audit
       );
       event.locals.media = media;
@@ -159,8 +151,8 @@ export const handle: Handle = async ({ event, resolve }) => {
     const kv = event.platform.env.KV || null;
     const delivery = createDeliveryService(
       db,
-      kv as import("@cloudflare/workers-types").KVNamespace | undefined,
-      r2 as unknown as import("@cloudflare/workers-types").R2Bucket | undefined,
+      kv as import('@cloudflare/workers-types').KVNamespace | undefined,
+      r2 as unknown as import('@cloudflare/workers-types').R2Bucket | undefined,
       audit
     );
     event.locals.delivery = delivery;
@@ -169,19 +161,16 @@ export const handle: Handle = async ({ event, resolve }) => {
   const response = await resolve(event);
 
   // InfoSec: Security headers (OWASP A05)
-  response.headers.set("X-Frame-Options", "DENY");
-  response.headers.set("X-Content-Type-Options", "nosniff");
-  response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
-  response.headers.set(
-    "Permissions-Policy",
-    "camera=(), microphone=(), geolocation=()"
-  );
+  response.headers.set('X-Frame-Options', 'DENY');
+  response.headers.set('X-Content-Type-Options', 'nosniff');
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
 
   // Content Security Policy
   // Note: 'unsafe-inline' needed for Svelte's runtime styles
   // InfoSec: Allow Cloudflare Insights for analytics
   response.headers.set(
-    "Content-Security-Policy",
+    'Content-Security-Policy',
     [
       "default-src 'self'",
       "script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com",
@@ -189,7 +178,7 @@ export const handle: Handle = async ({ event, resolve }) => {
       "font-src 'self' https://fonts.gstatic.com",
       "img-src 'self' data: https:",
       "connect-src 'self' https://cloudflareinsights.com",
-    ].join("; ")
+    ].join('; ')
   );
 
   return response;

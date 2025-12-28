@@ -26,6 +26,7 @@
     "@tiptap/extension-placeholder": "^2.10.4",
     "@tiptap/pm": "^2.10.4",
     "@tiptap/starter-kit": "^2.10.4",
+    "prettier-plugin-svelte": "^3.4.1",
     "svelte": "^5.45.6",
     "svelte-check": "^4.3.4",
     "tailwindcss": "^4.0.0",

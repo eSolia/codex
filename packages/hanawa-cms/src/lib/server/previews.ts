@@ -5,8 +5,8 @@
  * InfoSec: Token-based access, expiry, view limits (OWASP A01)
  */
 
-import type { D1Database } from "@cloudflare/workers-types";
-import type { AuditService, AuditContext } from "./audit";
+import type { D1Database } from '@cloudflare/workers-types';
+import type { AuditService, AuditContext } from './audit';
 
 export interface Preview {
   id: string;
@@ -21,17 +21,17 @@ export interface Preview {
   name: string | null;
   created_by: string;
   created_at: number;
-  status: "active" | "expired" | "revoked";
+  status: 'active' | 'expired' | 'revoked';
 }
 
 export interface PreviewFeedback {
   id: string;
   preview_id: string;
   page_path: string | null;
-  feedback_type: "comment" | "issue" | "approval";
+  feedback_type: 'comment' | 'issue' | 'approval';
   content: string;
   author_email: string;
-  status: "open" | "resolved" | "dismissed";
+  status: 'open' | 'resolved' | 'dismissed';
   created_at: number;
 }
 
@@ -59,8 +59,8 @@ function parseExpiresIn(expiresIn: string): number {
   const value = parseInt(match[1]);
   const unit = match[2];
 
-  if (unit === "h") return value * 60 * 60 * 1000;
-  if (unit === "d") return value * 24 * 60 * 60 * 1000;
+  if (unit === 'h') return value * 60 * 60 * 1000;
+  if (unit === 'd') return value * 24 * 60 * 60 * 1000;
   return 7 * 24 * 60 * 60 * 1000;
 }
 
@@ -69,23 +69,20 @@ function generateToken(): string {
   const bytes = new Uint8Array(32);
   crypto.getRandomValues(bytes);
   return Array.from(bytes)
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
 }
 
 // Simple hash for password (in production, use bcrypt via worker)
 async function hashPassword(password: string): Promise<string> {
   const encoder = new TextEncoder();
   const data = encoder.encode(password);
-  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+  return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
-async function verifyPassword(
-  password: string,
-  hash: string
-): Promise<boolean> {
+async function verifyPassword(password: string, hash: string): Promise<boolean> {
   const inputHash = await hashPassword(password);
   return inputHash === hash;
 }
@@ -95,18 +92,15 @@ export function createPreviewService(db: D1Database, audit?: AuditService) {
     /**
      * Create a new preview for a document
      */
-    async create(
-      options: CreatePreviewOptions,
-      context: AuditContext
-    ): Promise<Preview> {
+    async create(options: CreatePreviewOptions, context: AuditContext): Promise<Preview> {
       const id = crypto.randomUUID();
       const accessToken = generateToken();
       const now = Date.now();
-      const expiresAt = now + parseExpiresIn(options.expiresIn || "7d");
+      const expiresAt = now + parseExpiresIn(options.expiresIn || '7d');
 
       // Get document content
       const doc = await db
-        .prepare("SELECT body, body_ja FROM content WHERE id = ?")
+        .prepare('SELECT body, body_ja FROM content WHERE id = ?')
         .bind(options.documentId)
         .first();
 
@@ -121,9 +115,7 @@ export function createPreviewService(db: D1Database, audit?: AuditService) {
       });
 
       // Hash password if provided
-      const passwordHash = options.password
-        ? await hashPassword(options.password)
-        : null;
+      const passwordHash = options.password ? await hashPassword(options.password) : null;
 
       await db
         .prepare(
@@ -148,25 +140,23 @@ export function createPreviewService(db: D1Database, audit?: AuditService) {
           options.name || null,
           context.actorEmail,
           now,
-          "active"
+          'active'
         )
         .run();
 
       if (audit) {
         await audit.log(
           {
-            action: "create",
-            actionCategory: "access",
-            resourceType: "preview",
+            action: 'create',
+            actionCategory: 'access',
+            resourceType: 'preview',
             resourceId: id,
             resourceTitle: options.name,
             metadata: {
               documentId: options.documentId,
               expiresAt,
               hasPassword: !!passwordHash,
-              hasEmailRestriction: !!(
-                options.allowedEmails && options.allowedEmails.length > 0
-              ),
+              hasEmailRestriction: !!(options.allowedEmails && options.allowedEmails.length > 0),
               maxViews: options.maxViews,
             },
           },
@@ -181,10 +171,7 @@ export function createPreviewService(db: D1Database, audit?: AuditService) {
      * Get a preview by ID
      */
     async get(id: string): Promise<Preview> {
-      const row = await db
-        .prepare("SELECT * FROM previews WHERE id = ?")
-        .bind(id)
-        .first();
+      const row = await db.prepare('SELECT * FROM previews WHERE id = ?').bind(id).first();
 
       if (!row) {
         throw new Error(`Preview not found: ${id}`);
@@ -198,7 +185,7 @@ export function createPreviewService(db: D1Database, audit?: AuditService) {
      */
     async getByToken(token: string): Promise<Preview | null> {
       const row = await db
-        .prepare("SELECT * FROM previews WHERE access_token = ?")
+        .prepare('SELECT * FROM previews WHERE access_token = ?')
         .bind(token)
         .first();
 
@@ -216,44 +203,39 @@ export function createPreviewService(db: D1Database, audit?: AuditService) {
       const preview = await this.getByToken(token);
 
       if (!preview) {
-        return { valid: false, error: "Preview not found" };
+        return { valid: false, error: 'Preview not found' };
       }
 
-      if (preview.status === "revoked") {
-        return { valid: false, error: "Preview has been revoked" };
+      if (preview.status === 'revoked') {
+        return { valid: false, error: 'Preview has been revoked' };
       }
 
       if (preview.expires_at < Date.now()) {
-        return { valid: false, error: "Preview has expired" };
+        return { valid: false, error: 'Preview has expired' };
       }
 
       if (preview.max_views && preview.view_count >= preview.max_views) {
-        return { valid: false, error: "View limit reached" };
+        return { valid: false, error: 'View limit reached' };
       }
 
       // Check password if required
       if (preview.password_hash) {
         if (!options?.password) {
-          return { valid: false, error: "Password required" };
+          return { valid: false, error: 'Password required' };
         }
-        const valid = await verifyPassword(
-          options.password,
-          preview.password_hash
-        );
+        const valid = await verifyPassword(options.password, preview.password_hash);
         if (!valid) {
-          return { valid: false, error: "Invalid password" };
+          return { valid: false, error: 'Invalid password' };
         }
       }
 
       // Check email restrictions
       if (preview.allowed_emails && preview.allowed_emails.length > 0) {
         if (!options?.email) {
-          return { valid: false, error: "Email required" };
+          return { valid: false, error: 'Email required' };
         }
-        if (
-          !preview.allowed_emails.includes(options.email.toLowerCase())
-        ) {
-          return { valid: false, error: "Email not authorized" };
+        if (!preview.allowed_emails.includes(options.email.toLowerCase())) {
+          return { valid: false, error: 'Email not authorized' };
         }
       }
 
@@ -268,7 +250,7 @@ export function createPreviewService(db: D1Database, audit?: AuditService) {
      */
     async recordView(id: string): Promise<void> {
       await db
-        .prepare("UPDATE previews SET view_count = view_count + 1 WHERE id = ?")
+        .prepare('UPDATE previews SET view_count = view_count + 1 WHERE id = ?')
         .bind(id)
         .run();
     },
@@ -278,9 +260,7 @@ export function createPreviewService(db: D1Database, audit?: AuditService) {
      */
     async listForDocument(documentId: string): Promise<Preview[]> {
       const { results } = await db
-        .prepare(
-          "SELECT * FROM previews WHERE document_id = ? ORDER BY created_at DESC"
-        )
+        .prepare('SELECT * FROM previews WHERE document_id = ? ORDER BY created_at DESC')
         .bind(documentId)
         .all();
 
@@ -308,17 +288,14 @@ export function createPreviewService(db: D1Database, audit?: AuditService) {
      * Revoke a preview
      */
     async revoke(id: string, context: AuditContext): Promise<void> {
-      await db
-        .prepare("UPDATE previews SET status = 'revoked' WHERE id = ?")
-        .bind(id)
-        .run();
+      await db.prepare("UPDATE previews SET status = 'revoked' WHERE id = ?").bind(id).run();
 
       if (audit) {
         await audit.log(
           {
-            action: "revoke",
-            actionCategory: "access",
-            resourceType: "preview",
+            action: 'revoke',
+            actionCategory: 'access',
+            resourceType: 'preview',
             resourceId: id,
           },
           context
@@ -332,7 +309,7 @@ export function createPreviewService(db: D1Database, audit?: AuditService) {
     async addFeedback(
       previewId: string,
       feedback: {
-        type: "comment" | "issue" | "approval";
+        type: 'comment' | 'issue' | 'approval';
         content: string;
         authorEmail: string;
         pagePath?: string;
@@ -356,7 +333,7 @@ export function createPreviewService(db: D1Database, audit?: AuditService) {
           feedback.type,
           feedback.content,
           feedback.authorEmail,
-          "open",
+          'open',
           now
         )
         .run();
@@ -368,7 +345,7 @@ export function createPreviewService(db: D1Database, audit?: AuditService) {
         feedback_type: feedback.type,
         content: feedback.content,
         author_email: feedback.authorEmail,
-        status: "open",
+        status: 'open',
         created_at: now,
       };
     },
@@ -378,9 +355,7 @@ export function createPreviewService(db: D1Database, audit?: AuditService) {
      */
     async getFeedback(previewId: string): Promise<PreviewFeedback[]> {
       const { results } = await db
-        .prepare(
-          "SELECT * FROM preview_feedback WHERE preview_id = ? ORDER BY created_at DESC"
-        )
+        .prepare('SELECT * FROM preview_feedback WHERE preview_id = ? ORDER BY created_at DESC')
         .bind(previewId)
         .all();
 
@@ -388,10 +363,10 @@ export function createPreviewService(db: D1Database, audit?: AuditService) {
         id: row.id as string,
         preview_id: row.preview_id as string,
         page_path: row.page_path as string | null,
-        feedback_type: row.feedback_type as "comment" | "issue" | "approval",
+        feedback_type: row.feedback_type as 'comment' | 'issue' | 'approval',
         content: row.content as string,
         author_email: row.author_email as string,
-        status: row.status as "open" | "resolved" | "dismissed",
+        status: row.status as 'open' | 'resolved' | 'dismissed',
         created_at: row.created_at as number,
       }));
     },
@@ -401,10 +376,10 @@ export function createPreviewService(db: D1Database, audit?: AuditService) {
      */
     async updateFeedbackStatus(
       feedbackId: string,
-      status: "open" | "resolved" | "dismissed"
+      status: 'open' | 'resolved' | 'dismissed'
     ): Promise<void> {
       await db
-        .prepare("UPDATE preview_feedback SET status = ? WHERE id = ?")
+        .prepare('UPDATE preview_feedback SET status = ? WHERE id = ?')
         .bind(status, feedbackId)
         .run();
     },
@@ -417,16 +392,14 @@ export function createPreviewService(db: D1Database, audit?: AuditService) {
         content_snapshot: row.content_snapshot as string,
         access_token: row.access_token as string,
         password_hash: row.password_hash as string | null,
-        allowed_emails: row.allowed_emails
-          ? JSON.parse(row.allowed_emails as string)
-          : [],
+        allowed_emails: row.allowed_emails ? JSON.parse(row.allowed_emails as string) : [],
         max_views: row.max_views as number | null,
         view_count: row.view_count as number,
         expires_at: row.expires_at as number,
         name: row.name as string | null,
         created_by: row.created_by as string,
         created_at: row.created_at as number,
-        status: row.status as "active" | "expired" | "revoked",
+        status: row.status as 'active' | 'expired' | 'revoked',
       };
     },
   };

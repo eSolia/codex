@@ -3,7 +3,7 @@
  * InfoSec: Parameterized queries prevent SQL injection (OWASP A03)
  */
 
-import type { PageServerLoad } from "./$types";
+import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ platform, url }) => {
   if (!platform?.env?.DB) {
@@ -13,9 +13,9 @@ export const load: PageServerLoad = async ({ platform, url }) => {
   const db = platform.env.DB;
 
   // InfoSec: Validate filter parameters (OWASP A03)
-  const siteFilter = url.searchParams.get("site");
-  const statusFilter = url.searchParams.get("status");
-  const typeFilter = url.searchParams.get("type");
+  const siteFilter = url.searchParams.get('site');
+  const statusFilter = url.searchParams.get('status');
+  const typeFilter = url.searchParams.get('type');
 
   try {
     // Build query with filters
@@ -32,28 +32,29 @@ export const load: PageServerLoad = async ({ platform, url }) => {
     const params: string[] = [];
 
     if (siteFilter) {
-      query += " AND s.slug = ?";
+      query += ' AND s.slug = ?';
       params.push(siteFilter);
     }
     if (statusFilter) {
-      query += " AND c.status = ?";
+      query += ' AND c.status = ?';
       params.push(statusFilter);
     }
     if (typeFilter) {
-      query += " AND ct.slug = ?";
+      query += ' AND ct.slug = ?';
       params.push(typeFilter);
     }
 
-    query += " ORDER BY c.updated_at DESC LIMIT 50";
+    query += ' ORDER BY c.updated_at DESC LIMIT 50';
 
-    const contentResult = await db.prepare(query).bind(...params).all();
+    const contentResult = await db
+      .prepare(query)
+      .bind(...params)
+      .all();
 
     // Get sites and content types for filters
     const [sitesResult, typesResult] = await Promise.all([
-      db.prepare("SELECT id, name, slug FROM sites ORDER BY name").all(),
-      db
-        .prepare("SELECT id, name, slug FROM content_types ORDER BY name")
-        .all(),
+      db.prepare('SELECT id, name, slug FROM sites ORDER BY name').all(),
+      db.prepare('SELECT id, name, slug FROM content_types ORDER BY name').all(),
     ]);
 
     return {
@@ -62,7 +63,7 @@ export const load: PageServerLoad = async ({ platform, url }) => {
       contentTypes: typesResult.results ?? [],
     };
   } catch (error) {
-    console.error("Content load error:", error);
+    console.error('Content load error:', error);
     return { content: [], sites: [], contentTypes: [] };
   }
 };

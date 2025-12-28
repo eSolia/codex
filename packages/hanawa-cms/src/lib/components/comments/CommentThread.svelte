@@ -4,7 +4,7 @@
    * InfoSec: Displays threaded comments with moderation controls
    */
 
-  import CommentEditor from "./CommentEditor.svelte";
+  import CommentEditor from './CommentEditor.svelte';
 
   interface CommentAuthor {
     id: string;
@@ -16,8 +16,8 @@
     id: string;
     content: string;
     contentHtml?: string;
-    type: "inline" | "document" | "suggestion";
-    status: "open" | "resolved" | "rejected";
+    type: 'inline' | 'document' | 'suggestion';
+    status: 'open' | 'resolved' | 'rejected';
     suggestionText?: string;
     author: CommentAuthor;
     createdAt: number;
@@ -29,7 +29,7 @@
     id: string;
     rootComment: Comment;
     replies: Comment[];
-    status: "open" | "resolved" | "rejected";
+    status: 'open' | 'resolved' | 'rejected';
     participantCount: number;
     lastActivity: number;
   }
@@ -64,7 +64,7 @@
   let editingCommentId = $state<string | null>(null);
   let showReplies = $state(true);
 
-  const availableReactions = ["👍", "👎", "❤️", "🎉", "👀"];
+  const availableReactions = ['👍', '👎', '❤️', '🎉', '👀'];
 
   function formatTime(timestamp: number): string {
     const date = new Date(timestamp);
@@ -74,7 +74,7 @@
     const hours = Math.floor(diff / 3600000);
     const days = Math.floor(diff / 86400000);
 
-    if (minutes < 1) return "just now";
+    if (minutes < 1) return 'just now';
     if (minutes < 60) return `${minutes}m ago`;
     if (hours < 24) return `${hours}h ago`;
     if (days < 7) return `${days}d ago`;
@@ -84,9 +84,9 @@
   function getAuthorInitials(author: CommentAuthor): string {
     if (author.name) {
       return author.name
-        .split(" ")
+        .split(' ')
         .map((n) => n[0])
-        .join("")
+        .join('')
         .toUpperCase()
         .slice(0, 2);
     }
@@ -105,8 +105,8 @@
 
 <div
   class="comment-thread border rounded-lg bg-white"
-  class:border-green-200={thread.status === "resolved"}
-  class:border-gray-200={thread.status !== "resolved"}
+  class:border-green-200={thread.status === 'resolved'}
+  class:border-gray-200={thread.status !== 'resolved'}
 >
   <!-- Root comment -->
   <div class="p-3">
@@ -114,7 +114,9 @@
       <!-- Avatar -->
       <div
         class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium
-               {thread.status === 'resolved' ? 'bg-green-100 text-green-700' : 'bg-esolia-navy text-white'}"
+               {thread.status === 'resolved'
+          ? 'bg-green-100 text-green-700'
+          : 'bg-esolia-navy text-white'}"
       >
         {getAuthorInitials(thread.rootComment.author)}
       </div>
@@ -128,12 +130,14 @@
           <span class="text-xs text-gray-400">
             {formatTime(thread.rootComment.createdAt)}
           </span>
-          {#if thread.rootComment.type === "suggestion"}
-            <span class="text-[10px] font-medium px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded">
+          {#if thread.rootComment.type === 'suggestion'}
+            <span
+              class="text-[10px] font-medium px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded"
+            >
               Suggestion
             </span>
           {/if}
-          {#if thread.status === "resolved"}
+          {#if thread.status === 'resolved'}
             <span class="text-[10px] font-medium px-1.5 py-0.5 bg-green-100 text-green-700 rounded">
               Resolved
             </span>
@@ -157,9 +161,7 @@
             />
           </div>
         {:else}
-          <div
-            class="mt-1 text-sm text-gray-700 prose prose-sm max-w-none"
-          >
+          <div class="mt-1 text-sm text-gray-700 prose prose-sm max-w-none">
             {#if thread.rootComment.contentHtml}
               {@html thread.rootComment.contentHtml}
             {:else}
@@ -168,13 +170,13 @@
           </div>
 
           <!-- Suggestion preview -->
-          {#if thread.rootComment.type === "suggestion" && thread.rootComment.suggestionText}
+          {#if thread.rootComment.type === 'suggestion' && thread.rootComment.suggestionText}
             <div class="mt-2 p-2 bg-green-50 border border-green-200 rounded text-sm">
               <div class="text-xs text-green-600 font-medium mb-1">Suggested change:</div>
               <div class="text-green-800 font-mono text-xs whitespace-pre-wrap">
                 {thread.rootComment.suggestionText}
               </div>
-              {#if thread.status === "open" && onAcceptSuggestion}
+              {#if thread.status === 'open' && onAcceptSuggestion}
                 <button
                   type="button"
                   onclick={() => onAcceptSuggestion(thread.rootComment.id)}
@@ -196,8 +198,8 @@
                 onclick={() => onReaction?.(thread.rootComment.id, reaction)}
                 class="inline-flex items-center gap-1 px-1.5 py-0.5 text-xs rounded-full border
                        {users.includes(currentUserEmail)
-                         ? 'bg-blue-50 border-blue-200 text-blue-700'
-                         : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'}"
+                  ? 'bg-blue-50 border-blue-200 text-blue-700'
+                  : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'}"
               >
                 <span>{reaction}</span>
                 <span>{users.length}</span>
@@ -208,7 +210,7 @@
 
         <!-- Actions -->
         <div class="mt-2 flex items-center gap-3 text-xs">
-          {#if thread.status === "open" && onReply}
+          {#if thread.status === 'open' && onReply}
             <button
               type="button"
               onclick={() => (showReplyBox = !showReplyBox)}
@@ -220,13 +222,10 @@
 
           {#if onReaction}
             <div class="relative group">
-              <button
-                type="button"
-                class="text-gray-500 hover:text-gray-700"
+              <button type="button" class="text-gray-500 hover:text-gray-700"> React </button>
+              <div
+                class="absolute left-0 bottom-full mb-1 hidden group-hover:flex gap-1 bg-white border border-gray-200 rounded-lg shadow-lg p-1"
               >
-                React
-              </button>
-              <div class="absolute left-0 bottom-full mb-1 hidden group-hover:flex gap-1 bg-white border border-gray-200 rounded-lg shadow-lg p-1">
                 {#each availableReactions as reaction}
                   <button
                     type="button"
@@ -240,7 +239,7 @@
             </div>
           {/if}
 
-          {#if isOwnComment(thread.rootComment) && thread.status === "open"}
+          {#if isOwnComment(thread.rootComment) && thread.status === 'open'}
             {#if onEdit}
               <button
                 type="button"
@@ -261,7 +260,7 @@
             {/if}
           {/if}
 
-          {#if thread.status === "open" && onResolve}
+          {#if thread.status === 'open' && onResolve}
             <button
               type="button"
               onclick={() => onResolve(thread.rootComment.id)}
@@ -271,7 +270,7 @@
             </button>
           {/if}
 
-          {#if thread.status === "resolved" && onReopen}
+          {#if thread.status === 'resolved' && onReopen}
             <button
               type="button"
               onclick={() => onReopen(thread.rootComment.id)}
@@ -324,7 +323,7 @@
                   {/if}
                 </div>
 
-                {#if isOwnComment(reply) && thread.status === "open"}
+                {#if isOwnComment(reply) && thread.status === 'open'}
                   <div class="mt-1 flex gap-2 text-[10px]">
                     {#if onEdit}
                       <button
@@ -365,7 +364,7 @@
   {/if}
 
   <!-- Reply box -->
-  {#if showReplyBox && thread.status === "open"}
+  {#if showReplyBox && thread.status === 'open'}
     <div class="px-3 py-2 border-t border-gray-100 bg-gray-50">
       <div class="ml-8">
         <CommentEditor

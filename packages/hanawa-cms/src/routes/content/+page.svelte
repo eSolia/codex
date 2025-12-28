@@ -1,20 +1,36 @@
 <script lang="ts">
-  import type { PageData } from "./$types";
+  import type { PageData } from './$types';
+
+  interface ContentItem {
+    id: string;
+    title: string;
+    slug: string;
+    status: string;
+    language: string;
+    created_at: string;
+    updated_at: string;
+    site_name: string | null;
+    site_slug: string | null;
+    content_type_name: string | null;
+  }
 
   let { data }: { data: PageData } = $props();
 
+  // Type the content items for proper template access
+  const content = $derived(data.content as unknown as ContentItem[]);
+
   function getStatusClass(status: string): string {
     switch (status) {
-      case "published":
-        return "bg-green-100 text-green-800";
-      case "draft":
-        return "bg-gray-100 text-gray-800";
-      case "review":
-        return "bg-yellow-100 text-yellow-800";
-      case "archived":
-        return "bg-red-100 text-red-800";
+      case 'published':
+        return 'bg-green-100 text-green-800';
+      case 'draft':
+        return 'bg-gray-100 text-gray-800';
+      case 'review':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'archived':
+        return 'bg-red-100 text-red-800';
       default:
-        return "bg-gray-100 text-gray-800";
+        return 'bg-gray-100 text-gray-800';
     }
   }
 </script>
@@ -34,18 +50,8 @@
       href="/content/new"
       class="inline-flex items-center px-4 py-2 bg-esolia-navy text-white rounded-lg hover:bg-esolia-navy/90 transition-colors font-medium"
     >
-      <svg
-        class="w-5 h-5 mr-2"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M12 4v16m8-8H4"
-        />
+      <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
       </svg>
       Create Content
     </a>
@@ -92,7 +98,7 @@
   </div>
 
   <!-- Content List -->
-  {#if data.content && data.content.length > 0}
+  {#if content && content.length > 0}
     <div class="bg-white rounded-lg shadow overflow-hidden">
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
@@ -125,22 +131,19 @@
           </tr>
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
-          {#each data.content as item}
+          {#each content as item}
             <tr class="hover:bg-gray-50">
               <td class="px-6 py-4">
-                <a
-                  href="/content/{item.id}"
-                  class="text-esolia-navy hover:underline font-medium"
-                >
+                <a href="/content/{item.id}" class="text-esolia-navy hover:underline font-medium">
                   {item.title}
                 </a>
                 <div class="text-sm text-gray-500">{item.slug}</div>
               </td>
               <td class="px-6 py-4 text-sm text-gray-500">
-                {item.site_name ?? "—"}
+                {item.site_name ?? '—'}
               </td>
               <td class="px-6 py-4 text-sm text-gray-500">
-                {item.content_type_name ?? "—"}
+                {item.content_type_name ?? '—'}
               </td>
               <td class="px-6 py-4">
                 <span
@@ -175,9 +178,7 @@
         />
       </svg>
       <h3 class="mt-4 text-lg font-medium text-gray-900">No content yet</h3>
-      <p class="mt-2 text-gray-500">
-        Start creating content for your sites.
-      </p>
+      <p class="mt-2 text-gray-500">Start creating content for your sites.</p>
       <a
         href="/content/new"
         class="mt-4 inline-flex items-center px-4 py-2 bg-esolia-navy text-white rounded-lg hover:bg-esolia-navy/90 transition-colors font-medium"

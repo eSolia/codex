@@ -5,13 +5,13 @@
    */
 
   type AIAction =
-    | "continue"
-    | "expand"
-    | "improve"
-    | "simplify"
-    | "fix_grammar"
-    | "translate"
-    | "custom";
+    | 'continue'
+    | 'expand'
+    | 'improve'
+    | 'simplify'
+    | 'fix_grammar'
+    | 'translate'
+    | 'custom';
 
   interface ActionItem {
     id: AIAction;
@@ -24,7 +24,7 @@
     visible: boolean;
     position?: { x: number; y: number };
     hasSelection?: boolean;
-    currentLocale?: "en" | "ja";
+    currentLocale?: 'en' | 'ja';
     onAction: (action: AIAction, customPrompt?: string) => void;
     onClose: () => void;
   }
@@ -33,61 +33,61 @@
     visible,
     position = { x: 0, y: 0 },
     hasSelection = false,
-    currentLocale = "en",
+    currentLocale = 'en',
     onAction,
     onClose,
   }: Props = $props();
 
-  let customPrompt = $state("");
+  let customPrompt = $state('');
   let showCustomInput = $state(false);
 
   const actions: ActionItem[] = [
     {
-      id: "continue",
-      label: "Continue writing",
-      description: "Generate 2-3 paragraphs continuing from current position",
-      shortcut: "C",
+      id: 'continue',
+      label: 'Continue writing',
+      description: 'Generate 2-3 paragraphs continuing from current position',
+      shortcut: 'C',
     },
     {
-      id: "expand",
-      label: "Expand",
-      description: "Add more detail and examples to selected text",
-      shortcut: "E",
+      id: 'expand',
+      label: 'Expand',
+      description: 'Add more detail and examples to selected text',
+      shortcut: 'E',
     },
     {
-      id: "improve",
-      label: "Improve writing",
-      description: "Enhance clarity and professionalism",
-      shortcut: "I",
+      id: 'improve',
+      label: 'Improve writing',
+      description: 'Enhance clarity and professionalism',
+      shortcut: 'I',
     },
     {
-      id: "simplify",
-      label: "Simplify",
-      description: "Use shorter sentences and simpler words",
-      shortcut: "S",
+      id: 'simplify',
+      label: 'Simplify',
+      description: 'Use shorter sentences and simpler words',
+      shortcut: 'S',
     },
     {
-      id: "fix_grammar",
-      label: "Fix grammar",
-      description: "Correct grammar, spelling, and punctuation",
-      shortcut: "G",
+      id: 'fix_grammar',
+      label: 'Fix grammar',
+      description: 'Correct grammar, spelling, and punctuation',
+      shortcut: 'G',
     },
     {
-      id: "translate",
-      label: currentLocale === "en" ? "Translate to Japanese" : "Translate to English",
-      description: "Translate selected text",
-      shortcut: "T",
+      id: 'translate',
+      label: currentLocale === 'en' ? 'Translate to Japanese' : 'Translate to English',
+      description: 'Translate selected text',
+      shortcut: 'T',
     },
     {
-      id: "custom",
-      label: "Custom prompt",
-      description: "Enter your own instructions",
-      shortcut: "/",
+      id: 'custom',
+      label: 'Custom prompt',
+      description: 'Enter your own instructions',
+      shortcut: '/',
     },
   ];
 
   function handleAction(action: AIAction) {
-    if (action === "custom") {
+    if (action === 'custom') {
       showCustomInput = true;
       return;
     }
@@ -96,8 +96,8 @@
 
   function handleCustomSubmit() {
     if (customPrompt.trim()) {
-      onAction("custom", customPrompt.trim());
-      customPrompt = "";
+      onAction('custom', customPrompt.trim());
+      customPrompt = '';
       showCustomInput = false;
     }
   }
@@ -105,7 +105,7 @@
   function handleKeydown(event: KeyboardEvent) {
     if (!visible) return;
 
-    if (event.key === "Escape") {
+    if (event.key === 'Escape') {
       if (showCustomInput) {
         showCustomInput = false;
       } else {
@@ -115,7 +115,7 @@
     }
 
     if (showCustomInput) {
-      if (event.key === "Enter" && !event.shiftKey) {
+      if (event.key === 'Enter' && !event.shiftKey) {
         event.preventDefault();
         handleCustomSubmit();
       }
@@ -139,7 +139,7 @@
   <div
     class="fixed inset-0 z-40"
     onclick={onClose}
-    onkeydown={(e) => e.key === "Escape" && onClose()}
+    onkeydown={(e) => e.key === 'Escape' && onClose()}
     role="button"
     tabindex="-1"
   ></div>
@@ -153,9 +153,7 @@
     {#if showCustomInput}
       <!-- Custom prompt input -->
       <div class="p-3">
-        <label class="block text-xs font-medium text-gray-700 mb-1.5">
-          Custom instruction
-        </label>
+        <label class="block text-xs font-medium text-gray-700 mb-1.5"> Custom instruction </label>
         <textarea
           bind:value={customPrompt}
           placeholder="e.g., Rewrite in formal business tone..."
@@ -186,9 +184,7 @@
     {:else}
       <!-- Action list -->
       <div class="p-1">
-        <div class="px-3 py-2 text-xs font-medium text-gray-500 uppercase">
-          AI Assistant
-        </div>
+        <div class="px-3 py-2 text-xs font-medium text-gray-500 uppercase">AI Assistant</div>
         {#each actions as action}
           <button
             type="button"

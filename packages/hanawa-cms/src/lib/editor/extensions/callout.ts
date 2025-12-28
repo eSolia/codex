@@ -6,16 +6,16 @@
  * InfoSec: No external dependencies, sanitized content rendering
  */
 
-import { Node, mergeAttributes } from "@tiptap/core";
+import { Node, mergeAttributes } from '@tiptap/core';
 
-export type CalloutType = "info" | "warning" | "danger" | "success";
+export type CalloutType = 'info' | 'warning' | 'danger' | 'success';
 
 export interface CalloutOptions {
   HTMLAttributes: Record<string, unknown>;
   types: CalloutType[];
 }
 
-declare module "@tiptap/core" {
+declare module '@tiptap/core' {
   interface Commands<ReturnType> {
     callout: {
       setCallout: (type: CalloutType, title?: string) => ReturnType;
@@ -26,38 +26,35 @@ declare module "@tiptap/core" {
 }
 
 export const Callout = Node.create<CalloutOptions>({
-  name: "callout",
+  name: 'callout',
 
   addOptions() {
     return {
       HTMLAttributes: {},
-      types: ["info", "warning", "danger", "success"],
+      types: ['info', 'warning', 'danger', 'success'],
     };
   },
 
-  group: "block",
+  group: 'block',
 
-  content: "block+",
+  content: 'block+',
 
   defining: true,
 
   addAttributes() {
     return {
       type: {
-        default: "info",
-        parseHTML: (element) =>
-          element.getAttribute("data-callout-type") || "info",
+        default: 'info',
+        parseHTML: (element) => element.getAttribute('data-callout-type') || 'info',
         renderHTML: (attributes) => ({
-          "data-callout-type": attributes.type,
+          'data-callout-type': attributes.type,
         }),
       },
       title: {
         default: null,
-        parseHTML: (element) => element.getAttribute("data-callout-title"),
+        parseHTML: (element) => element.getAttribute('data-callout-title'),
         renderHTML: (attributes) =>
-          attributes.title
-            ? { "data-callout-title": attributes.title }
-            : {},
+          attributes.title ? { 'data-callout-title': attributes.title } : {},
       },
     };
   },
@@ -75,27 +72,21 @@ export const Callout = Node.create<CalloutOptions>({
     const title = node.attrs.title;
 
     const typeClasses: Record<CalloutType, string> = {
-      info: "callout-info border-blue-500 bg-blue-50",
-      warning: "callout-warning border-yellow-500 bg-yellow-50",
-      danger: "callout-danger border-red-500 bg-red-50",
-      success: "callout-success border-green-500 bg-green-50",
+      info: 'callout-info border-blue-500 bg-blue-50',
+      warning: 'callout-warning border-yellow-500 bg-yellow-50',
+      danger: 'callout-danger border-red-500 bg-red-50',
+      success: 'callout-success border-green-500 bg-green-50',
     };
 
     return [
-      "div",
+      'div',
       mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, {
         class: `callout ${typeClasses[type]} border-l-4 p-4 my-4 rounded-r`,
-        "data-callout-type": type,
-        "data-callout-title": title || undefined,
+        'data-callout-type': type,
+        'data-callout-title': title || undefined,
       }),
-      title
-        ? [
-            "div",
-            { class: "callout-title font-semibold mb-2" },
-            title,
-          ]
-        : "",
-      ["div", { class: "callout-content" }, 0],
+      title ? ['div', { class: 'callout-title font-semibold mb-2' }, title] : '',
+      ['div', { class: 'callout-content' }, 0],
     ];
   },
 
@@ -121,7 +112,7 @@ export const Callout = Node.create<CalloutOptions>({
 
   addKeyboardShortcuts() {
     return {
-      "Mod-Shift-c": () => this.editor.commands.toggleCallout("info"),
+      'Mod-Shift-c': () => this.editor.commands.toggleCallout('info'),
     };
   },
 });

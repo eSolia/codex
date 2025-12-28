@@ -5,26 +5,26 @@
  * InfoSec: All extensions reviewed for XSS prevention (OWASP A03)
  */
 
-import { Editor, type Extensions } from "@tiptap/core";
-import StarterKit from "@tiptap/starter-kit";
-import Link from "@tiptap/extension-link";
-import Image from "@tiptap/extension-image";
-import Table from "@tiptap/extension-table";
-import TableRow from "@tiptap/extension-table-row";
-import TableCell from "@tiptap/extension-table-cell";
-import TableHeader from "@tiptap/extension-table-header";
-import TaskList from "@tiptap/extension-task-list";
-import TaskItem from "@tiptap/extension-task-item";
-import Placeholder from "@tiptap/extension-placeholder";
-import Highlight from "@tiptap/extension-highlight";
-import Underline from "@tiptap/extension-underline";
+import { Editor, type Extensions } from '@tiptap/core';
+import StarterKit from '@tiptap/starter-kit';
+import Link from '@tiptap/extension-link';
+import Image from '@tiptap/extension-image';
+import Table from '@tiptap/extension-table';
+import TableRow from '@tiptap/extension-table-row';
+import TableCell from '@tiptap/extension-table-cell';
+import TableHeader from '@tiptap/extension-table-header';
+import TaskList from '@tiptap/extension-task-list';
+import TaskItem from '@tiptap/extension-task-item';
+import Placeholder from '@tiptap/extension-placeholder';
+import Highlight from '@tiptap/extension-highlight';
+import Underline from '@tiptap/extension-underline';
 
-import Callout from "./extensions/callout";
-import StatusBadge from "./extensions/status-badge";
-import PrivacyMask from "./extensions/privacy-mask";
-import FragmentReference from "./extensions/fragment-reference";
-import MermaidBlock from "./extensions/mermaid-block";
-import SlashCommands from "./extensions/slash-commands";
+import Callout from './extensions/callout';
+import StatusBadge from './extensions/status-badge';
+import PrivacyMask from './extensions/privacy-mask';
+import FragmentReference from './extensions/fragment-reference';
+import MermaidBlock from './extensions/mermaid-block';
+import SlashCommands from './extensions/slash-commands';
 
 export interface EditorConfig {
   element: HTMLElement;
@@ -44,8 +44,8 @@ export interface EditorConfig {
 export function createEditor(config: EditorConfig): Editor {
   const {
     element,
-    content = "",
-    placeholder = "Start writing...",
+    content = '',
+    placeholder = 'Start writing...',
     privacyMode = false,
     editable = true,
     onUpdate,
@@ -62,12 +62,12 @@ export function createEditor(config: EditorConfig): Editor {
       },
       codeBlock: {
         HTMLAttributes: {
-          class: "bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto",
+          class: 'bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto',
         },
       },
       blockquote: {
         HTMLAttributes: {
-          class: "border-l-4 border-gray-300 pl-4 italic",
+          class: 'border-l-4 border-gray-300 pl-4 italic',
         },
       },
     }),
@@ -76,8 +76,8 @@ export function createEditor(config: EditorConfig): Editor {
     Link.configure({
       openOnClick: false,
       HTMLAttributes: {
-        class: "text-esolia-navy underline hover:text-esolia-orange",
-        rel: "noopener noreferrer",
+        class: 'text-esolia-navy underline hover:text-esolia-orange',
+        rel: 'noopener noreferrer',
       },
       validate: (href) => /^https?:\/\//.test(href),
     }),
@@ -85,7 +85,7 @@ export function createEditor(config: EditorConfig): Editor {
     // Images - InfoSec: Only allow https images
     Image.configure({
       HTMLAttributes: {
-        class: "max-w-full h-auto rounded",
+        class: 'max-w-full h-auto rounded',
       },
       allowBase64: false, // Prevent data: URLs for security
     }),
@@ -94,38 +94,38 @@ export function createEditor(config: EditorConfig): Editor {
     Table.configure({
       resizable: true,
       HTMLAttributes: {
-        class: "border-collapse table-auto w-full",
+        class: 'border-collapse table-auto w-full',
       },
     }),
     TableRow,
     TableHeader.configure({
       HTMLAttributes: {
-        class: "border border-gray-300 bg-gray-50 p-2 text-left font-semibold",
+        class: 'border border-gray-300 bg-gray-50 p-2 text-left font-semibold',
       },
     }),
     TableCell.configure({
       HTMLAttributes: {
-        class: "border border-gray-300 p-2",
+        class: 'border border-gray-300 p-2',
       },
     }),
 
     // Task lists
     TaskList.configure({
       HTMLAttributes: {
-        class: "list-none pl-0",
+        class: 'list-none pl-0',
       },
     }),
     TaskItem.configure({
       nested: true,
       HTMLAttributes: {
-        class: "flex items-start gap-2",
+        class: 'flex items-start gap-2',
       },
     }),
 
     // Formatting
     Placeholder.configure({
       placeholder,
-      emptyEditorClass: "is-editor-empty",
+      emptyEditorClass: 'is-editor-empty',
     }),
     Highlight.configure({
       multicolor: true,
@@ -152,7 +152,7 @@ export function createEditor(config: EditorConfig): Editor {
     editorProps: {
       attributes: {
         class:
-          "prose prose-sm sm:prose lg:prose-lg max-w-none focus:outline-none min-h-[200px] p-4",
+          'prose prose-sm sm:prose lg:prose-lg max-w-none focus:outline-none min-h-[200px] p-4',
       },
     },
     onUpdate: ({ editor }) => {
@@ -186,11 +186,4 @@ export function destroyEditor(editor: Editor | null): void {
   }
 }
 
-export {
-  Callout,
-  StatusBadge,
-  PrivacyMask,
-  FragmentReference,
-  MermaidBlock,
-  SlashCommands,
-};
+export { Callout, StatusBadge, PrivacyMask, FragmentReference, MermaidBlock, SlashCommands };

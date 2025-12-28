@@ -5,7 +5,7 @@
   InfoSec: File type validation happens server-side (OWASP A04)
 -->
 <script lang="ts">
-  import { onMount } from "svelte";
+  import { onMount } from 'svelte';
 
   interface Asset {
     id: string;
@@ -36,16 +36,16 @@
     siteId,
     selectable = false,
     multiple = false,
-    acceptTypes = ["image/*"],
+    acceptTypes = ['image/*'],
     onselect,
   }: Props = $props();
 
   let assets = $state<Asset[]>([]);
   let folders = $state<string[]>([]);
   let selectedIds = $state<Set<string>>(new Set());
-  let currentFolder = $state("/");
-  let searchQuery = $state("");
-  let mimeTypeFilter = $state("");
+  let currentFolder = $state('/');
+  let searchQuery = $state('');
+  let mimeTypeFilter = $state('');
   let loading = $state(true);
   let uploading = $state(false);
   let uploadProgress = $state(0);
@@ -64,21 +64,21 @@
 
     try {
       const params = new URLSearchParams();
-      if (siteId) params.set("siteId", siteId);
-      if (currentFolder !== "/") params.set("folder", currentFolder);
-      if (mimeTypeFilter) params.set("mimeType", mimeTypeFilter);
-      if (searchQuery) params.set("search", searchQuery);
-      params.set("limit", String(limit));
-      params.set("offset", String(offset));
+      if (siteId) params.set('siteId', siteId);
+      if (currentFolder !== '/') params.set('folder', currentFolder);
+      if (mimeTypeFilter) params.set('mimeType', mimeTypeFilter);
+      if (searchQuery) params.set('search', searchQuery);
+      params.set('limit', String(limit));
+      params.set('offset', String(offset));
 
       const response = await fetch(`/api/media?${params}`);
-      if (!response.ok) throw new Error("Failed to load assets");
+      if (!response.ok) throw new Error('Failed to load assets');
 
-      const data = await response.json();
+      const data = (await response.json()) as { assets: typeof assets; total: number };
       assets = data.assets;
       total = data.total;
     } catch (err) {
-      error = err instanceof Error ? err.message : "Failed to load assets";
+      error = err instanceof Error ? err.message : 'Failed to load assets';
     } finally {
       loading = false;
     }
@@ -87,12 +87,12 @@
   async function loadFolders() {
     try {
       const params = new URLSearchParams();
-      if (siteId) params.set("siteId", siteId);
+      if (siteId) params.set('siteId', siteId);
 
       const response = await fetch(`/api/media/folders?${params}`);
       if (!response.ok) return;
 
-      const data = await response.json();
+      const data = (await response.json()) as { folders: typeof folders };
       folders = data.folders;
     } catch {
       // Ignore folder load errors
@@ -110,24 +110,24 @@
     for (const file of fileArray) {
       try {
         const formData = new FormData();
-        formData.append("file", file);
-        if (siteId) formData.append("siteId", siteId);
-        formData.append("folder", currentFolder);
+        formData.append('file', file);
+        if (siteId) formData.append('siteId', siteId);
+        formData.append('folder', currentFolder);
 
-        const response = await fetch("/api/media", {
-          method: "POST",
+        const response = await fetch('/api/media', {
+          method: 'POST',
           body: formData,
         });
 
         if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(errorData.message || "Upload failed");
+          const errorData = (await response.json().catch(() => ({}))) as { message?: string };
+          throw new Error(errorData.message || 'Upload failed');
         }
 
         completed++;
         uploadProgress = Math.round((completed / fileArray.length) * 100);
       } catch (err) {
-        error = err instanceof Error ? err.message : "Upload failed";
+        error = err instanceof Error ? err.message : 'Upload failed';
         break;
       }
     }
@@ -190,42 +190,42 @@
   }
 
   async function deleteAsset(id: string) {
-    if (!confirm("Delete this asset? This cannot be undone.")) return;
+    if (!confirm('Delete this asset? This cannot be undone.')) return;
 
     try {
       const response = await fetch(`/api/media/${id}`, {
-        method: "DELETE",
+        method: 'DELETE',
       });
 
-      if (!response.ok) throw new Error("Delete failed");
+      if (!response.ok) throw new Error('Delete failed');
 
       await loadAssets();
     } catch (err) {
-      error = err instanceof Error ? err.message : "Delete failed";
+      error = err instanceof Error ? err.message : 'Delete failed';
     }
   }
 
   function formatFileSize(bytes: number | null): string {
-    if (!bytes) return "0 B";
+    if (!bytes) return '0 B';
     const k = 1024;
-    const sizes = ["B", "KB", "MB", "GB"];
+    const sizes = ['B', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
   }
 
   function getFileIcon(mimeType: string | null): string {
-    if (!mimeType) return "📁";
-    if (mimeType.startsWith("image/")) return "🖼️";
-    if (mimeType.startsWith("video/")) return "🎬";
-    if (mimeType.startsWith("audio/")) return "🎵";
-    if (mimeType === "application/pdf") return "📄";
-    if (mimeType === "text/csv") return "📊";
-    if (mimeType === "application/json") return "📋";
-    return "📁";
+    if (!mimeType) return '📁';
+    if (mimeType.startsWith('image/')) return '🖼️';
+    if (mimeType.startsWith('video/')) return '🎬';
+    if (mimeType.startsWith('audio/')) return '🎵';
+    if (mimeType === 'application/pdf') return '📄';
+    if (mimeType === 'text/csv') return '📊';
+    if (mimeType === 'application/json') return '📋';
+    return '📁';
   }
 
   function isImage(mimeType: string | null): boolean {
-    return mimeType?.startsWith("image/") ?? false;
+    return mimeType?.startsWith('image/') ?? false;
   }
 
   // Load on mount and when filters change
@@ -252,14 +252,11 @@
   aria-label="Media Library"
 >
   <!-- Upload Area -->
-  <div
-    class="upload-area"
-    class:drag-over={dragOver}
-  >
+  <div class="upload-area" class:drag-over={dragOver}>
     <input
       bind:this={fileInput}
       type="file"
-      accept={acceptTypes.join(",")}
+      accept={acceptTypes.join(',')}
       multiple
       onchange={handleFileSelect}
       class="hidden"
@@ -271,13 +268,14 @@
         <span>Uploading... {uploadProgress}%</span>
       </div>
     {:else}
-      <button
-        type="button"
-        onclick={() => fileInput.click()}
-        class="upload-button"
-      >
+      <button type="button" onclick={() => fileInput.click()} class="upload-button">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+          />
         </svg>
         <span>Upload Files</span>
       </button>
@@ -288,20 +286,14 @@
   <!-- Filters -->
   <div class="filters">
     <div class="filter-row">
-      <select
-        bind:value={currentFolder}
-        class="folder-select"
-      >
+      <select bind:value={currentFolder} class="folder-select">
         <option value="/">All Folders</option>
         {#each folders as folder}
           <option value={folder}>{folder}</option>
         {/each}
       </select>
 
-      <select
-        bind:value={mimeTypeFilter}
-        class="type-select"
-      >
+      <select bind:value={mimeTypeFilter} class="type-select">
         <option value="">All Types</option>
         <option value="image/">Images</option>
         <option value="application/pdf">PDFs</option>
@@ -325,7 +317,12 @@
   {#if error}
     <div class="error-message" role="alert">
       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+        />
       </svg>
       <span>{error}</span>
       <button type="button" onclick={() => (error = null)}>Dismiss</button>
@@ -336,15 +333,22 @@
   {#if loading}
     <div class="loading-state">
       <svg class="animate-spin w-8 h-8" fill="none" viewBox="0 0 24 24">
-        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"
+        ></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+        ></path>
       </svg>
       <span>Loading assets...</span>
     </div>
   {:else if assets.length === 0}
     <div class="empty-state">
       <svg class="w-16 h-16 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+        />
       </svg>
       <h3>No assets found</h3>
       <p>Upload files or adjust your filters</p>
@@ -369,7 +373,11 @@
             {#if selectedIds.has(asset.id)}
               <div class="selected-badge">
                 <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                  <path
+                    fill-rule="evenodd"
+                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                    clip-rule="evenodd"
+                  />
                 </svg>
               </div>
             {/if}
@@ -383,11 +391,19 @@
                 <button
                   type="button"
                   class="delete-button"
-                  onclick|stopPropagation={() => deleteAsset(asset.id)}
+                  onclick={(e) => {
+                    e.stopPropagation();
+                    deleteAsset(asset.id);
+                  }}
                   title="Delete"
                 >
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                    />
                   </svg>
                 </button>
               {/if}

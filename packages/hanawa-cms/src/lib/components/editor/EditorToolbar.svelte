@@ -5,7 +5,7 @@
    *
    * InfoSec: No external script injection vectors
    */
-  import type { Editor } from "@tiptap/core";
+  import type { Editor } from '@tiptap/core';
 
   let { editor, openMediaPicker }: { editor: Editor; openMediaPicker?: () => void } = $props();
 
@@ -33,57 +33,57 @@
 
     const updateActive = () => {
       isActive = {
-        bold: editor.isActive("bold"),
-        italic: editor.isActive("italic"),
-        underline: editor.isActive("underline"),
-        strike: editor.isActive("strike"),
-        code: editor.isActive("code"),
-        bulletList: editor.isActive("bulletList"),
-        orderedList: editor.isActive("orderedList"),
-        taskList: editor.isActive("taskList"),
-        blockquote: editor.isActive("blockquote"),
-        codeBlock: editor.isActive("codeBlock"),
-        heading1: editor.isActive("heading", { level: 1 }),
-        heading2: editor.isActive("heading", { level: 2 }),
-        heading3: editor.isActive("heading", { level: 3 }),
-        link: editor.isActive("link"),
+        bold: editor.isActive('bold'),
+        italic: editor.isActive('italic'),
+        underline: editor.isActive('underline'),
+        strike: editor.isActive('strike'),
+        code: editor.isActive('code'),
+        bulletList: editor.isActive('bulletList'),
+        orderedList: editor.isActive('orderedList'),
+        taskList: editor.isActive('taskList'),
+        blockquote: editor.isActive('blockquote'),
+        codeBlock: editor.isActive('codeBlock'),
+        heading1: editor.isActive('heading', { level: 1 }),
+        heading2: editor.isActive('heading', { level: 2 }),
+        heading3: editor.isActive('heading', { level: 3 }),
+        link: editor.isActive('link'),
       };
     };
 
-    editor.on("selectionUpdate", updateActive);
-    editor.on("transaction", updateActive);
+    editor.on('selectionUpdate', updateActive);
+    editor.on('transaction', updateActive);
     updateActive();
 
     return () => {
-      editor.off("selectionUpdate", updateActive);
-      editor.off("transaction", updateActive);
+      editor.off('selectionUpdate', updateActive);
+      editor.off('transaction', updateActive);
     };
   });
 
   function addLink() {
-    const url = prompt("Enter URL:");
+    const url = prompt('Enter URL:');
     if (url) {
       // InfoSec: Validate URL before adding (OWASP A03)
       if (!/^https?:\/\//.test(url)) {
-        alert("Only http:// and https:// URLs are allowed");
+        alert('Only http:// and https:// URLs are allowed');
         return;
       }
       editor.chain().focus().setLink({ href: url }).run();
     }
   }
 
-  function insertCallout(type: "info" | "warning" | "danger" | "success") {
+  function insertCallout(type: 'info' | 'warning' | 'danger' | 'success') {
     editor.chain().focus().setCallout(type).run();
   }
 
   function insertStatus() {
-    editor.chain().focus().setStatusBadge("pending-review").run();
+    editor.chain().focus().setStatusBadge('pending-review').run();
   }
 
   function insertFragment() {
-    const fragmentId = prompt("Enter fragment ID (e.g., products/m365):");
+    const fragmentId = prompt('Enter fragment ID (e.g., products/m365):');
     if (fragmentId) {
-      const lang = prompt("Language (en/ja):", "en") || "en";
+      const lang = prompt('Language (en/ja):', 'en') || 'en';
       editor.chain().focus().insertFragment(fragmentId, lang).run();
     }
   }
@@ -94,13 +94,11 @@
 
   // Button component helper
   function buttonClass(active: boolean): string {
-    return `p-2 rounded hover:bg-gray-100 ${active ? "bg-gray-200 text-esolia-navy" : "text-gray-600"}`;
+    return `p-2 rounded hover:bg-gray-100 ${active ? 'bg-gray-200 text-esolia-navy' : 'text-gray-600'}`;
   }
 </script>
 
-<div
-  class="editor-toolbar border-b border-gray-200 px-2 py-1 flex flex-wrap items-center gap-1"
->
+<div class="editor-toolbar border-b border-gray-200 px-2 py-1 flex flex-wrap items-center gap-1">
   <!-- Text Formatting -->
   <div class="flex items-center border-r border-gray-200 pr-2 mr-2">
     <button
@@ -238,9 +236,7 @@
       title="Quote"
     >
       <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-        <path
-          d="M6 17h3l2-4V7H5v6h3zm8 0h3l2-4V7h-6v6h3z"
-        />
+        <path d="M6 17h3l2-4V7H5v6h3zm8 0h3l2-4V7h-6v6h3z" />
       </svg>
     </button>
     <button
@@ -255,12 +251,7 @@
         />
       </svg>
     </button>
-    <button
-      type="button"
-      class={buttonClass(isActive.link)}
-      onclick={addLink}
-      title="Add Link"
-    >
+    <button type="button" class={buttonClass(isActive.link)} onclick={addLink} title="Add Link">
       <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
         <path
           d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"
@@ -303,28 +294,28 @@
         <button
           type="button"
           class="block w-full px-4 py-2 text-left text-sm hover:bg-blue-50 text-blue-700"
-          onclick={() => insertCallout("info")}
+          onclick={() => insertCallout('info')}
         >
           ℹ️ Info
         </button>
         <button
           type="button"
           class="block w-full px-4 py-2 text-left text-sm hover:bg-yellow-50 text-yellow-700"
-          onclick={() => insertCallout("warning")}
+          onclick={() => insertCallout('warning')}
         >
           ⚠️ Warning
         </button>
         <button
           type="button"
           class="block w-full px-4 py-2 text-left text-sm hover:bg-red-50 text-red-700"
-          onclick={() => insertCallout("danger")}
+          onclick={() => insertCallout('danger')}
         >
           🚨 Danger
         </button>
         <button
           type="button"
           class="block w-full px-4 py-2 text-left text-sm hover:bg-green-50 text-green-700"
-          onclick={() => insertCallout("success")}
+          onclick={() => insertCallout('success')}
         >
           ✅ Success
         </button>
@@ -343,7 +334,7 @@
     <button
       type="button"
       class="p-2 rounded hover:bg-gray-100 text-gray-600"
-      onclick={() => editor.chain().focus().togglePrivacyMask("pii").run()}
+      onclick={() => editor.chain().focus().togglePrivacyMask('pii').run()}
       title="Privacy Mask (Ctrl+Shift+P)"
     >
       <span class="text-xs">🔒</span>
@@ -365,8 +356,13 @@
       title="Insert Mermaid Diagram (Ctrl+Shift+M)"
     >
       <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-        <path d="M4 4h6v6H4zm10 0h6v6h-6zM4 14h6v6H4zm10 0h6v6h-6z" opacity="0.3"/>
-        <path d="M7 7v2h2V7H7zm10 0v2h2V7h-2zM7 17v2h2v-2H7zm10 0v2h2v-2h-2zM12 10v4M8 12h8" stroke="currentColor" stroke-width="1.5" fill="none"/>
+        <path d="M4 4h6v6H4zm10 0h6v6h-6zM4 14h6v6H4zm10 0h6v6h-6z" opacity="0.3" />
+        <path
+          d="M7 7v2h2V7H7zm10 0v2h2V7h-2zM7 17v2h2v-2H7zm10 0v2h2v-2h-2zM12 10v4M8 12h8"
+          stroke="currentColor"
+          stroke-width="1.5"
+          fill="none"
+        />
       </svg>
     </button>
   </div>

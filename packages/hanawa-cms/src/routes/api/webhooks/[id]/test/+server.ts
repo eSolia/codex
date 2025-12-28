@@ -5,20 +5,20 @@
  * InfoSec: Admin-only, rate-limited (OWASP A01, A04)
  */
 
-import { json, error } from "@sveltejs/kit";
-import type { RequestHandler } from "./$types";
-import { createWebhookService } from "$lib/server/webhooks";
+import { json, error } from '@sveltejs/kit';
+import type { RequestHandler } from './$types';
+import { createWebhookService } from '$lib/server/webhooks';
 
 /**
  * POST /api/webhooks/[id]/test - Test webhook delivery
  */
 export const POST: RequestHandler = async ({ params, platform, locals }) => {
   if (!platform?.env?.DB) {
-    throw error(500, "Database not available");
+    throw error(500, 'Database not available');
   }
 
   if (!locals.auditContext) {
-    throw error(401, "Authentication required");
+    throw error(401, 'Authentication required');
   }
 
   try {
@@ -32,13 +32,13 @@ export const POST: RequestHandler = async ({ params, platform, locals }) => {
       error: result.error,
     });
   } catch (err) {
-    console.error("Webhook test error:", err);
+    console.error('Webhook test error:', err);
     if (err instanceof Response) throw err;
 
-    if (err instanceof Error && err.message.includes("not found")) {
-      throw error(404, "Webhook not found");
+    if (err instanceof Error && err.message.includes('not found')) {
+      throw error(404, 'Webhook not found');
     }
 
-    throw error(500, "Failed to test webhook");
+    throw error(500, 'Failed to test webhook');
   }
 };

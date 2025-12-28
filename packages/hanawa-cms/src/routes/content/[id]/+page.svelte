@@ -5,31 +5,49 @@
    *
    * InfoSec: Sensitivity classification, preview approval workflow
    */
-  import type { PageData, ActionData } from "./$types";
-  import { enhance } from "$app/forms";
-  import HanawaEditor from "$lib/components/editor/HanawaEditor.svelte";
+  import type { PageData, ActionData } from './$types';
+  import { enhance } from '$app/forms';
+  import HanawaEditor from '$lib/components/editor/HanawaEditor.svelte';
+
+  interface ContentData {
+    id: string;
+    title: string;
+    title_ja: string | null;
+    slug: string;
+    body: string;
+    body_ja: string | null;
+    status: string;
+    language: string;
+    sensitivity: 'normal' | 'confidential' | 'embargoed';
+    site_id: string | null;
+    content_type_id: string | null;
+    excerpt: string | null;
+    excerpt_ja: string | null;
+    created_at: string;
+    updated_at: string;
+  }
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
 
+  // Type the content data for safe access
+  const c = data.content as unknown as ContentData | null;
+
   // Form state
-  let title = $state(data.content?.title || "");
-  let titleJa = $state(data.content?.title_ja || "");
-  let slug = $state(data.content?.slug || "");
-  let body = $state(data.content?.body || "");
-  let bodyJa = $state(data.content?.body_ja || "");
-  let status = $state(data.content?.status || "draft");
-  let language = $state(data.content?.language || "en");
-  let sensitivity = $state(
-    (data.content?.sensitivity as "normal" | "confidential" | "embargoed") ||
-      "normal"
-  );
-  let siteId = $state(data.content?.site_id || "");
-  let contentTypeId = $state(data.content?.content_type_id || "");
+  let title = $state(c?.title || '');
+  let titleJa = $state(c?.title_ja || '');
+  let slug = $state(c?.slug || '');
+  let body = $state(c?.body || '');
+  let bodyJa = $state(c?.body_ja || '');
+  let status = $state(c?.status || 'draft');
+  let language = $state(c?.language || 'en');
+  let sensitivity = $state<'normal' | 'confidential' | 'embargoed'>(c?.sensitivity || 'normal');
+  let siteId = $state(c?.site_id || '');
+  let contentTypeId = $state(c?.content_type_id || '');
 
   // UI state
   let isSaving = $state(false);
   let isPublishing = $state(false);
-  let activeTab = $state<"en" | "ja">("en");
+  let activeTab = $state<'en' | 'ja'>('en');
   let showSensitivityModal = $state(false);
 
   // Dirty tracking
@@ -43,42 +61,42 @@
   function generateSlug() {
     slug = title
       .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-|-$/g, "");
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '');
   }
 
   // Status options
   const statusOptions = [
-    { value: "draft", label: "Draft", color: "bg-gray-100 text-gray-800" },
-    { value: "review", label: "In Review", color: "bg-yellow-100 text-yellow-800" },
-    { value: "published", label: "Published", color: "bg-green-100 text-green-800" },
-    { value: "archived", label: "Archived", color: "bg-red-100 text-red-800" },
+    { value: 'draft', label: 'Draft', color: 'bg-gray-100 text-gray-800' },
+    { value: 'review', label: 'In Review', color: 'bg-yellow-100 text-yellow-800' },
+    { value: 'published', label: 'Published', color: 'bg-green-100 text-green-800' },
+    { value: 'archived', label: 'Archived', color: 'bg-red-100 text-red-800' },
   ];
 
   // Sensitivity options with descriptions
   const sensitivityOptions = [
     {
-      value: "normal",
-      label: "Normal",
-      description: "Standard content, preview available immediately",
-      color: "bg-gray-100 text-gray-800",
+      value: 'normal',
+      label: 'Normal',
+      description: 'Standard content, preview available immediately',
+      color: 'bg-gray-100 text-gray-800',
     },
     {
-      value: "confidential",
-      label: "Confidential",
-      description: "Preview requires approval, watermarked",
-      color: "bg-yellow-100 text-yellow-800",
+      value: 'confidential',
+      label: 'Confidential',
+      description: 'Preview requires approval, watermarked',
+      color: 'bg-yellow-100 text-yellow-800',
     },
     {
-      value: "embargoed",
-      label: "Embargoed",
-      description: "No preview until embargo lifts, max security",
-      color: "bg-red-100 text-red-800",
+      value: 'embargoed',
+      label: 'Embargoed',
+      description: 'No preview until embargo lifts, max security',
+      color: 'bg-red-100 text-red-800',
     },
   ];
 
   function handleEditorChange(html: string) {
-    if (activeTab === "en") {
+    if (activeTab === 'en') {
       body = html;
     } else {
       bodyJa = html;
@@ -88,16 +106,14 @@
 </script>
 
 <svelte:head>
-  <title>{title || "New Content"} | Hanawa CMS</title>
+  <title>{title || 'New Content'} | Hanawa CMS</title>
 </svelte:head>
 
 <div class="max-w-6xl mx-auto">
   <!-- Header -->
   <div class="flex items-center justify-between mb-6">
     <div class="flex items-center gap-4">
-      <a href="/content" class="text-gray-500 hover:text-gray-700">
-        ← Back to Content
-      </a>
+      <a href="/content" class="text-gray-500 hover:text-gray-700"> ← Back to Content </a>
       {#if isDirty}
         <span class="text-sm text-orange-500">Unsaved changes</span>
       {/if}
@@ -123,7 +139,7 @@
   <!-- Form Messages -->
   {#if form?.success}
     <div class="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg text-green-800">
-      {form.published ? "Content published successfully!" : "Content saved successfully!"}
+      {form.published ? 'Content published successfully!' : 'Content saved successfully!'}
     </div>
   {/if}
   {#if form?.message}
@@ -157,7 +173,7 @@
                 class="px-4 py-2 text-sm font-medium {activeTab === 'en'
                   ? 'border-b-2 border-esolia-navy text-esolia-navy'
                   : 'text-gray-500 hover:text-gray-700'}"
-                onclick={() => (activeTab = "en")}
+                onclick={() => (activeTab = 'en')}
               >
                 English
               </button>
@@ -166,17 +182,15 @@
                 class="px-4 py-2 text-sm font-medium {activeTab === 'ja'
                   ? 'border-b-2 border-esolia-navy text-esolia-navy'
                   : 'text-gray-500 hover:text-gray-700'}"
-                onclick={() => (activeTab = "ja")}
+                onclick={() => (activeTab = 'ja')}
               >
                 日本語
               </button>
             </div>
 
-            {#if activeTab === "en"}
+            {#if activeTab === 'en'}
               <div>
-                <label for="title" class="block text-sm font-medium text-gray-700">
-                  Title
-                </label>
+                <label for="title" class="block text-sm font-medium text-gray-700"> Title </label>
                 <input
                   type="text"
                   id="title"
@@ -206,9 +220,7 @@
             {/if}
 
             <div>
-              <label for="slug" class="block text-sm font-medium text-gray-700">
-                Slug
-              </label>
+              <label for="slug" class="block text-sm font-medium text-gray-700"> Slug </label>
               <div class="mt-1 flex rounded-md shadow-sm">
                 <span
                   class="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm"
@@ -231,14 +243,14 @@
 
         <!-- Editor -->
         <div>
-          {#if activeTab === "en"}
+          {#if activeTab === 'en'}
             <input type="hidden" name="body" value={body} />
             <HanawaEditor
               content={body}
               {sensitivity}
               onchange={handleEditorChange}
               onsave={() => {
-                const form = document.querySelector("form");
+                const form = document.querySelector('form');
                 if (form) form.requestSubmit();
               }}
             />
@@ -249,7 +261,7 @@
               {sensitivity}
               onchange={handleEditorChange}
               onsave={() => {
-                const form = document.querySelector("form");
+                const form = document.querySelector('form');
                 if (form) form.requestSubmit();
               }}
             />
@@ -283,22 +295,20 @@
               disabled={isSaving}
               class="w-full px-4 py-2 bg-esolia-navy text-white rounded-lg hover:bg-esolia-navy/90 transition-colors font-medium disabled:opacity-50"
             >
-              {isSaving ? "Saving..." : "Save Draft"}
+              {isSaving ? 'Saving...' : 'Save Draft'}
             </button>
 
-            {#if status === "review" || status === "published"}
+            {#if status === 'review' || status === 'published'}
               <button
                 type="submit"
                 formaction="?/publish"
-                disabled={isPublishing || sensitivity === "embargoed"}
+                disabled={isPublishing || sensitivity === 'embargoed'}
                 class="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium disabled:opacity-50"
               >
-                {isPublishing ? "Publishing..." : "Publish to R2"}
+                {isPublishing ? 'Publishing...' : 'Publish to R2'}
               </button>
-              {#if sensitivity === "embargoed"}
-                <p class="text-xs text-red-600">
-                  Embargoed content cannot be published
-                </p>
+              {#if sensitivity === 'embargoed'}
+                <p class="text-xs text-red-600">Embargoed content cannot be published</p>
               {/if}
             {/if}
           </div>
@@ -310,9 +320,7 @@
 
           <div class="space-y-4">
             <div>
-              <label for="site_id" class="block text-sm text-gray-700">
-                Site
-              </label>
+              <label for="site_id" class="block text-sm text-gray-700"> Site </label>
               <select
                 id="site_id"
                 name="site_id"
@@ -348,7 +356,7 @@
         </div>
 
         <!-- Security Info -->
-        {#if sensitivity !== "normal"}
+        {#if sensitivity !== 'normal'}
           <div
             class="rounded-lg p-4 {sensitivity === 'embargoed'
               ? 'bg-red-50 border border-red-200'
@@ -359,13 +367,19 @@
                 ? 'text-red-800'
                 : 'text-yellow-800'}"
             >
-              {sensitivity === "embargoed" ? "🔒 Embargoed Content" : "⚠️ Confidential Content"}
+              {sensitivity === 'embargoed' ? '🔒 Embargoed Content' : '⚠️ Confidential Content'}
             </h3>
-            <ul class="mt-2 text-xs space-y-1 {sensitivity === 'embargoed' ? 'text-red-700' : 'text-yellow-700'}">
-              <li>• Preview requires {sensitivity === "embargoed" ? "embargo lift" : "approval"}</li>
+            <ul
+              class="mt-2 text-xs space-y-1 {sensitivity === 'embargoed'
+                ? 'text-red-700'
+                : 'text-yellow-700'}"
+            >
+              <li>
+                • Preview requires {sensitivity === 'embargoed' ? 'embargo lift' : 'approval'}
+              </li>
               <li>• Watermarked when viewed</li>
               <li>• All views are logged</li>
-              {#if sensitivity === "embargoed"}
+              {#if sensitivity === 'embargoed'}
                 <li>• Cannot be published until embargo lifts</li>
               {/if}
             </ul>
@@ -385,9 +399,7 @@
   >
     <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
       <div class="p-6">
-        <h2 class="text-lg font-semibold text-gray-900 mb-4">
-          Change Content Sensitivity
-        </h2>
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Change Content Sensitivity</h2>
 
         <form
           method="POST"
@@ -423,10 +435,9 @@
             {/each}
           </div>
 
-          {#if sensitivity !== "normal"}
+          {#if sensitivity !== 'normal'}
             <div class="mt-4 p-3 bg-yellow-50 rounded-lg text-sm text-yellow-800">
-              <strong>Warning:</strong> Escalating sensitivity will revoke any existing
-              preview tokens.
+              <strong>Warning:</strong> Escalating sensitivity will revoke any existing preview tokens.
             </div>
           {/if}
 

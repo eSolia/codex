@@ -3,14 +3,14 @@
  * InfoSec: Vector search for semantic content discovery and RAG
  */
 
-import type { AuditService } from "./audit";
+import type { AuditService } from './audit';
 
 const CHUNK_SIZE = 500; // Target chunk size in words
 const CHUNK_OVERLAP = 50; // Overlap between chunks
-const EMBEDDING_MODEL = "@cf/baai/bge-base-en-v1.5";
+const EMBEDDING_MODEL = '@cf/baai/bge-base-en-v1.5';
 
-type ChunkType = "title" | "heading" | "content" | "list";
-type IndexStatus = "pending" | "indexing" | "indexed" | "error";
+type ChunkType = 'title' | 'heading' | 'content' | 'list';
+type IndexStatus = 'pending' | 'indexing' | 'indexed' | 'error';
 
 interface DocumentChunk {
   id: string;
@@ -69,9 +69,9 @@ export function createCodexService(
   async function hashContent(content: string): Promise<string> {
     const encoder = new TextEncoder();
     const data = encoder.encode(content);
-    const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+    return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
   }
 
   /**
@@ -82,11 +82,11 @@ export function createCodexService(
       text: [text],
     });
 
-    if (response && "data" in response && Array.isArray(response.data)) {
+    if (response && 'data' in response && Array.isArray(response.data)) {
       return response.data[0] as number[];
     }
 
-    throw new Error("Failed to generate embedding");
+    throw new Error('Failed to generate embedding');
   }
 
   /**
@@ -101,10 +101,10 @@ export function createCodexService(
    */
   function parseIntoSections(content: string): ParsedSection[] {
     const sections: ParsedSection[] = [];
-    const lines = content.split("\n");
+    const lines = content.split('\n');
 
-    let currentSection = "";
-    let currentPath = "";
+    let currentSection = '';
+    let currentPath = '';
 
     for (const line of lines) {
       // Match markdown headings
@@ -115,13 +115,13 @@ export function createCodexService(
           sections.push({
             content: currentSection.trim(),
             headingPath: currentPath,
-            type: "content",
+            type: 'content',
           });
         }
         currentPath = headingMatch[2];
-        currentSection = line + "\n";
+        currentSection = line + '\n';
       } else {
-        currentSection += line + "\n";
+        currentSection += line + '\n';
       }
     }
 
@@ -129,7 +129,7 @@ export function createCodexService(
       sections.push({
         content: currentSection.trim(),
         headingPath: currentPath,
-        type: "content",
+        type: 'content',
       });
     }
 
@@ -139,18 +139,14 @@ export function createCodexService(
   /**
    * Split long content into overlapping chunks
    */
-  function splitLongContent(
-    content: string,
-    targetSize: number,
-    overlap: number
-  ): string[] {
+  function splitLongContent(content: string, targetSize: number, overlap: number): string[] {
     const words = content.split(/\s+/);
     const chunks: string[] = [];
 
     let start = 0;
     while (start < words.length) {
       const end = Math.min(start + targetSize, words.length);
-      chunks.push(words.slice(start, end).join(" "));
+      chunks.push(words.slice(start, end).join(' '));
       start = end - overlap;
       if (start >= words.length - overlap) break;
     }
@@ -165,11 +161,10 @@ export function createCodexService(
     title: string,
     content: string
   ): { content: string; headingPath?: string; type: ChunkType }[] {
-    const chunks: { content: string; headingPath?: string; type: ChunkType }[] =
-      [];
+    const chunks: { content: string; headingPath?: string; type: ChunkType }[] = [];
 
     // Add title as first chunk
-    chunks.push({ content: title, type: "title" });
+    chunks.push({ content: title, type: 'title' });
 
     // Parse HTML/markdown and split
     const sections = parseIntoSections(content);
@@ -186,16 +181,12 @@ export function createCodexService(
         });
       } else {
         // Split into smaller chunks with overlap
-        const subChunks = splitLongContent(
-          section.content,
-          CHUNK_SIZE,
-          CHUNK_OVERLAP
-        );
+        const subChunks = splitLongContent(section.content, CHUNK_SIZE, CHUNK_OVERLAP);
         for (const subChunk of subChunks) {
           chunks.push({
             content: subChunk,
             headingPath: section.headingPath,
-            type: "content",
+            type: 'content',
           });
         }
       }
@@ -211,21 +202,19 @@ export function createCodexService(
      */
     async indexDocument(
       documentId: string,
-      documentType: "content" | "fragment" = "content"
+      documentType: 'content' | 'fragment' = 'content'
     ): Promise<void> {
       // Get document based on type
-      const table = documentType === "fragment" ? "fragments" : "content";
+      const table = documentType === 'fragment' ? 'fragments' : 'content';
       const doc = await db
-        .prepare(
-          `SELECT id, title, body, collection, status FROM ${table} WHERE id = ?`
-        )
+        .prepare(`SELECT id, title, body, collection, status FROM ${table} WHERE id = ?`)
         .bind(documentId)
         .first();
 
-      if (!doc) throw new Error("Document not found");
+      if (!doc) throw new Error('Document not found');
 
       // If not published, remove from index
-      if (doc.status !== "published") {
+      if (doc.status !== 'published') {
         await this.removeDocument(documentId, documentType);
         return;
       }
@@ -245,10 +234,7 @@ export function createCodexService(
 
       try {
         // Split into chunks
-        const chunks = splitIntoChunks(
-          doc.title as string,
-          (doc.body as string) || ""
-        );
+        const chunks = splitIntoChunks(doc.title as string, (doc.body as string) || '');
 
         // Get existing chunks for dedup
         const { results: existing } = await db
@@ -299,9 +285,9 @@ export function createCodexService(
             chunkIndex: i,
             content: chunk.content,
             contentHash: hash,
-            collection: (doc.collection as string) || "general",
-            locale: "en",
-            status: "published",
+            collection: (doc.collection as string) || 'general',
+            locale: 'en',
+            status: 'published',
             headingPath: chunk.headingPath,
             chunkType: chunk.type,
             vectorId: chunkId,
@@ -315,9 +301,9 @@ export function createCodexService(
               metadata: {
                 documentId,
                 documentType,
-                collection: (doc.collection as string) || "general",
+                collection: (doc.collection as string) || 'general',
                 title: doc.title as string,
-                headingPath: chunk.headingPath || "",
+                headingPath: chunk.headingPath || '',
                 chunkType: chunk.type,
               },
             });
@@ -326,10 +312,7 @@ export function createCodexService(
 
         // Delete removed chunks
         for (const [, { id, vectorId }] of existingHashes) {
-          await db
-            .prepare("DELETE FROM document_chunks WHERE id = ?")
-            .bind(id)
-            .run();
+          await db.prepare('DELETE FROM document_chunks WHERE id = ?').bind(id).run();
 
           if (vectorize && vectorId) {
             await vectorize.deleteByIds([vectorId]);
@@ -387,12 +370,16 @@ export function createCodexService(
           .run();
 
         if (audit) {
-          await audit.log({
-            action: "update",
-            resourceType: documentType,
-            resourceId: documentId,
-            details: { indexed: true, chunkCount: totalChunks },
-          });
+          await audit.log(
+            {
+              action: 'update',
+              actionCategory: 'system',
+              resourceType: documentType,
+              resourceId: documentId,
+              metadata: { indexed: true, chunkCount: totalChunks },
+            },
+            { actorId: 'system', actorEmail: 'codex@hanawa.internal' }
+          );
         }
       } catch (error) {
         // Update status to error
@@ -403,11 +390,7 @@ export function createCodexService(
            updated_at = ?
          WHERE document_id = ?`
           )
-          .bind(
-            error instanceof Error ? error.message : "Unknown error",
-            now,
-            documentId
-          )
+          .bind(error instanceof Error ? error.message : 'Unknown error', now, documentId)
           .run();
 
         throw error;
@@ -419,7 +402,7 @@ export function createCodexService(
      */
     async removeDocument(
       documentId: string,
-      documentType: "content" | "fragment" = "content"
+      documentType: 'content' | 'fragment' = 'content'
     ): Promise<void> {
       // Get chunk vector IDs
       const { results } = await db
@@ -430,9 +413,7 @@ export function createCodexService(
         .bind(documentId, documentType)
         .all();
 
-      const vectorIds = results
-        .map((r) => r.vector_id as string)
-        .filter(Boolean);
+      const vectorIds = results.map((r) => r.vector_id as string).filter(Boolean);
 
       // Delete from Vectorize
       if (vectorize && vectorIds.length > 0) {
@@ -441,14 +422,12 @@ export function createCodexService(
 
       // Delete from DB
       await db
-        .prepare(
-          "DELETE FROM document_chunks WHERE document_id = ? AND document_type = ?"
-        )
+        .prepare('DELETE FROM document_chunks WHERE document_id = ? AND document_type = ?')
         .bind(documentId, documentType)
         .run();
 
       await db
-        .prepare("DELETE FROM search_index_status WHERE document_id = ?")
+        .prepare('DELETE FROM search_index_status WHERE document_id = ?')
         .bind(documentId)
         .run();
     },
@@ -483,7 +462,7 @@ export function createCodexService(
       const vectorResults = await vectorize.query(queryEmbedding, {
         topK,
         filter: Object.keys(filter).length > 0 ? filter : undefined,
-        returnMetadata: "all",
+        returnMetadata: 'all',
       });
 
       // Filter by score and enrich
@@ -494,9 +473,7 @@ export function createCodexService(
 
         // Get chunk content
         const chunk = await db
-          .prepare(
-            "SELECT content, heading_path, locale FROM document_chunks WHERE vector_id = ?"
-          )
+          .prepare('SELECT content, heading_path, locale FROM document_chunks WHERE vector_id = ?')
           .bind(match.id)
           .first();
 
@@ -504,15 +481,15 @@ export function createCodexService(
         if (locale && chunk.locale !== locale) continue;
 
         results.push({
-          documentId: (match.metadata?.documentId as string) || "",
+          documentId: (match.metadata?.documentId as string) || '',
           chunkId: match.id,
           content: chunk.content as string,
           score: match.score,
           metadata: {
-            collection: (match.metadata?.collection as string) || "",
-            title: (match.metadata?.title as string) || "",
+            collection: (match.metadata?.collection as string) || '',
+            title: (match.metadata?.title as string) || '',
             headingPath: chunk.heading_path as string | undefined,
-            locale: (chunk.locale as string) || "en",
+            locale: (chunk.locale as string) || 'en',
           },
         });
       }
@@ -539,12 +516,12 @@ export function createCodexService(
       const bindings: (string | number)[] = [`%${query}%`];
 
       if (collection) {
-        sql += " AND dc.collection = ?";
+        sql += ' AND dc.collection = ?';
         bindings.push(collection);
       }
 
       if (locale) {
-        sql += " AND dc.locale = ?";
+        sql += ' AND dc.locale = ?';
         bindings.push(locale);
       }
 
@@ -565,7 +542,7 @@ export function createCodexService(
           collection: r.collection as string,
           title: r.title as string,
           headingPath: r.heading_path as string | undefined,
-          locale: (r.locale as string) || "en",
+          locale: (r.locale as string) || 'en',
         },
       }));
     },
@@ -638,13 +615,12 @@ export function createCodexService(
       // Search for similar
       const vectorResults = await vectorize.query(vectors[0].values, {
         topK: topK + 10, // Get extra to filter out same document
-        returnMetadata: "all",
+        returnMetadata: 'all',
       });
 
       // Filter and deduplicate
       const seen = new Set<string>([documentId]);
-      const related: { documentId: string; title: string; score: number }[] =
-        [];
+      const related: { documentId: string; title: string; score: number }[] = [];
 
       for (const match of vectorResults.matches) {
         const docId = match.metadata?.documentId as string;
@@ -654,7 +630,7 @@ export function createCodexService(
 
         related.push({
           documentId: docId,
-          title: (match.metadata?.title as string) || "",
+          title: (match.metadata?.title as string) || '',
           score: match.score,
         });
 

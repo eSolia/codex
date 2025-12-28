@@ -1,4 +1,4 @@
-import type { PageServerLoad } from "./$types";
+import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ platform }) => {
   // Return empty data if no platform (local dev without wrangler)
@@ -13,18 +13,17 @@ export const load: PageServerLoad = async ({ platform }) => {
 
   try {
     // Get counts
-    const [sitesResult, contentResult, fragmentsResult, assetsResult] =
-      await Promise.all([
-        db.prepare("SELECT COUNT(*) as count FROM sites").first(),
-        db.prepare("SELECT COUNT(*) as count FROM content").first(),
-        db.prepare("SELECT COUNT(*) as count FROM fragments").first(),
-        db.prepare("SELECT COUNT(*) as count FROM assets").first(),
-      ]);
+    const [sitesResult, contentResult, fragmentsResult, assetsResult] = await Promise.all([
+      db.prepare('SELECT COUNT(*) as count FROM sites').first(),
+      db.prepare('SELECT COUNT(*) as count FROM content').first(),
+      db.prepare('SELECT COUNT(*) as count FROM fragments').first(),
+      db.prepare('SELECT COUNT(*) as count FROM assets').first(),
+    ]);
 
     // Get recent content
     const recentContentResult = await db
       .prepare(
-        "SELECT id, title, slug, status, updated_at FROM content ORDER BY updated_at DESC LIMIT 5"
+        'SELECT id, title, slug, status, updated_at FROM content ORDER BY updated_at DESC LIMIT 5'
       )
       .all();
 
@@ -38,7 +37,7 @@ export const load: PageServerLoad = async ({ platform }) => {
       recentContent: recentContentResult.results ?? [],
     };
   } catch (error) {
-    console.error("Dashboard load error:", error);
+    console.error('Dashboard load error:', error);
     return {
       stats: { sites: 0, content: 0, fragments: 0, assets: 0 },
       recentContent: [],

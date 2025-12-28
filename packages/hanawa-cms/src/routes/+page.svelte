@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { PageData } from "./$types";
+  import type { PageData } from './$types';
 
   let { data }: { data: PageData } = $props();
 </script>
@@ -55,10 +55,7 @@
       <div class="divide-y divide-gray-200">
         {#if data.recentContent && data.recentContent.length > 0}
           {#each data.recentContent as item}
-            <a
-              href="/content/{item.id}"
-              class="block px-6 py-4 hover:bg-gray-50 transition-colors"
-            >
+            <a href="/content/{item.id}" class="block px-6 py-4 hover:bg-gray-50 transition-colors">
               <div class="flex items-center justify-between">
                 <div>
                   <div class="font-medium text-gray-900">{item.title}</div>
