@@ -100,9 +100,9 @@
         <div>
           <div class="flex items-center gap-2 mb-3">
             <img
-              src="https://esolia.com/img/eSolia-Logo-Color.svg"
+              src="/esolia-logo-white.svg"
               alt="eSolia Inc."
-              class="h-6 w-auto brightness-0 invert"
+              class="h-6 w-auto"
             />
           </div>
           <p class="text-sm text-zinc-400">
@@ -153,12 +153,12 @@
           </p>
           <div class="mt-3 flex items-center gap-3">
             <a
-              href="https://esolia.com"
+              href="https://esolia.co.jp/en"
               target="_blank"
               rel="noopener noreferrer"
               class="text-xs text-zinc-400 hover:text-white transition-colors"
             >
-              esolia.com
+              English
             </a>
             <span class="text-zinc-600">•</span>
             <a
@@ -167,7 +167,7 @@
               rel="noopener noreferrer"
               class="text-xs text-zinc-400 hover:text-white transition-colors"
             >
-              esolia.co.jp
+              日本語
             </a>
           </div>
         </div>
