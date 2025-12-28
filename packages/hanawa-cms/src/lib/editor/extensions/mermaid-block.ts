@@ -3,20 +3,37 @@
  * Renders Mermaid diagrams with live preview and code editing
  *
  * InfoSec: Mermaid code sanitized by library (OWASP A03)
+ * Note: Uses dynamic import to avoid Vite bundling issues in production
  */
 
 import { Node, mergeAttributes } from '@tiptap/core';
 import type { Node as ProseMirrorNode } from '@tiptap/pm/model';
-import type { NodeView, EditorView, Decoration } from '@tiptap/pm/view';
-import mermaid from 'mermaid';
+import type { NodeView, EditorView } from '@tiptap/pm/view';
 
-// Initialize mermaid with security-conscious settings
-mermaid.initialize({
-  startOnLoad: false,
-  theme: 'neutral',
-  securityLevel: 'strict', // InfoSec: Prevent script injection
-  fontFamily: 'IBM Plex Sans, sans-serif',
-});
+// Lazy-loaded mermaid instance
+let mermaidInstance: typeof import('mermaid').default | null = null;
+let mermaidInitialized = false;
+
+// Initialize mermaid lazily on first use
+async function getMermaid() {
+  if (!mermaidInstance) {
+    const mermaidModule = await import('mermaid');
+    mermaidInstance = mermaidModule.default;
+  }
+
+  if (!mermaidInitialized && mermaidInstance) {
+    // InfoSec: securityLevel 'strict' prevents script injection (OWASP A03)
+    mermaidInstance.initialize({
+      startOnLoad: false,
+      theme: 'neutral',
+      securityLevel: 'strict',
+      fontFamily: 'IBM Plex Sans, sans-serif',
+    });
+    mermaidInitialized = true;
+  }
+
+  return mermaidInstance;
+}
 
 export interface MermaidBlockOptions {
   HTMLAttributes: Record<string, unknown>;
@@ -172,6 +189,12 @@ class MermaidNodeView implements NodeView {
     }
 
     try {
+      // Dynamically load mermaid on first render
+      const mermaid = await getMermaid();
+      if (!mermaid) {
+        throw new Error('Failed to load Mermaid library');
+      }
+
       const id = `mermaid-${crypto.randomUUID()}`;
       const { svg } = await mermaid.render(id, source);
       this.diagramContainer.innerHTML = svg;
