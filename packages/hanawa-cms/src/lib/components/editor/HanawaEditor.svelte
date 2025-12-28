@@ -9,6 +9,8 @@
   import type { Editor } from "@tiptap/core";
   import { createEditor, destroyEditor } from "$lib/editor/editor";
   import EditorToolbar from "./EditorToolbar.svelte";
+  import SaveIndicator from "./SaveIndicator.svelte";
+  import MediaPicker from "../MediaPicker.svelte";
 
   // Props using Svelte 5 runes
   let {
@@ -17,6 +19,8 @@
     placeholder = "Start writing...",
     privacyMode = false,
     sensitivity = "normal" as "normal" | "confidential" | "embargoed",
+    autosave = false,
+    autosaveDelay = 2000,
     onchange,
     onsave,
   }: {
@@ -25,8 +29,10 @@
     placeholder?: string;
     privacyMode?: boolean;
     sensitivity?: "normal" | "confidential" | "embargoed";
+    autosave?: boolean;
+    autosaveDelay?: number;
     onchange?: (html: string) => void;
-    onsave?: () => void;
+    onsave?: () => Promise<void> | void;
   } = $props();
 
   let editorElement: HTMLDivElement;
@@ -34,6 +40,15 @@
   let isFocused = $state(false);
   let wordCount = $state(0);
   let charCount = $state(0);
+  let mediaPickerOpen = $state(false);
+
+  // Save state
+  type SaveStatus = "idle" | "saving" | "saved" | "error" | "unsaved";
+  let saveStatus = $state<SaveStatus>("idle");
+  let lastSaved = $state<Date | null>(null);
+  let saveError = $state<string | null>(null);
+  let autosaveTimeout: ReturnType<typeof setTimeout> | null = null;
+  let initialContent = "";
 
   // Sensitivity styling
   const sensitivityStyles = {
@@ -49,6 +64,7 @@
   };
 
   onMount(() => {
+    initialContent = content;
     editor = createEditor({
       element: editorElement,
       content,
@@ -60,6 +76,19 @@
         wordCount = text.trim() ? text.trim().split(/\s+/).length : 0;
         charCount = text.length;
         if (onchange) onchange(html);
+
+        // Track unsaved changes
+        if (html !== initialContent && saveStatus !== "saving") {
+          saveStatus = "unsaved";
+
+          // Autosave logic
+          if (autosave && onsave) {
+            if (autosaveTimeout) clearTimeout(autosaveTimeout);
+            autosaveTimeout = setTimeout(() => {
+              triggerSave();
+            }, autosaveDelay);
+          }
+        }
       },
       onFocus: () => {
         isFocused = true;
@@ -71,15 +100,52 @@
   });
 
   onDestroy(() => {
+    if (autosaveTimeout) clearTimeout(autosaveTimeout);
     destroyEditor(editor);
   });
+
+  // Save function
+  async function triggerSave() {
+    if (!onsave || saveStatus === "saving") return;
+
+    saveStatus = "saving";
+    saveError = null;
+
+    try {
+      await onsave();
+      saveStatus = "saved";
+      lastSaved = new Date();
+      initialContent = content; // Reset baseline
+    } catch (e) {
+      saveStatus = "error";
+      saveError = e instanceof Error ? e.message : "Save failed";
+    }
+  }
 
   // Keyboard shortcut for save
   function handleKeydown(event: KeyboardEvent) {
     if ((event.metaKey || event.ctrlKey) && event.key === "s") {
       event.preventDefault();
-      if (onsave) onsave();
+      triggerSave();
     }
+  }
+
+  // Calculate reading time (avg 200 words per minute)
+  let readingTime = $derived(Math.max(1, Math.ceil(wordCount / 200)));
+
+  // Handle image insertion from media picker
+  function handleImageSelect(asset: { url?: string; alt_text?: string; filename: string }) {
+    if (editor && asset.url) {
+      editor.chain().focus().setImage({
+        src: asset.url,
+        alt: asset.alt_text || asset.filename,
+      }).run();
+    }
+    mediaPickerOpen = false;
+  }
+
+  function openMediaPicker() {
+    mediaPickerOpen = true;
   }
 
   // Reactive: Update editor content when prop changes externally
@@ -125,7 +191,7 @@
 
   <!-- Toolbar -->
   {#if editor && editable}
-    <EditorToolbar {editor} />
+    <EditorToolbar {editor} {openMediaPicker} />
   {/if}
 
   <!-- Editor Content -->
@@ -141,14 +207,16 @@
   >
     <div class="flex items-center gap-4">
       <span>{wordCount} words</span>
-      <span>{charCount} characters</span>
+      <span>{charCount} chars</span>
+      <span class="text-gray-400">~{readingTime} min read</span>
     </div>
-    <div class="flex items-center gap-2">
+    <div class="flex items-center gap-3">
       {#if privacyMode}
-        <span class="text-purple-600">🔒 Privacy Mode</span>
+        <span class="text-purple-600">🔒 Privacy</span>
       {/if}
       {#if editable}
-        <span class="text-gray-400">Ctrl+S to save</span>
+        <SaveIndicator status={saveStatus} {lastSaved} error={saveError} />
+        <span class="text-gray-400 hidden sm:inline">⌘S save</span>
       {:else}
         <span class="text-gray-400">Read only</span>
       {/if}
@@ -204,4 +272,19 @@
   .editor-content :global(.fragment-reference:hover) {
     background-color: #f9fafb;
   }
+
+  /* Image styles */
+  .editor-content :global(img) {
+    max-width: 100%;
+    height: auto;
+    border-radius: 0.375rem;
+    margin: 1rem 0;
+  }
 </style>
+
+<!-- Media Picker Modal -->
+<MediaPicker
+  bind:open={mediaPickerOpen}
+  acceptTypes={["image/*"]}
+  onselect={handleImageSelect}
+/>
