@@ -30,6 +30,10 @@ const config = {
       $components: "./src/lib/components",
       $server: "./src/lib/server",
     },
+    // Disable prerendering in CI to avoid platform proxy auth requirement
+    prerender: {
+      entries: isCI ? [] : ["*"],
+    },
   },
 };
 
