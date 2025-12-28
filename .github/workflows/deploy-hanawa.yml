@@ -1,0 +1,39 @@
+name: Deploy Hanawa CMS
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'packages/hanawa-cms/**'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy to Cloudflare Pages
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: packages/hanawa-cms/package-lock.json
+
+      - name: Install dependencies
+        working-directory: packages/hanawa-cms
+        run: npm ci
+
+      - name: Build
+        working-directory: packages/hanawa-cms
+        run: npm run build
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: packages/hanawa-cms
+          command: pages deploy .svelte-kit/cloudflare --project-name=hanawa-cms
