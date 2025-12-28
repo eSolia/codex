@@ -14,13 +14,16 @@ const config = {
         include: ["/*"],
         exclude: ["<all>"],
       },
-      platformProxy: isCI
-        ? { enabled: false }
+      // Skip platformProxy in CI to avoid remote auth requirement during build
+      ...(isCI
+        ? {}
         : {
-            configPath: "wrangler.jsonc",
-            experimentalJsonConfig: true,
-            persist: true,
-          },
+            platformProxy: {
+              configPath: "wrangler.jsonc",
+              experimentalJsonConfig: true,
+              persist: true,
+            },
+          }),
     }),
     alias: {
       $lib: "./src/lib",
