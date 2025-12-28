@@ -51,31 +51,51 @@
   async function renderMermaidDiagrams() {
     if (!browser) return;
 
-    // Find all mermaid blocks in the rendered content
-    const mermaidBlocks = document.querySelectorAll("[data-type='mermaidBlock']");
+    console.log("[Mermaid] renderMermaidDiagrams called");
+
+    // Find all mermaid blocks - try both new and legacy format
+    const mermaidBlocks = document.querySelectorAll("[data-type='mermaidBlock'], [data-type='mermaid']");
+    console.log("[Mermaid] Found blocks:", mermaidBlocks.length);
 
     for (const block of mermaidBlocks) {
       const source = block.getAttribute("data-source");
-      const diagramContainer = block.querySelector(".mermaid-diagram");
+      console.log("[Mermaid] Block source:", source?.substring(0, 50));
 
-      if (source && diagramContainer) {
+      // Find or create diagram container
+      let diagramContainer = block.querySelector(".mermaid-diagram");
+      if (!diagramContainer) {
+        console.log("[Mermaid] Creating diagram container");
+        diagramContainer = document.createElement("div");
+        diagramContainer.className = "mermaid-diagram";
+        block.appendChild(diagramContainer);
+      }
+
+      if (source) {
         try {
           const id = `mermaid-${Math.random().toString(36).substring(2, 9)}`;
+          console.log("[Mermaid] Rendering with id:", id);
           const { svg } = await mermaid.render(id, source);
           diagramContainer.innerHTML = svg;
+          console.log("[Mermaid] Render success");
         } catch (err) {
-          console.error("Mermaid render error:", err);
+          console.error("[Mermaid] Render error:", err);
           diagramContainer.innerHTML = `<div class="text-red-500 text-sm">Diagram error: ${err instanceof Error ? err.message : "Unknown error"}</div>`;
         }
       }
     }
   }
 
-  // Re-render mermaid when data changes
+  // Re-render mermaid when data changes or on mount
   $effect(() => {
-    if (browser && !isEditing && (data.fragment.content_en || data.fragment.content_ja)) {
+    // Track dependencies
+    const contentEn = data.fragment.content_en;
+    const contentJa = data.fragment.content_ja;
+    const editing = isEditing;
+
+    if (browser && !editing) {
+      console.log("[Mermaid] Effect triggered, isEditing:", editing);
       // Small delay to let DOM update
-      setTimeout(renderMermaidDiagrams, 100);
+      setTimeout(renderMermaidDiagrams, 200);
     }
   });
 
