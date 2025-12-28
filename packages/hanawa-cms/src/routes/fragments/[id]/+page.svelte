@@ -91,15 +91,26 @@
     }
   }
 
-  // Re-render mermaid when exiting edit mode
+  // Re-render mermaid when exiting edit mode or switching tabs
   $effect(() => {
     if (!isEditing && browser) {
       console.log("[Mermaid] Effect - exiting edit mode, re-rendering");
       setTimeout(renderMermaidDiagrams, 300);
     }
   });
+
   let showDeleteConfirm = $state(false);
   let activeTab = $state<"en" | "ja">("en");
+
+  // Re-render mermaid when switching language tabs
+  $effect(() => {
+    // Track activeTab to trigger re-render
+    const _tab = activeTab;
+    if (browser && !isEditing) {
+      console.log("[Mermaid] Effect - tab changed to", _tab);
+      setTimeout(renderMermaidDiagrams, 100);
+    }
+  });
 
   // Form state - initialized from data, updated by effects
   let name = $state("");
