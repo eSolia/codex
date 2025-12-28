@@ -38,6 +38,9 @@ export type AuditAction =
   | "permission_grant"
   | "permission_revoke"
   | "settings_update"
+  // Media
+  | "upload"
+  | "revoke"
   // Comments
   | "comment_create"
   | "comment_update"

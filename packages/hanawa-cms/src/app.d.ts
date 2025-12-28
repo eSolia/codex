@@ -8,6 +8,9 @@ import type { SchedulingService } from "$lib/server/scheduling";
 import type { LocalizationService } from "$lib/server/localization";
 import type { AIService } from "$lib/server/ai";
 import type { CodexService } from "$lib/server/codex";
+import type { MediaService } from "$lib/server/media";
+import type { WebhookService } from "$lib/server/webhooks";
+import type { DeliveryService } from "$lib/server/delivery";
 
 declare global {
   namespace App {
@@ -34,6 +37,9 @@ declare global {
       localization?: LocalizationService;
       ai?: AIService;
       codex?: CodexService;
+      media?: MediaService;
+      webhooks?: WebhookService;
+      delivery?: DeliveryService;
     }
 
     interface PageData {}
@@ -44,6 +50,7 @@ declare global {
       env: {
         DB: D1Database;
         R2: R2Bucket;
+        KV?: KVNamespace;
         AI: Ai;
         VECTORIZE?: VectorizeIndex;
         ENVIRONMENT: string;

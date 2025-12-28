@@ -12,6 +12,9 @@ import { createSchedulingService } from "$lib/server/scheduling";
 import { createLocalizationService } from "$lib/server/localization";
 import { createAIService } from "$lib/server/ai";
 import { createCodexService } from "$lib/server/codex";
+import { createMediaService } from "$lib/server/media";
+import { createWebhookService } from "$lib/server/webhooks";
+import { createDeliveryService } from "$lib/server/delivery";
 
 /**
  * Validate CSRF for API routes.
@@ -110,6 +113,7 @@ export const handle: Handle = async ({ event, resolve }) => {
   // Initialize services if DB is available
   if (event.platform?.env?.DB) {
     const db = event.platform.env.DB;
+    const r2 = event.platform.env.R2;
     const aiBinding = event.platform.env.AI;
     const vectorize = event.platform.env.VECTORIZE || null;
 
@@ -127,6 +131,17 @@ export const handle: Handle = async ({ event, resolve }) => {
     event.locals.scheduling = scheduling;
     event.locals.localization = localization;
 
+    // Initialize media service if R2 is available
+    // Note: Type assertion needed due to workers-types version mismatch
+    if (r2) {
+      const media = createMediaService(
+        db,
+        r2 as unknown as import("@cloudflare/workers-types").R2Bucket,
+        audit
+      );
+      event.locals.media = media;
+    }
+
     // Initialize AI and Codex services if AI binding is available
     if (aiBinding) {
       const ai = createAIService(db, aiBinding, audit);
@@ -135,6 +150,20 @@ export const handle: Handle = async ({ event, resolve }) => {
       event.locals.ai = ai;
       event.locals.codex = codex;
     }
+
+    // Initialize webhook service
+    const webhooks = createWebhookService(db, audit);
+    event.locals.webhooks = webhooks;
+
+    // Initialize delivery service (KV optional for caching)
+    const kv = event.platform.env.KV || null;
+    const delivery = createDeliveryService(
+      db,
+      kv as import("@cloudflare/workers-types").KVNamespace | undefined,
+      r2 as unknown as import("@cloudflare/workers-types").R2Bucket | undefined,
+      audit
+    );
+    event.locals.delivery = delivery;
   }
 
   const response = await resolve(event);
