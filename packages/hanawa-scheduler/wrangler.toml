@@ -1,0 +1,17 @@
+# Hanawa Scheduler Worker
+# InfoSec: Processes scheduled publishing jobs via cron triggers
+
+name = "hanawa-scheduler"
+main = "src/index.ts"
+compatibility_date = "2024-12-01"
+compatibility_flags = ["nodejs_compat"]
+
+# D1 Database - same as hanawa-cms
+[[d1_databases]]
+binding = "DB"
+database_name = "hanawa-db"
+database_id = "0b00e3b9-528c-4620-a7f8-c4cbba0dc62b"
+
+# Cron trigger - check every minute for due jobs
+[triggers]
+crons = ["* * * * *"]

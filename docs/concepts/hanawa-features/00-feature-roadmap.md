@@ -57,13 +57,25 @@ Bilingual content management.
 |---------|----------|--------|--------------|
 | Field-level i18n | [07-localization.md](./07-localization.md) | 4-5 days | Schema updates |
 
-### Phase 5: Intelligence (Future)
+### Phase 5: Intelligence (Weeks 9-10)
 AI-powered features and Codex integration.
 
 | Feature | Document | Effort | Dependencies |
 |---------|----------|--------|--------------|
 | AI Writing Assistant | [08-ai-assistant.md](./08-ai-assistant.md) | 3-4 days | Claude API |
 | Codex Sync | [09-codex-integration.md](./09-codex-integration.md) | 4-5 days | Vectorize |
+
+### Phase 6: Polish (Weeks 11-14)
+Features that elevate user experience and developer integration.
+
+| Feature | Document | Effort | Dependencies |
+|---------|----------|--------|--------------|
+| Media Library | [10-media-library.md](./10-media-library.md) | 4-5 days | R2, CF Images |
+| Webhooks & Integrations | [11-webhooks-integrations.md](./11-webhooks-integrations.md) | 2-3 days | Queues |
+| Editor Productivity | [12-editor-productivity.md](./12-editor-productivity.md) | 2-3 days | None |
+| Content Intelligence | [13-content-intelligence.md](./13-content-intelligence.md) | 3-4 days | Workers AI |
+| Preview Deployments | [14-preview-deployments.md](./14-preview-deployments.md) | 2-3 days | Pages |
+| Delivery API | [15-delivery-api.md](./15-delivery-api.md) | 3-4 days | KV Cache |
 
 ---
 
@@ -131,18 +143,20 @@ documents.workflow_stage_id   -- Current workflow position
 │  ├── Direct pipeline to Codex/Miko knowledge base             │
 │  └── Bilingual-first (EN/JA) architecture                     │
 │                                                                 │
-│  MATCH THE MARKET (Features in this roadmap)                   │
+│  MATCH THE MARKET (Core features)                              │
 │  ├── Real-time collaboration (à la Sanity)                    │
 │  ├── Comprehensive audit trails (à la Contentstack)           │
 │  ├── Multi-step workflows (à la dotCMS)                       │
 │  ├── Version control with diff (à la Kontent.ai)              │
 │  └── Scheduled publishing (à la Storyblok)                    │
 │                                                                 │
-│  SKIP FOR NOW (Low priority)                                   │
-│  ├── Figma-to-component import                                 │
-│  ├── A/B testing built-in                                     │
-│  ├── GraphQL API (REST is fine)                               │
-│  └── Plugin marketplace                                        │
+│  POLISH FEATURES (Knockout details)                            │
+│  ├── Media library with focal points (à la Cloudinary)        │
+│  ├── Command palette & keyboard shortcuts (à la Linear)       │
+│  ├── SEO & readability scoring (à la Yoast)                   │
+│  ├── Webhooks & Slack integration (à la Contentful)           │
+│  ├── Preview deployments (à la Vercel)                        │
+│  └── REST + GraphQL API with SDK (à la Prismic)               │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
@@ -163,17 +177,23 @@ Each specification follows a consistent structure:
 
 ### Specification Documents
 
-| # | Document | Status |
-|---|----------|--------|
-| 01 | [Audit System](./01-audit-system.md) | Ready |
-| 02 | [Version Control](./02-version-control.md) | Ready |
-| 03 | [Real-time Collaboration](./03-realtime-collaboration.md) | Ready |
-| 04 | [Comments System](./04-comments-system.md) | Ready |
-| 05 | [Workflow Engine](./05-workflow-engine.md) | Ready |
-| 06 | [Scheduled Publishing](./06-scheduled-publishing.md) | Ready |
-| 07 | [Localization](./07-localization.md) | Ready |
-| 08 | [AI Assistant](./08-ai-assistant.md) | Ready |
-| 09 | [Codex Integration](./09-codex-integration.md) | Ready |
+| # | Document | Status | Category |
+|---|----------|--------|----------|
+| 01 | [Audit System](./01-audit-system.md) | Ready | Foundation |
+| 02 | [Version Control](./02-version-control.md) | Ready | Foundation |
+| 03 | [Real-time Collaboration](./03-realtime-collaboration.md) | Ready | Collaboration |
+| 04 | [Comments System](./04-comments-system.md) | Ready | Collaboration |
+| 05 | [Workflow Engine](./05-workflow-engine.md) | Ready | Workflow |
+| 06 | [Scheduled Publishing](./06-scheduled-publishing.md) | Ready | Workflow |
+| 07 | [Localization](./07-localization.md) | Ready | Localization |
+| 08 | [AI Assistant](./08-ai-assistant.md) | Ready | Intelligence |
+| 09 | [Codex Integration](./09-codex-integration.md) | Ready | Intelligence |
+| 10 | [Media Library](./10-media-library.md) | Ready | Polish |
+| 11 | [Webhooks & Integrations](./11-webhooks-integrations.md) | Ready | Polish |
+| 12 | [Editor Productivity](./12-editor-productivity.md) | Ready | Polish |
+| 13 | [Content Intelligence](./13-content-intelligence.md) | Ready | Polish |
+| 14 | [Preview Deployments](./14-preview-deployments.md) | Ready | Polish |
+| 15 | [Delivery API](./15-delivery-api.md) | Ready | Polish |
 
 ---
 

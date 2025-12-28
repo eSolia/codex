@@ -71,24 +71,57 @@ export const load: PageServerLoad = async ({ platform, params, locals }) => {
 
 export const actions: Actions = {
   update: async ({ platform, params, request, locals }) => {
-    if (!platform?.env?.DB) {
-      throw error(500, "Database not available");
-    }
+    try {
+      console.log("[Fragment Update] Action started for:", params.id);
 
-    const db = platform.env.DB;
-    const formData = await request.formData();
+      if (!platform?.env?.DB) {
+        console.error("[Fragment Update] Database not available");
+        return { success: false, error: "Database not available" };
+      }
 
-    // InfoSec: Validate and sanitize inputs
-    const name = formData.get("name")?.toString().trim();
-    const contentEn = formData.get("content_en")?.toString() || null;
-    const contentJa = formData.get("content_ja")?.toString() || null;
-    const description = formData.get("description")?.toString() || null;
-    const category = formData.get("category")?.toString() || null;
-    const tagsRaw = formData.get("tags")?.toString() || "[]";
+      const db = platform.env.DB;
+      let formData: FormData;
+      try {
+        formData = await request.formData();
+        console.log("[Fragment Update] Form data parsed successfully");
+      } catch (parseErr) {
+        console.error("[Fragment Update] Form parse error:", parseErr);
+        return { success: false, error: "Failed to parse form data" };
+      }
 
-    if (!name) {
-      throw error(400, "Name is required");
-    }
+      // InfoSec: Validate and sanitize inputs
+      const name = formData.get("name")?.toString().trim();
+      const contentEncoding = formData.get("content_encoding")?.toString();
+
+      // Decode base64 content if encoded (bypasses WAF for HTML content)
+      let contentEn: string | null = formData.get("content_en")?.toString() || null;
+      let contentJa: string | null = formData.get("content_ja")?.toString() || null;
+
+      if (contentEncoding === "base64") {
+        try {
+          if (contentEn) {
+            contentEn = decodeURIComponent(escape(atob(contentEn)));
+          }
+          if (contentJa) {
+            contentJa = decodeURIComponent(escape(atob(contentJa)));
+          }
+        } catch (decodeErr) {
+          console.error("[Fragment Update] Base64 decode error:", decodeErr);
+          return { success: false, error: "Failed to decode content" };
+        }
+      }
+
+      console.log(`[Fragment Update] Name: ${name}`);
+      console.log(`[Fragment Update] Content EN length: ${contentEn?.length || 0}`);
+      console.log(`[Fragment Update] Content JA length: ${contentJa?.length || 0}`);
+
+      const description = formData.get("description")?.toString() || null;
+      const category = formData.get("category")?.toString() || null;
+      const tagsRaw = formData.get("tags")?.toString() || "[]";
+
+      if (!name) {
+        return { success: false, error: "Name is required" };
+      }
 
     // Parse and validate tags
     let tags: string[];
@@ -100,14 +133,18 @@ export const actions: Actions = {
     }
 
     try {
+      console.log(`[Fragment Update] Starting update for ${params.id}`);
+
       // Get current state for version comparison
       const current = await db
         .prepare("SELECT * FROM fragments WHERE id = ?")
         .bind(params.id)
         .first<{ name: string; content_en: string | null; content_ja: string | null }>();
 
+      console.log(`[Fragment Update] Current fragment found: ${!!current}`);
+
       // Update fragment
-      await db
+      const updateResult = await db
         .prepare(
           `UPDATE fragments
            SET name = ?, content_en = ?, content_ja = ?, description = ?,
@@ -126,46 +163,59 @@ export const actions: Actions = {
         )
         .run();
 
-      // Create version if content changed
-      if (locals.versions && locals.auditContext) {
-        const newContent = JSON.stringify({ name, content_en: contentEn, content_ja: contentJa });
-        const oldContent = current
-          ? JSON.stringify({ name: current.name, content_en: current.content_en, content_ja: current.content_ja })
-          : null;
+      console.log(`[Fragment Update] Update successful, changes: ${updateResult.meta?.changes}`);
 
-        if (newContent !== oldContent) {
-          await locals.versions.create(
-            params.id,
+      // Create version if content changed (non-blocking)
+      try {
+        if (locals.versions && locals.auditContext) {
+          const newContent = JSON.stringify({ name, content_en: contentEn, content_ja: contentJa });
+          const oldContent = current
+            ? JSON.stringify({ name: current.name, content_en: current.content_en, content_ja: current.content_ja })
+            : null;
+
+          if (newContent !== oldContent) {
+            await locals.versions.create(
+              params.id,
+              {
+                content: newContent,
+                contentFormat: "json",
+                title: name,
+                versionType: "manual",
+              },
+              locals.auditContext
+            );
+          }
+        }
+      } catch (versionErr) {
+        console.warn("Version creation failed (non-fatal):", versionErr);
+      }
+
+      // Log audit event (non-blocking)
+      try {
+        if (locals.audit && locals.auditContext) {
+          await locals.audit.log(
             {
-              content: newContent,
-              contentFormat: "json",
-              title: name,
-              versionType: "manual",
+              action: "update",
+              actionCategory: "content",
+              resourceType: "fragment",
+              resourceId: params.id,
+              resourceTitle: name,
+              changeSummary: `Updated fragment "${name}"`,
             },
             locals.auditContext
           );
         }
+      } catch (auditErr) {
+        console.warn("Audit logging failed (non-fatal):", auditErr);
       }
 
-      // Log audit event
-      if (locals.audit && locals.auditContext) {
-        await locals.audit.log(
-          {
-            action: "update",
-            actionCategory: "content",
-            resourceType: "fragment",
-            resourceId: params.id,
-            resourceTitle: name,
-            changeSummary: `Updated fragment "${name}"`,
-          },
-          locals.auditContext
-        );
-      }
-
+      console.log(`[Fragment Update] Completed successfully`);
       return { success: true };
     } catch (err) {
-      console.error("Fragment update error:", err);
-      throw error(500, "Failed to update fragment");
+      console.error("[Fragment Update] Error:", err);
+      console.error("[Fragment Update] Error message:", err instanceof Error ? err.message : String(err));
+      console.error("[Fragment Update] Error stack:", err instanceof Error ? err.stack : "no stack");
+      return { success: false, error: err instanceof Error ? err.message : "Unknown error" };
     }
   },
 

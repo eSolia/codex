@@ -88,6 +88,10 @@
     }
   }
 
+  function insertMermaid() {
+    editor.chain().focus().insertMermaid().run();
+  }
+
   // Button component helper
   function buttonClass(active: boolean): string {
     return `p-2 rounded hover:bg-gray-100 ${active ? "bg-gray-200 text-esolia-navy" : "text-gray-600"}`;
@@ -338,6 +342,18 @@
       title="Insert Fragment"
     >
       <span class="text-xs">📦</span>
+    </button>
+
+    <button
+      type="button"
+      class="p-2 rounded hover:bg-gray-100 text-gray-600"
+      onclick={insertMermaid}
+      title="Insert Mermaid Diagram (Ctrl+Shift+M)"
+    >
+      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M4 4h6v6H4zm10 0h6v6h-6zM4 14h6v6H4zm10 0h6v6h-6z" opacity="0.3"/>
+        <path d="M7 7v2h2V7H7zm10 0v2h2V7h-2zM7 17v2h2v-2H7zm10 0v2h2v-2h-2zM12 10v4M8 12h8" stroke="currentColor" stroke-width="1.5" fill="none"/>
+      </svg>
     </button>
   </div>
 </div>

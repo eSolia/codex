@@ -23,6 +23,8 @@ import Callout from "./extensions/callout";
 import StatusBadge from "./extensions/status-badge";
 import PrivacyMask from "./extensions/privacy-mask";
 import FragmentReference from "./extensions/fragment-reference";
+import MermaidBlock from "./extensions/mermaid-block";
+import SlashCommands from "./extensions/slash-commands";
 
 export interface EditorConfig {
   element: HTMLElement;
@@ -137,6 +139,8 @@ export function createEditor(config: EditorConfig): Editor {
       privacyMode,
     }),
     FragmentReference,
+    MermaidBlock,
+    SlashCommands,
   ];
 
   const editor = new Editor({
@@ -182,4 +186,11 @@ export function destroyEditor(editor: Editor | null): void {
   }
 }
 
-export { Callout, StatusBadge, PrivacyMask, FragmentReference };
+export {
+  Callout,
+  StatusBadge,
+  PrivacyMask,
+  FragmentReference,
+  MermaidBlock,
+  SlashCommands,
+};

@@ -13,6 +13,23 @@
   // Environment variables (non-sensitive)
   "vars": {
     "ENVIRONMENT": "production"
+  },
+
+  // Observability - Workers Logs & Traces
+  "observability": {
+    "enabled": false,
+    "head_sampling_rate": 1,
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 1,
+      "persist": true,
+      "invocation_logs": true
+    },
+    "traces": {
+      "enabled": false,
+      "persist": true,
+      "head_sampling_rate": 1
+    }
   }
 
   // Secrets (set via: wrangler secret put <NAME>)

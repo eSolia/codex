@@ -51,13 +51,10 @@
     "ENVIRONMENT": "production"
   },
 
-  // Cron triggers for scheduled publishing
-  // Runs every minute to check for due scheduled jobs
-  "triggers": {
-    "crons": ["* * * * *"]
-  }
+  // Scheduled publishing handled by hanawa-scheduler Worker
+  // See: packages/hanawa-scheduler/
 
-  // Secrets (set via wrangler secret put):
+  // Secrets (set via wrangler pages secret put):
   // - SESSION_SECRET
   // - CLOUDFLARE_ACCESS_CLIENT_ID (if using Access)
   // - CLOUDFLARE_ACCESS_CLIENT_SECRET

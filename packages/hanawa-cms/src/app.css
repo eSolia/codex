@@ -103,3 +103,196 @@ body {
 .tiptap .status-badge.pending-review {
   @apply bg-blue-100 text-blue-800;
 }
+
+/* Mermaid Block Styles */
+.mermaid-block {
+  @apply border border-gray-200 rounded-lg my-4 overflow-hidden;
+}
+
+.mermaid-block.ProseMirror-selectednode {
+  @apply border-esolia-navy ring-2 ring-esolia-navy/20;
+}
+
+.mermaid-header {
+  @apply flex items-center justify-between px-4 py-2 bg-gray-50 border-b border-gray-200;
+}
+
+.mermaid-type-label {
+  @apply text-xs font-medium text-gray-500 uppercase tracking-wide;
+}
+
+.mermaid-actions {
+  @apply flex items-center gap-2;
+}
+
+.mermaid-edit-btn {
+  @apply px-3 py-1 text-xs font-medium text-esolia-navy bg-white border border-gray-200 rounded hover:bg-gray-50 transition-colors;
+}
+
+.mermaid-delete-btn {
+  @apply w-6 h-6 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors;
+}
+
+.mermaid-diagram {
+  @apply p-4 flex items-center justify-center min-h-[200px] bg-white;
+}
+
+.mermaid-diagram svg {
+  @apply max-w-full h-auto;
+}
+
+.mermaid-placeholder {
+  @apply text-gray-400 text-sm italic;
+}
+
+.mermaid-error {
+  @apply mx-4 mb-4 p-3 text-sm text-red-700 bg-red-50 border border-red-200 rounded;
+}
+
+.mermaid-error.hidden {
+  @apply hidden;
+}
+
+.mermaid-editor {
+  @apply p-4 bg-gray-50 border-t border-gray-200;
+}
+
+.mermaid-editor.hidden {
+  @apply hidden;
+}
+
+.mermaid-label {
+  @apply block text-xs font-medium text-gray-600 mb-1;
+}
+
+.mermaid-source {
+  @apply w-full p-3 font-mono text-sm bg-gray-900 text-gray-100 rounded border-0 resize-y;
+  min-height: 150px;
+}
+
+.mermaid-source:focus {
+  @apply ring-2 ring-esolia-navy outline-none;
+}
+
+.mermaid-caption-grid {
+  @apply grid grid-cols-2 gap-4 mt-4;
+}
+
+.mermaid-caption-group {
+  @apply flex flex-col;
+}
+
+.mermaid-caption-input {
+  @apply w-full px-3 py-2 text-sm border border-gray-200 rounded focus:ring-2 focus:ring-esolia-navy focus:outline-none;
+}
+
+.mermaid-save-btn {
+  @apply mt-4 px-4 py-2 text-sm font-medium text-white bg-esolia-navy rounded hover:bg-esolia-navy/90 transition-colors;
+}
+
+.mermaid-caption-display {
+  @apply px-4 pb-3 text-sm text-gray-600 italic text-center;
+}
+
+.mermaid-caption-display:empty {
+  @apply hidden;
+}
+
+/* Slash Commands Menu Styles */
+.slash-menu {
+  @apply bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden;
+  max-height: 320px;
+  overflow-y: auto;
+  min-width: 280px;
+}
+
+.slash-menu-empty {
+  @apply p-4 text-sm text-gray-500 text-center;
+}
+
+.slash-menu-item {
+  @apply flex items-center gap-3 w-full px-4 py-2.5 text-left transition-colors;
+}
+
+.slash-menu-item:hover,
+.slash-menu-item.selected {
+  @apply bg-gray-100;
+}
+
+.slash-menu-icon {
+  @apply w-8 h-8 flex items-center justify-center text-lg bg-gray-50 rounded;
+}
+
+.slash-menu-content {
+  @apply flex flex-col;
+}
+
+.slash-menu-title {
+  @apply text-sm font-medium text-gray-900;
+}
+
+.slash-menu-description {
+  @apply text-xs text-gray-500;
+}
+
+/* Tippy theme for slash menu */
+.tippy-box[data-theme~="slash-menu"] {
+  background: transparent;
+  padding: 0;
+}
+
+.tippy-box[data-theme~="slash-menu"] > .tippy-content {
+  padding: 0;
+}
+
+.tippy-box[data-theme~="slash-menu"] > .tippy-arrow {
+  display: none;
+}
+
+/* Tippy.js base styles (required for popups to work) */
+.tippy-box {
+  position: relative;
+  background-color: #333;
+  color: #fff;
+  border-radius: 4px;
+  font-size: 14px;
+  line-height: 1.4;
+  white-space: normal;
+  outline: 0;
+  transition-property: transform, visibility, opacity;
+}
+
+.tippy-box[data-placement^="top"] > .tippy-arrow {
+  bottom: 0;
+}
+
+.tippy-box[data-placement^="bottom"] > .tippy-arrow {
+  top: 0;
+}
+
+.tippy-box[data-placement^="left"] > .tippy-arrow {
+  right: 0;
+}
+
+.tippy-box[data-placement^="right"] > .tippy-arrow {
+  left: 0;
+}
+
+.tippy-arrow {
+  width: 16px;
+  height: 16px;
+  color: #333;
+}
+
+.tippy-arrow::before {
+  content: "";
+  position: absolute;
+  border-color: transparent;
+  border-style: solid;
+}
+
+.tippy-content {
+  position: relative;
+  padding: 5px 9px;
+  z-index: 1;
+}

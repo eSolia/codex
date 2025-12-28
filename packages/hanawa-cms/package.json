@@ -44,7 +44,12 @@
     "@tiptap/extension-task-item": "^2.27.1",
     "@tiptap/extension-task-list": "^2.27.1",
     "@tiptap/extension-underline": "^2.27.1",
+    "@tiptap/suggestion": "^3.14.0",
+    "@types/marked": "^5.0.2",
     "date-fns": "^4.1.0",
+    "marked": "^17.0.1",
+    "mermaid": "^11.12.2",
+    "tippy.js": "^6.3.7",
     "yaml": "^2.8.2",
     "zod": "^3.25.76"
   }
