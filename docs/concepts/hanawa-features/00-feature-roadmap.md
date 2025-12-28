@@ -189,11 +189,11 @@ Each specification follows a consistent structure:
 | 08 | [AI Assistant](./08-ai-assistant.md) | ✅ Implemented | Intelligence |
 | 09 | [Codex Integration](./09-codex-integration.md) | ✅ Implemented | Intelligence |
 | 10 | [Media Library](./10-media-library.md) | ✅ Implemented | Polish |
-| 11 | [Webhooks & Integrations](./11-webhooks-integrations.md) | ⏳ Planned | Polish |
+| 11 | [Webhooks & Integrations](./11-webhooks-integrations.md) | ✅ Implemented | Polish |
 | 12 | [Editor Productivity](./12-editor-productivity.md) | ✅ Implemented | Polish |
 | 13 | [Content Intelligence](./13-content-intelligence.md) | ✅ Implemented | Polish |
 | 14 | [Preview Deployments](./14-preview-deployments.md) | ✅ Implemented | Polish |
-| 15 | [Delivery API](./15-delivery-api.md) | ⏳ Planned | Polish |
+| 15 | [Delivery API](./15-delivery-api.md) | ✅ Implemented | Polish |
 | 16 | [Block Editor](./16-block-editor.md) | ✅ Implemented | Core |
 
 ---
@@ -217,8 +217,12 @@ Each document is self-contained with enough context for focused implementation.
 
 ---
 
-*Document version: 1.1*
+*Document version: 1.2*
 *Last updated: December 2025*
+
+### Recent Updates
+- **Dec 2025**: Implemented Webhooks & Integrations (spec 11) with HMAC signing, retry logic, and delivery tracking
+- **Dec 2025**: Implemented Delivery API (spec 15) with API keys, rate limiting, and content caching
 
 ### Implementation Progress Legend
 - ✅ Implemented — Feature is complete and in production
