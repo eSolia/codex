@@ -10,20 +10,28 @@
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
 
+  // State declarations - must be before they're used
+  let showVersionPanel = $state(false);
+  let useRichEditor = $state(true);
+  let isEditing = $state(false);
+
   // Configure marked for safe rendering
   marked.setOptions({
     gfm: true,
     breaks: true,
   });
 
-  // Initialize mermaid
-  if (browser) {
+  // Initialize mermaid on client
+  onMount(() => {
+    console.log("[Mermaid] onMount - initializing");
     mermaid.initialize({
       startOnLoad: false,
       theme: "default",
       securityLevel: "loose",
     });
-  }
+    // Render diagrams after mount
+    setTimeout(renderMermaidDiagrams, 300);
+  });
 
   // Parse markdown to HTML
   function renderMarkdown(content: string | null | undefined): string {
@@ -49,8 +57,6 @@
 
   // Render mermaid diagrams after content is displayed
   async function renderMermaidDiagrams() {
-    if (!browser) return;
-
     console.log("[Mermaid] renderMermaidDiagrams called");
 
     // Find all mermaid blocks - try both new and legacy format
@@ -85,24 +91,13 @@
     }
   }
 
-  // Re-render mermaid when data changes or on mount
+  // Re-render mermaid when exiting edit mode
   $effect(() => {
-    // Track dependencies
-    const contentEn = data.fragment.content_en;
-    const contentJa = data.fragment.content_ja;
-    const editing = isEditing;
-
-    if (browser && !editing) {
-      console.log("[Mermaid] Effect triggered, isEditing:", editing);
-      // Small delay to let DOM update
-      setTimeout(renderMermaidDiagrams, 200);
+    if (!isEditing && browser) {
+      console.log("[Mermaid] Effect - exiting edit mode, re-rendering");
+      setTimeout(renderMermaidDiagrams, 300);
     }
   });
-
-  let showVersionPanel = $state(false);
-  let useRichEditor = $state(true);
-
-  let isEditing = $state(false);
   let showDeleteConfirm = $state(false);
   let activeTab = $state<"en" | "ja">("en");
 
