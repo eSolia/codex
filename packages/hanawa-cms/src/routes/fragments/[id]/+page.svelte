@@ -5,6 +5,8 @@
   import HanawaEditor from "$lib/components/editor/HanawaEditor.svelte";
   import { browser } from "$app/environment";
   import { marked } from "marked";
+  import { onMount } from "svelte";
+  import mermaid from "mermaid";
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
 
@@ -14,11 +16,68 @@
     breaks: true,
   });
 
+  // Initialize mermaid
+  if (browser) {
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: "default",
+      securityLevel: "loose",
+    });
+  }
+
   // Parse markdown to HTML
   function renderMarkdown(content: string | null | undefined): string {
     if (!content) return "";
     return marked.parse(content) as string;
   }
+
+  // Check if content is HTML (from Tiptap) or markdown
+  function isHtmlContent(content: string | null | undefined): boolean {
+    if (!content) return false;
+    // If it starts with HTML tags, it's from Tiptap
+    return content.trim().startsWith("<");
+  }
+
+  // Render content - handles both HTML and markdown
+  function renderContent(content: string | null | undefined): string {
+    if (!content) return "";
+    if (isHtmlContent(content)) {
+      return content; // Already HTML from Tiptap
+    }
+    return marked.parse(content) as string;
+  }
+
+  // Render mermaid diagrams after content is displayed
+  async function renderMermaidDiagrams() {
+    if (!browser) return;
+
+    // Find all mermaid blocks in the rendered content
+    const mermaidBlocks = document.querySelectorAll("[data-type='mermaidBlock']");
+
+    for (const block of mermaidBlocks) {
+      const source = block.getAttribute("data-source");
+      const diagramContainer = block.querySelector(".mermaid-diagram");
+
+      if (source && diagramContainer) {
+        try {
+          const id = `mermaid-${Math.random().toString(36).substring(2, 9)}`;
+          const { svg } = await mermaid.render(id, source);
+          diagramContainer.innerHTML = svg;
+        } catch (err) {
+          console.error("Mermaid render error:", err);
+          diagramContainer.innerHTML = `<div class="text-red-500 text-sm">Diagram error: ${err instanceof Error ? err.message : "Unknown error"}</div>`;
+        }
+      }
+    }
+  }
+
+  // Re-render mermaid when data changes
+  $effect(() => {
+    if (browser && !isEditing && (data.fragment.content_en || data.fragment.content_ja)) {
+      // Small delay to let DOM update
+      setTimeout(renderMermaidDiagrams, 100);
+    }
+  });
 
   let showVersionPanel = $state(false);
   let useRichEditor = $state(true);
@@ -390,7 +449,7 @@
           {:else if data.fragment.content_en}
             <div
               class="bg-gray-50 p-4 rounded-lg overflow-x-auto text-sm text-gray-800 prose prose-sm max-w-none"
-            >{@html renderMarkdown(data.fragment.content_en)}</div>
+            >{@html renderContent(data.fragment.content_en)}</div>
           {:else}
             <p class="text-gray-500 italic">No English content yet.</p>
           {/if}
@@ -414,7 +473,7 @@
           {:else if data.fragment.content_ja}
             <div
               class="bg-gray-50 p-4 rounded-lg overflow-x-auto text-sm text-gray-800 prose prose-sm max-w-none"
-            >{@html renderMarkdown(data.fragment.content_ja)}</div>
+            >{@html renderContent(data.fragment.content_ja)}</div>
           {:else}
             <p class="text-gray-500 italic">No Japanese content yet.</p>
           {/if}

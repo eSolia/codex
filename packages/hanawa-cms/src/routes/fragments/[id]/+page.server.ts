@@ -123,16 +123,15 @@ export const actions: Actions = {
         return { success: false, error: "Name is required" };
       }
 
-    // Parse and validate tags
-    let tags: string[];
-    try {
-      tags = JSON.parse(tagsRaw);
-      if (!Array.isArray(tags)) tags = [];
-    } catch {
-      tags = [];
-    }
+      // Parse and validate tags
+      let tags: string[];
+      try {
+        tags = JSON.parse(tagsRaw);
+        if (!Array.isArray(tags)) tags = [];
+      } catch {
+        tags = [];
+      }
 
-    try {
       console.log(`[Fragment Update] Starting update for ${params.id}`);
 
       // Get current state for version comparison
