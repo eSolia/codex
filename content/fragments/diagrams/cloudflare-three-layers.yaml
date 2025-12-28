@@ -1,0 +1,67 @@
+# Cloudflare Three Layers of Protection Diagram Fragment
+# ═══════════════════════════════════════════════════════════════════════════════
+# Reusable Mermaid diagram showing three protection layers
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# IDENTITY
+id: cloudflare-three-layers
+category: diagrams
+version: "2025-01"
+
+# METADATA
+title:
+  en: "Three Layers of Cloudflare Protection"
+  ja: "Cloudflare 3層の保護"
+
+type: diagram
+
+tags:
+  - cloudflare
+  - security
+  - dns
+  - waf
+  - zero-trust
+
+# LIFECYCLE
+status: production
+created: "2025-12-27"
+modified: "2025-12-27"
+author: "rick.cogley@esolia.co.jp"
+reviewer: null
+review_due: "2026-03-27"
+
+# ACCESS CONTROL
+sensitivity: normal
+allowed_collections:
+  - proposals
+  - help
+  - concepts
+
+# DIAGRAM
+diagram:
+  format: mermaid
+  source: |
+    flowchart LR
+        subgraph protection["Three Layers of Protection"]
+            direction TB
+            A["Secure DNS"]
+            B["Secure Website"]
+            C["Secure Access"]
+        end
+
+        A --- A1["Blocks malicious sites,<br/>malware, and phishing"]
+        B --- B1["WAF, DDoS protection,<br/>global CDN"]
+        C --- C1["Encrypted tunnel from<br/>every device"]
+
+# CONTENT (caption/description)
+content:
+  en: |
+    Cloudflare provides three integrated security layers: DNS filtering to
+    block threats before they reach your network, web application protection
+    for your online presence, and encrypted tunnels for secure remote access.
+
+  ja: |
+    Cloudflareは3つの統合されたセキュリティレイヤーを提供します：ネットワーク
+    に到達する前に脅威をブロックするDNSフィルタリング、オンラインプレゼンス
+    のためのWebアプリケーション保護、安全なリモートアクセスのための暗号化
+    トンネル。

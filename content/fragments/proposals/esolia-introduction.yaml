@@ -1,0 +1,62 @@
+# eSolia Introduction Fragment
+# Standard opening for proposals - B2B focused value proposition
+
+id: esolia-introduction
+title:
+  en: "eSolia Introduction"
+  ja: "イソリア紹介"
+type: proposal-section
+category: proposals
+tags: ["proposal", "introduction", "B2B"]
+versions:
+  current: "2025-12"
+  history:
+    - version: "2025-01"
+      changes: "Previous version with old messaging"
+    - version: "2025-12"
+      changes: "Updated to B2B focused messaging"
+
+content:
+  en: |
+    ## Introduction
+
+    eSolia is a Tokyo-based B2B IT professional services firm. Since 1999, we have provided bilingual IT support to international companies operating in Japan, functioning as their local IT department with the same skills and expertise as a dedicated in-house team.
+
+    **What sets us apart:**
+
+    - **Team-based approach** — We never dispatch single engineers. Our team provides comprehensive coverage across helpdesk, infrastructure, security, and project management.
+    - **Bilingual professionals** — Native-level English and Japanese communication, bridging headquarters and Japan operations seamlessly.
+    - **25+ years of experience** — Established operational processes, thorough documentation, and proven track record with multinational clients.
+    - **Vendor neutral** — We recommend solutions based purely on your needs, not vendor relationships.
+
+    We focus on solving your problems, not just providing IT services. Our mission is to deliver practical, durable solutions while maintaining the highest standards of professionalism and confidentiality.
+
+    Thank you for the opportunity to present this proposal.
+
+    — eSolia Inc.
+
+  ja: |
+    ## はじめに
+
+    イソリアは、東京を拠点とする法人向け（B2B）ITプロフェッショナルサービス企業です。1999年以来、日本で事業を展開する国際企業に対し、バイリンガルITサポートを提供し、専任のIT部門と同等のスキルと専門性を備えたローカルIT部門として機能してまいりました。
+
+    **私たちの強み:**
+
+    - **チームベースのアプローチ** — 単独のエンジニア派遣は行いません。ヘルプデスク、インフラ、セキュリティ、プロジェクト管理まで、チームで包括的にカバーします。
+    - **バイリンガルプロフェッショナル** — 英語・日本語ネイティブレベルのコミュニケーションで、本社と日本拠点をシームレスに橋渡しします。
+    - **25年以上の実績** — 確立された運用プロセス、徹底したドキュメンテーション、多国籍クライアントとの実績があります。
+    - **ベンダーニュートラル** — ベンダーとの関係ではなく、お客様のニーズに基づいた最適なソリューションをご提案します。
+
+    私たちはITサービスを提供するだけでなく、お客様の課題解決に注力します。プロフェッショナリズムと守秘義務の最高基準を維持しながら、実践的で耐久性のあるソリューションをお届けすることが私たちの使命です。
+
+    本提案の機会をいただき、誠にありがとうございます。
+
+    — 株式会社イソリア
+
+metadata:
+  last_updated: "2025-12-27"
+  author: "eSolia Technical Team"
+  usage_notes: |
+    Standard opening for all eSolia proposals.
+    Should appear after the cover page and table of contents.
+    B2B focused messaging aligned with 2025 website content.

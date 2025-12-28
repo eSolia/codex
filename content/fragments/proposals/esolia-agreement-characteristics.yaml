@@ -1,0 +1,78 @@
+# eSolia Agreement Characteristics Fragment
+# Standard MSA/SOW structure and billing terms
+
+id: esolia-agreement-characteristics
+title:
+  en: "Agreement Structure"
+  ja: "ご契約について"
+type: proposal-section
+category: proposals
+tags: ["proposal", "agreement", "billing", "terms"]
+versions:
+  current: "2025-12"
+
+content:
+  en: |
+    ## Agreement Structure
+
+    ### Contract Format
+
+    eSolia uses a **Master Services Agreement (MSA)** and **Statement of Work (SoW)** structure:
+
+    - **MSA** — Basic terms covering confidentiality, liability, and general conditions
+    - **SoW** — Specific scope, services, and pricing for each engagement
+
+    ### Billing Model
+
+    Our agreements are time-and-materials based with transparent pricing:
+
+    | Item | Description |
+    |------|-------------|
+    | **Minimum billing** | 1 hour minimum per visit |
+    | **Increments** | 15-minute increments beyond minimum |
+    | **Administration fee** | Monthly fixed fee for account management |
+    | **Callout fee** | Per-visit fee for onsite work (Tokyo 23 wards) |
+
+    ### Rate Options
+
+    Greater commitment means better rates:
+
+    - **Reserved Hours** — Regular monthly commitment
+    - **Pool Blocks** — Pre-paid time (12-month validity)
+    - **Multi-year Term** — Reduced rates for longer commitment
+
+  ja: |
+    ## ご契約について
+
+    ### 契約形式
+
+    イソリアは**マスターサービス契約（MSA）**と**業務仕様書（SoW）**の構造を採用しています：
+
+    - **MSA** — 機密保持、責任、一般条件を規定する基本契約
+    - **SoW** — 各エンゲージメントの具体的な範囲、サービス、価格
+
+    ### 請求モデル
+
+    タイム＆マテリアル方式で透明性のある価格設定：
+
+    | 項目 | 説明 |
+    |------|------|
+    | **最低請求** | 訪問ごとに1時間最低 |
+    | **増分** | 最低時間を超えた分は15分単位 |
+    | **管理費** | アカウント管理のための月額固定料金 |
+    | **出張費** | オンサイト作業の訪問ごとの料金（東京23区内） |
+
+    ### レートオプション
+
+    より大きなコミットメントでより良いレート：
+
+    - **予約時間** — 月次の定期的なコミットメント
+    - **プールブロック** — 前払い時間（12ヶ月有効）
+    - **複数年契約** — 長期コミットメントで割引レート
+
+metadata:
+  last_updated: "2025-12-27"
+  author: "eSolia Technical Team"
+  usage_notes: |
+    Standard terms section for all proposals.
+    Specific rates in client-specific offer section.

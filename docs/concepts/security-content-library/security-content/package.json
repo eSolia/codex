@@ -1,0 +1,58 @@
+{
+  "name": "@yourorg/security-content",
+  "version": "1.0.0",
+  "description": "Security education content library for Periodic, Pulse, Quiz, and Nexus",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./content/*": "./content/*",
+    "./schemas/*": "./schemas/*"
+  },
+  "files": [
+    "content",
+    "schemas",
+    "dist"
+  ],
+  "scripts": {
+    "validate": "npm run validate:schema && npm run validate:links && npm run validate:lint",
+    "validate:schema": "tsx scripts/validate-schema.ts",
+    "validate:links": "tsx scripts/validate-links.ts",
+    "validate:lint": "markdownlint 'content/**/*.md' --config .markdownlint.json",
+    "validate:quiz": "tsx scripts/validate-quiz.ts",
+    "build": "npm run build:r2 && npm run build:docs && npm run build:quiz",
+    "build:r2": "tsx scripts/build-r2.ts",
+    "build:docs": "tsx scripts/build-docs.ts",
+    "build:quiz": "tsx scripts/build-quiz.ts",
+    "deploy": "tsx scripts/deploy.ts",
+    "deploy:r2": "tsx scripts/deploy-r2.ts",
+    "deploy:reindex": "tsx scripts/trigger-reindex.ts",
+    "new:issue": "tsx scripts/scaffold.ts issue",
+    "new:control": "tsx scripts/scaffold.ts control",
+    "new:concept": "tsx scripts/scaffold.ts concept",
+    "new:quiz": "tsx scripts/scaffold.ts quiz",
+    "dev": "tsx watch scripts/dev-server.ts",
+    "test": "vitest"
+  },
+  "devDependencies": {
+    "@aws-sdk/client-s3": "^3.500.0",
+    "@cloudflare/workers-types": "^4.20240117.0",
+    "@types/node": "^20.11.0",
+    "ajv": "^8.12.0",
+    "chalk": "^5.3.0",
+    "commander": "^12.0.0",
+    "front-matter": "^4.0.2",
+    "glob": "^10.3.10",
+    "gray-matter": "^4.0.3",
+    "markdownlint-cli": "^0.39.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.3",
+    "vitest": "^1.2.0",
+    "yaml": "^2.3.4",
+    "zod": "^3.22.4"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

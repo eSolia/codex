@@ -1,0 +1,84 @@
+# Cloudflare Security Layers Diagram Fragment
+# ═══════════════════════════════════════════════════════════════════════════════
+# Reusable Mermaid diagram showing Cloudflare security architecture
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# IDENTITY
+id: cloudflare-security-layers
+category: diagrams
+version: "2025-01"
+
+# METADATA
+title:
+  en: "Cloudflare Security Architecture"
+  ja: "Cloudflare セキュリティアーキテクチャ"
+
+type: diagram
+
+tags:
+  - cloudflare
+  - security
+  - architecture
+  - zero-trust
+  - network
+
+# LIFECYCLE
+status: production
+created: "2025-12-27"
+modified: "2025-12-27"
+author: "rick.cogley@esolia.co.jp"
+reviewer: null
+review_due: "2026-03-27"
+
+# ACCESS CONTROL
+sensitivity: normal
+allowed_collections:
+  - proposals
+  - help
+  - concepts
+  - blog
+
+# DIAGRAM
+diagram:
+  format: mermaid
+  source: |
+    flowchart TB
+        subgraph team["Your Team"]
+            laptop["Laptops"]
+            phone["Phones"]
+            tablet["Tablets"]
+        end
+
+        subgraph cloudflare["Cloudflare Security Layer"]
+            zt["Zero Trust Gateway"]
+            dns["Secure DNS"]
+            warp["Encrypted Tunnel"]
+        end
+
+        subgraph services["Protected Services"]
+            m365["Microsoft 365<br/>Email, Files, Teams"]
+            website["Your Website<br/>Cloudflare Pages"]
+            internet["General Internet"]
+        end
+
+        team --> warp
+        warp --> zt
+        zt --> dns
+        dns --> services
+
+        style cloudflare fill:#f6821f,color:#fff
+        style m365 fill:#0078d4,color:#fff
+        style website fill:#f6821f,color:#fff
+
+# CONTENT (caption/description)
+content:
+  en: |
+    Every device connects through Cloudflare's network. Malicious sites are
+    blocked before they load. Your website is protected from attacks. Your
+    team works securely from anywhere—home, serviced office, or a hotel or café.
+
+  ja: |
+    すべてのデバイスがCloudflareのネットワークを経由して接続されます。悪意の
+    あるサイトは読み込まれる前にブロックされます。貴社のウェブサイトは攻撃
+    から保護されます。チームはどこからでも安全に作業できます—自宅、サービス
+    オフィス、ホテルやカフェからでも。

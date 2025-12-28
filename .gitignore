@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+
+# Environment files (keep .example)
+.env
+.env.*
+!.env.*.example
+.env.cloudflare
+
+# Config files with sensitive data (keep .example)
+config/client-registry.yaml
+!config/client-registry.example.yaml
+
+# Cloudflare
+.wrangler/
+.dev.vars
+
+# Build output
+dist/
+output/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Generated files
+cloudflare-api-schema.json
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo

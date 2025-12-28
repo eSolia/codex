@@ -1,0 +1,244 @@
+# Email Security Fundamentals Quiz Bank
+# Source: content/periodic/concepts/what-is-*.md
+
+id: email-security-fundamentals
+title: Email Security Fundamentals
+description: Test your understanding of SPF, DKIM, and DMARC email authentication
+difficulty: mixed
+tags:
+  - email
+  - authentication
+  - dns
+  - security-basics
+
+source_content:
+  - periodic/concepts/what-is-spf.md
+  - periodic/concepts/what-is-dkim.md
+  - periodic/concepts/what-is-dmarc.md
+  - periodic/issues/dns/spf-missing.md
+  - periodic/issues/dns/spf-too-permissive.md
+
+questions:
+  # SPF Basics
+  - id: spf-purpose-001
+    type: multiple-choice
+    question: |
+      What is the primary purpose of an SPF record?
+    options:
+      - id: a
+        text: To encrypt email content during transmission
+      - id: b
+        text: To specify which servers are authorized to send email for a domain
+      - id: c
+        text: To digitally sign outgoing emails
+      - id: d
+        text: To filter incoming spam messages
+    correct: b
+    explanation: |
+      SPF (Sender Policy Framework) is a DNS record that specifies which mail 
+      servers are authorized to send email on behalf of your domain. It helps 
+      receiving servers detect forged sender addresses.
+    reference: periodic/concepts/what-is-spf.md#summary
+    difficulty: beginner
+    points: 1
+
+  - id: spf-all-mechanism-001
+    type: multiple-choice
+    question: |
+      What does the `-all` mechanism at the end of an SPF record mean?
+    options:
+      - id: a
+        text: Accept all email regardless of sender
+      - id: b
+        text: Reject email from senders not explicitly authorized in the SPF record
+      - id: c
+        text: Mark unauthorized email as spam but still deliver it
+      - id: d
+        text: Forward unauthorized email to the domain administrator
+    correct: b
+    explanation: |
+      The `-all` mechanism is a "hard fail" that instructs receiving servers to 
+      reject any email from servers not explicitly authorized in the SPF record. 
+      This is the most secure option but requires careful configuration.
+    reference: periodic/concepts/what-is-spf.md#qualifiers-results
+    difficulty: beginner
+    points: 1
+
+  - id: spf-soft-fail-001
+    type: multiple-choice
+    question: |
+      What is the difference between `~all` and `-all` in an SPF record?
+    options:
+      - id: a
+        text: There is no difference; they are interchangeable
+      - id: b
+        text: "`~all` accepts all email; `-all` rejects all email"
+      - id: c
+        text: "`~all` marks unauthorized email as suspicious; `-all` rejects it outright"
+      - id: d
+        text: "`~all` is deprecated; `-all` is the modern syntax"
+    correct: c
+    explanation: |
+      `~all` (soft fail) tells receivers to accept unauthorized email but treat 
+      it with suspicion—typically marking it as spam. `-all` (hard fail) instructs 
+      receivers to reject unauthorized email entirely. Soft fail is often used 
+      during initial deployment to avoid blocking legitimate email.
+    reference: periodic/concepts/what-is-spf.md#qualifiers-results
+    difficulty: intermediate
+    points: 2
+
+  - id: spf-lookup-limit-001
+    type: multiple-choice
+    question: |
+      Your SPF record has 12 DNS lookups. What will happen when a server checks it?
+    options:
+      - id: a
+        text: SPF will work normally but be slower
+      - id: b
+        text: SPF will return a permanent error (permerror)
+      - id: c
+        text: Only the first 10 lookups will be evaluated
+      - id: d
+        text: The email will be automatically rejected
+    correct: b
+    explanation: |
+      SPF has a strict limit of 10 DNS lookups per check. Exceeding this limit 
+      causes a permanent error (permerror), which most receiving servers treat 
+      as an SPF failure. This is a common problem when using many third-party 
+      email services.
+    reference: periodic/concepts/what-is-spf.md#the-10-dns-lookup-limit
+    difficulty: intermediate
+    points: 2
+
+  - id: spf-lookup-count-001
+    type: true-false
+    question: |
+      The `ip4:` mechanism in an SPF record counts toward the 10 DNS lookup limit.
+    correct: false
+    explanation: |
+      `ip4:` and `ip6:` mechanisms do NOT count toward the lookup limit because 
+      they specify IP addresses directly without requiring a DNS query. Only 
+      mechanisms that require DNS lookups count: `include:`, `a`, `mx`, 
+      `redirect=`, and `exists:`.
+    reference: periodic/concepts/what-is-spf.md#the-10-dns-lookup-limit
+    difficulty: intermediate
+    points: 2
+
+  # SPF Limitations
+  - id: spf-limitation-001
+    type: true-false
+    question: |
+      SPF validates the "From" header that users see in their email client.
+    correct: false
+    explanation: |
+      SPF only validates the envelope sender (Return-Path), not the "From" header 
+      that users see. This is a fundamental limitation—attackers can pass SPF 
+      while still spoofing the visible From address. This is why SPF should be 
+      combined with DKIM and DMARC.
+    reference: periodic/concepts/what-is-spf.md#spf-alone-isnt-enough
+    difficulty: intermediate
+    points: 2
+
+  # Scenario Questions
+  - id: spf-scenario-001
+    type: scenario
+    scenario: |
+      You're investigating why emails from your marketing platform are going 
+      to spam. Your SPF record is:
+      
+      ```
+      v=spf1 include:_spf.google.com -all
+      ```
+      
+      Your marketing platform (Mailchimp) sends from their own servers.
+    question: What's the most likely cause of the delivery problem?
+    options:
+      - id: a
+        text: The `-all` should be changed to `+all`
+      - id: b
+        text: Mailchimp's servers aren't included in your SPF record
+      - id: c
+        text: SPF doesn't apply to marketing emails
+      - id: d
+        text: Google Workspace is blocking the emails
+    correct: b
+    explanation: |
+      Your SPF record only authorizes Google Workspace servers 
+      (`include:_spf.google.com`). Mailchimp sends from their own infrastructure, 
+      which isn't included. The fix is to add `include:servers.mcsv.net` (Mailchimp's 
+      SPF) to your record.
+    reference: periodic/issues/dns/spf-missing.md#recommended-configuration
+    difficulty: intermediate
+    points: 3
+
+  - id: spf-scenario-002
+    type: scenario
+    scenario: |
+      A client shows you their SPF record:
+      
+      ```
+      v=spf1 include:_spf.google.com +all
+      ```
+      
+      They say "We added `+all` because some legitimate emails were being rejected."
+    question: What's wrong with this approach?
+    options:
+      - id: a
+        text: Nothing; this is a reasonable temporary fix
+      - id: b
+        text: The `+all` completely disables SPF protection, authorizing any server to send as their domain
+      - id: c
+        text: The syntax is incorrect; `+all` isn't valid
+      - id: d
+        text: They should use `*all` instead of `+all`
+    correct: b
+    explanation: |
+      Using `+all` tells receiving servers to accept email from ANY server as 
+      legitimate—it completely defeats the purpose of SPF. The Google include 
+      becomes meaningless because everything passes anyway. The proper fix is 
+      to identify and add the legitimate senders being rejected, not to disable 
+      protection entirely.
+    reference: periodic/concepts/what-is-spf.md#qualifiers-results
+    difficulty: advanced
+    points: 3
+
+  # DMARC Connection
+  - id: dmarc-spf-001
+    type: true-false
+    question: |
+      DMARC can protect your domain even if you don't have SPF or DKIM configured.
+    correct: false
+    explanation: |
+      DMARC is a policy layer that relies on SPF and/or DKIM to function. It 
+      tells receiving servers what to do when SPF or DKIM checks fail. Without 
+      at least one of these mechanisms in place, DMARC has nothing to enforce. 
+      For full protection, you should have both SPF and DKIM, with DMARC as the 
+      policy layer.
+    reference: periodic/concepts/what-is-spf.md#spf-alone-isnt-enough
+    difficulty: beginner
+    points: 1
+
+  # Practical Application
+  - id: spf-practical-001
+    type: multiple-choice
+    question: |
+      You're setting up SPF for a new domain that only uses Google Workspace 
+      for email. Which record is the best choice?
+    options:
+      - id: a
+        text: "`v=spf1 +all`"
+      - id: b
+        text: "`v=spf1 include:_spf.google.com -all`"
+      - id: c
+        text: "`v=spf1 include:_spf.google.com ~all`"
+      - id: d
+        text: "`v=spf1 a mx -all`"
+    correct: c
+    explanation: |
+      For a new setup, `~all` (soft fail) is recommended over `-all` (hard fail). 
+      This allows you to catch any legitimate senders you might have missed 
+      without immediately blocking their email. Once you've verified all 
+      legitimate email is passing, you can upgrade to `-all`.
+    reference: periodic/issues/dns/spf-missing.md#recommended-configuration
+    difficulty: intermediate
+    points: 2

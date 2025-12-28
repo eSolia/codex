@@ -1,0 +1,166 @@
+# eSolia Proposal Template
+# Standard structure for assembling proposals from fragments
+
+id: proposal-template
+title:
+  en: "eSolia Proposal Template"
+  ja: "イソリア提案書テンプレート"
+type: template
+category: proposals
+version: "2025-01"
+
+# Personalization fields - filled per client
+personalization:
+  client:
+    code: ""                    # Client code from registry (e.g., "ACME")
+    name_en: ""                 # "Acme Corporation"
+    name_ja: ""                 # "アクメ株式会社"
+    logo_url: ""                # URL to client logo (optional)
+    industry: ""                # "Medical Devices", "Finance", "Legal", etc.
+
+  contacts:
+    - name: ""                  # "John Smith"
+      title: ""                 # "IT Manager"
+      email: ""                 # "john.smith@acme.com"
+
+  proposal:
+    title_en: ""                # "Japan IT Support Proposal"
+    title_ja: ""                # "日本ITサポートのご提案"
+    date: ""                    # "2025-01-15"
+    version: "01"               # Proposal version
+    preparers: []               # ["Rick Cogley", "Takumi Fukuoka"]
+    language: "bilingual"       # "en", "ja", or "bilingual"
+
+  branding:
+    show_client_logo: true      # Show client logo on cover
+    logo_position: "right"      # "left", "right", "center"
+    color_accent: null          # Use client color accent (optional)
+
+# Template structure - ordered list of sections
+structure:
+  - type: cover
+    personalized: true
+    includes:
+      - client_logo           # If show_client_logo is true
+      - esolia_logo
+      - proposal_title
+      - date
+      - version
+      - preparers
+      - attention_block       # Client contacts
+
+  - type: toc
+    auto_generated: true
+
+  - type: fragment
+    id: "proposals/esolia-introduction"
+    personalization_note: |
+      For returning clients, consider adding acknowledgment of past relationship:
+      "Let us take this opportunity to sincerely thank [Client] for the many years
+      of business you have so kindly given us..."
+
+  - type: fragment
+    id: "proposals/esolia-profile"
+    optional: true
+    alternative: "Reference separate PDF 'eSolia Overview'"
+
+  - type: fragment
+    id: "proposals/esolia-background"
+
+  - type: fragment
+    id: "proposals/esolia-project-types"
+    customization:
+      - filter_by_industry     # Show relevant project types first
+      - add_client_history     # Add client-specific past projects section
+
+  - type: fragment
+    id: "proposals/esolia-agreement-characteristics"
+
+  - type: section
+    name: "client_requirements"
+    personalized: true
+    content_source: "custom"
+    description: |
+      Client-specific section describing their requirements.
+      This section is NOT a fragment - it's custom for each proposal.
+
+      Typical content:
+      - Background on client's situation
+      - Specific pain points or needs
+      - Scope of what they're looking for
+
+      Example:
+      "After an initial discussion over Teams with [Contact] in [Month Year],
+      it is our understanding that [Client] requires outsourced IT support
+      for their Japan office of [X] users..."
+
+  - type: section
+    name: "proposal"
+    personalized: true
+    subsections:
+      - name: "Perform Ongoing Support"
+        scope: true
+      - name: "Perform Project Work"
+        scope: true
+      - name: "Perform Process Management"
+        scope: true
+      - name: "Perform Training"
+        optional: true
+        scope: true
+
+  - type: fragment
+    id: "proposals/esolia-support-types"
+    optional: true
+    condition: "when comparing TotalSupport vs Co-Support"
+
+  - type: fragment
+    id: "proposals/esolia-service-mechanics"
+
+  - type: section
+    name: "offer_details"
+    personalized: true
+    content_source: "custom"
+    description: |
+      Pricing and specific offer details.
+      CONFIDENTIAL - specific rates and pricing.
+
+      Typical content:
+      - Base rates table
+      - Sliding scale options
+      - Pool block options
+      - Monthly estimate breakdown
+      - Administration and callout fees
+
+  - type: fragment
+    id: "proposals/esolia-closing"
+
+# Output options
+output:
+  formats:
+    - pdf                       # Primary output
+    - docx                      # For clients who need to edit
+    - html                      # For web-based proposals
+
+  pdf_options:
+    page_size: "A4"
+    margins: "normal"
+    header: true                # eSolia logo + page number
+    footer: true                # Confidential notice + date
+    watermark: null             # Optional "DRAFT" watermark
+
+# Metadata for tracking
+metadata:
+  created: "2025-01-15"
+  author: "eSolia Technical Team"
+  usage_notes: |
+    This template defines the standard proposal structure.
+
+    To create a new proposal:
+    1. Copy this template
+    2. Fill in personalization fields
+    3. Write custom sections (requirements, offer)
+    4. Select optional fragments as needed
+    5. Generate output via Hanawa
+
+    Fragment references use the format:
+    {{fragment:proposals/esolia-introduction lang="en"}}

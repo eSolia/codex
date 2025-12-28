@@ -1,0 +1,462 @@
+/* eSolia Proposal Styles
+ * Based on eSolia CI: Navy (#2D2F63), Orange (#FFBC68), Cream (#FFFAD7)
+ */
+
+/* ===== FONTS ===== */
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+JP:wght@400;500;600;700&family=IBM+Plex+Mono&display=swap');
+
+/* ===== CSS VARIABLES ===== */
+:root {
+  /* eSolia Colors */
+  --esolia-navy: #2D2F63;
+  --esolia-orange: #FFBC68;
+  --esolia-cream: #FFFAD7;
+  --esolia-emerald: #10b981;
+  --esolia-sky: #0ea5e9;
+  --esolia-fuchsia: #d946ef;
+
+  /* Text Colors */
+  --text-primary: #1a1a2e;
+  --text-secondary: #4a4a6a;
+  --text-muted: #6b7280;
+
+  /* Spacing */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+
+  /* Typography */
+  --font-sans: 'IBM Plex Sans', 'IBM Plex Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'IBM Plex Mono', 'Menlo', monospace;
+  --line-height: 1.6;
+}
+
+/* ===== BASE STYLES ===== */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 11pt;
+}
+
+body {
+  font-family: var(--font-sans);
+  line-height: var(--line-height);
+  color: var(--text-primary);
+  background: white;
+}
+
+/* ===== PRINT STYLES ===== */
+@media print {
+  @page {
+    size: A4;
+    margin: 20mm 20mm 30mm 20mm;
+
+    @bottom-center {
+      content: "Page " counter(page);
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-size: 9pt;
+      color: #6b7280;
+    }
+
+    @bottom-right {
+      content: "CONFIDENTIAL";
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-size: 8pt;
+      color: #9ca3af;
+    }
+  }
+
+  /* First page (cover) - no footer */
+  @page :first {
+    @bottom-center {
+      content: none;
+    }
+    @bottom-right {
+      content: none;
+    }
+  }
+
+  body {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .page-break {
+    page-break-before: always;
+  }
+
+  /* Page break before major sections (h1) */
+  .content h1 {
+    page-break-before: always;
+    margin-top: 0;
+    padding-top: var(--spacing-md);
+  }
+
+  /* But not the first h1 after cover */
+  .content h1:first-of-type {
+    page-break-before: avoid;
+  }
+
+  h1, h2, h3 {
+    page-break-after: avoid;
+  }
+
+  table, figure {
+    page-break-inside: avoid;
+  }
+
+  /* Cover page break */
+  .cover {
+    page-break-after: always;
+  }
+
+  /* Hide the HTML footer in print - using @page footer instead */
+  .page-footer {
+    display: none;
+  }
+}
+
+/* ===== LAYOUT ===== */
+.proposal {
+  max-width: 210mm;
+  margin: 0 auto;
+  padding: var(--spacing-xl);
+}
+
+/* ===== COVER PAGE ===== */
+.cover {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: var(--spacing-2xl);
+}
+
+.cover-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--spacing-2xl);
+}
+
+.cover-header .esolia-logo {
+  height: 150px;
+  width: auto;
+}
+
+.cover-header .client-logo {
+  max-height: 60px;
+  max-width: 200px;
+  width: auto;
+}
+
+.cover-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.cover-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--esolia-navy);
+  margin-bottom: var(--spacing-lg);
+  border-bottom: 4px solid var(--esolia-orange);
+  padding-bottom: var(--spacing-md);
+}
+
+.cover-title .title-ja {
+  font-size: 1.8rem;
+  font-weight: 500;
+  display: block;
+  margin-top: var(--spacing-sm);
+  color: var(--text-secondary);
+}
+
+.cover-meta {
+  margin-top: var(--spacing-xl);
+  font-size: 1rem;
+}
+
+.cover-meta p {
+  margin-bottom: var(--spacing-xs);
+}
+
+.attention-block {
+  margin-top: var(--spacing-2xl);
+  padding: var(--spacing-lg);
+  background: var(--esolia-cream);
+  border-left: 4px solid var(--esolia-orange);
+}
+
+.attention-block .title {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+/* ===== TYPOGRAPHY ===== */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--esolia-navy);
+  margin-top: var(--spacing-xl);
+  margin-bottom: var(--spacing-md);
+  font-weight: 600;
+}
+
+h1 {
+  font-size: 1.75rem;
+  border-bottom: 2px solid var(--esolia-orange);
+  padding-bottom: var(--spacing-sm);
+}
+
+h2 {
+  font-size: 1.4rem;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: var(--spacing-xs);
+}
+
+h3 {
+  font-size: 1.15rem;
+}
+
+h4 {
+  font-size: 1rem;
+  color: var(--text-secondary);
+}
+
+p {
+  margin-bottom: var(--spacing-md);
+}
+
+strong {
+  font-weight: 600;
+}
+
+/* ===== LISTS ===== */
+ul, ol {
+  margin-bottom: var(--spacing-md);
+  padding-left: var(--spacing-xl);
+}
+
+li {
+  margin-bottom: var(--spacing-xs);
+}
+
+li ul, li ol {
+  margin-top: var(--spacing-xs);
+  margin-bottom: 0;
+}
+
+/* ===== TABLES ===== */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: var(--spacing-lg);
+  font-size: 0.95rem;
+  border: 1px solid #e5e7eb;
+}
+
+thead {
+  background: #f3f4f6;
+  border-bottom: 2px solid #d1d5db;
+}
+
+th {
+  font-weight: 600;
+  text-align: left;
+  padding: var(--spacing-sm) var(--spacing-md);
+  color: var(--esolia-navy);
+}
+
+td {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-bottom: 1px solid #e5e7eb;
+}
+
+tbody tr:nth-child(odd) {
+  background: white;
+}
+
+tbody tr:nth-child(even) {
+  background: #f9fafb;
+}
+
+tbody tr:hover {
+  background: var(--esolia-cream);
+}
+
+/* Key-value tables (no header) */
+table.kv td:first-child {
+  font-weight: 500;
+  width: 30%;
+  color: var(--text-secondary);
+}
+
+/* ===== CALLOUTS ===== */
+.callout {
+  padding: var(--spacing-md) var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
+  border-radius: 4px;
+  border-left: 4px solid;
+}
+
+.callout-title {
+  font-weight: 600;
+  margin-bottom: var(--spacing-xs);
+}
+
+.callout.info {
+  background: #eff6ff;
+  border-color: var(--esolia-sky);
+}
+
+.callout.warning {
+  background: #fffbeb;
+  border-color: var(--esolia-orange);
+}
+
+.callout.danger {
+  background: #fef2f2;
+  border-color: #ef4444;
+}
+
+.callout.success {
+  background: #ecfdf5;
+  border-color: var(--esolia-emerald);
+}
+
+/* Confidential notice */
+.confidential {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  padding: var(--spacing-md);
+  border-radius: 4px;
+  text-align: center;
+  margin-bottom: var(--spacing-lg);
+}
+
+.confidential strong {
+  color: #dc2626;
+}
+
+/* ===== CODE ===== */
+code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  background: #f3f4f6;
+  padding: 0.1em 0.3em;
+  border-radius: 3px;
+}
+
+pre {
+  background: #1e293b;
+  color: #e2e8f0;
+  padding: var(--spacing-md);
+  border-radius: 4px;
+  overflow-x: auto;
+  margin-bottom: var(--spacing-lg);
+}
+
+pre code {
+  background: none;
+  padding: 0;
+}
+
+/* ===== LINKS ===== */
+a {
+  color: var(--esolia-navy);
+  text-decoration: underline;
+}
+
+a:hover {
+  color: var(--esolia-orange);
+}
+
+/* ===== BLOCKQUOTE ===== */
+blockquote {
+  border-left: 4px solid var(--esolia-orange);
+  padding-left: var(--spacing-lg);
+  margin: var(--spacing-lg) 0;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+/* ===== HR ===== */
+hr {
+  border: none;
+  border-top: 1px solid #e5e7eb;
+  margin: var(--spacing-xl) 0;
+}
+
+/* ===== HEADER/FOOTER ===== */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: var(--spacing-md);
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: var(--spacing-xl);
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.page-header img {
+  height: 24px;
+}
+
+.page-footer {
+  margin-top: var(--spacing-xl);
+  padding-top: var(--spacing-md);
+  border-top: 1px solid #e5e7eb;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* ===== TABLE OF CONTENTS ===== */
+.toc {
+  background: #f9fafb;
+  padding: var(--spacing-lg);
+  border-radius: 4px;
+  margin-bottom: var(--spacing-xl);
+}
+
+.toc h2 {
+  margin-top: 0;
+  font-size: 1.1rem;
+  border-bottom: none;
+}
+
+.toc ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+.toc li {
+  margin-bottom: var(--spacing-xs);
+}
+
+.toc a {
+  text-decoration: none;
+  color: var(--text-primary);
+}
+
+.toc a:hover {
+  color: var(--esolia-navy);
+  text-decoration: underline;
+}
+
+/* ===== UTILITY ===== */
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.text-muted { color: var(--text-muted); }
+.text-small { font-size: 0.9rem; }
+.mt-0 { margin-top: 0; }
+.mb-0 { margin-bottom: 0; }
+.page-break { page-break-before: always; }

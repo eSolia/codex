@@ -1,0 +1,70 @@
+# Periodic DNS & Email Monitoring Fragment
+# ═══════════════════════════════════════════════════════════════════════════════
+# Reusable service description for proposals
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# IDENTITY
+id: periodic-monitoring
+category: services
+version: "2025-01"
+
+# METADATA
+title:
+  en: "DNS & Email Monitoring (Periodic)"
+  ja: "DNS・メール監視（Periodic）"
+
+type: service-description
+
+tags:
+  - dns
+  - email
+  - monitoring
+  - spf
+  - dkim
+  - dmarc
+  - periodic
+
+# LIFECYCLE
+status: production
+created: "2025-12-27"
+modified: "2025-12-27"
+author: "rick.cogley@esolia.co.jp"
+reviewer: null
+review_due: "2026-03-27"
+
+# ACCESS CONTROL
+sensitivity: normal
+allowed_collections:
+  - proposals
+  - help
+  - concepts
+
+# CONTENT
+content:
+  en: |
+    Our Periodic service continuously monitors your domains for DNS configuration
+    drift and email authentication issues. You'll receive alerts if SPF, DKIM,
+    or DMARC records change unexpectedly—catching misconfigurations before they
+    affect email deliverability or security.
+
+    **Monitoring Includes:**
+    - DNS record changes (A, MX, TXT, CNAME)
+    - SPF record validity and alignment
+    - DKIM key presence and rotation tracking
+    - DMARC policy compliance
+    - DNSSEC status
+    - Certificate transparency logs
+
+  ja: |
+    当社のPeriodicサービスは、貴社ドメインのDNS設定の変動やメール認証の
+    問題を継続的に監視します。SPF、DKIM、DMARCレコードが予期せず変更された
+    場合にアラートを受け取ることができ、メールの到達性やセキュリティに
+    影響が出る前に設定ミスを検出します。
+
+    **監視内容:**
+    - DNSレコードの変更（A、MX、TXT、CNAME）
+    - SPFレコードの有効性とアライメント
+    - DKIMキーの存在とローテーション追跡
+    - DMARCポリシーのコンプライアンス
+    - DNSSECステータス
+    - 証明書の透明性ログ

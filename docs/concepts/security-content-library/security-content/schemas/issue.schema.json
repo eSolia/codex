@@ -1,0 +1,68 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://yourorg.com/schemas/issue.json",
+  "title": "Issue Document",
+  "description": "Schema for Periodic issue/finding documents",
+  "type": "object",
+  "required": [
+    "id",
+    "category",
+    "severity",
+    "keywords"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]+$",
+      "description": "Unique identifier (kebab-case)"
+    },
+    "category": {
+      "type": "string",
+      "enum": ["issue"],
+      "description": "Document category"
+    },
+    "subcategory": {
+      "type": "string",
+      "description": "Subcategory path, e.g., 'dns/email-authentication'"
+    },
+    "severity": {
+      "type": "string",
+      "enum": ["critical", "high", "medium", "low", "info"],
+      "description": "Issue severity level"
+    },
+    "record_type": {
+      "type": "string",
+      "description": "DNS record type if applicable (TXT, MX, A, etc.)"
+    },
+    "keywords": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1,
+      "description": "Keywords for search/retrieval"
+    },
+    "related_issues": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "IDs of related issue documents"
+    },
+    "related_concepts": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "IDs of related concept documents"
+    },
+    "products": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["periodic", "pulse", "quiz", "nexus"]
+      },
+      "default": ["periodic"],
+      "description": "Which products use this content"
+    },
+    "last_updated": {
+      "type": "string",
+      "format": "date",
+      "description": "Last update date (YYYY-MM-DD)"
+    }
+  }
+}

@@ -1,0 +1,126 @@
+name: Deploy Content
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'content/**'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - staging
+          - production
+      force_reindex:
+        description: 'Force AI Search reindex'
+        required: false
+        default: false
+        type: boolean
+
+# Prevent concurrent deployments
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy to ${{ inputs.environment || 'production' }}
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment || 'production' }}
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate before deploy
+        run: npm run validate
+
+      # Deploy to R2 for AI Search
+      - name: Sync to R2
+        run: npm run deploy:r2
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET: ${{ vars.R2_BUCKET }}
+          CONTENT_ENV: ${{ inputs.environment || 'production' }}
+
+      # Trigger AI Search reindex
+      - name: Trigger AI Search Reindex
+        if: inputs.force_reindex == true || github.event_name == 'push'
+        run: npm run deploy:reindex
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          AI_SEARCH_INSTANCE: ${{ vars.AI_SEARCH_INSTANCE }}
+
+      # Build and deploy documentation site (optional)
+      - name: Build Documentation Site
+        if: vars.DEPLOY_DOCS == 'true'
+        run: npm run build:docs
+
+      - name: Deploy to Cloudflare Pages
+        if: vars.DEPLOY_DOCS == 'true'
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: ${{ vars.PAGES_PROJECT }}
+          directory: dist/docs
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+
+      # Build and sync quiz database (optional)
+      - name: Build Quiz Database
+        if: vars.DEPLOY_QUIZ == 'true'
+        run: npm run build:quiz
+
+      - name: Sync Quiz to D1
+        if: vars.DEPLOY_QUIZ == 'true'
+        run: npm run deploy:quiz
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          D1_DATABASE_ID: ${{ secrets.D1_DATABASE_ID }}
+
+      # Deployment summary
+      - name: Deployment Summary
+        run: |
+          echo "## 🚀 Deployment Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** ${{ inputs.environment || 'production' }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Deployed To:" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ R2 (AI Search)" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ vars.DEPLOY_DOCS }}" == "true" ]; then
+            echo "- ✅ Cloudflare Pages (Documentation)" >> $GITHUB_STEP_SUMMARY
+          fi
+          if [ "${{ vars.DEPLOY_QUIZ }}" == "true" ]; then
+            echo "- ✅ D1 (Quiz Database)" >> $GITHUB_STEP_SUMMARY
+          fi
+
+  notify:
+    name: Notify
+    needs: deploy
+    runs-on: ubuntu-latest
+    if: failure()
+    
+    steps:
+      - name: Notify on failure
+        run: |
+          echo "Deployment failed - add your notification logic here"
+          # Example: Send to Slack, Discord, email, etc.

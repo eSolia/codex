@@ -1,0 +1,66 @@
+# eSolia Closing Fragment
+# Standard proposal closing and next steps
+
+id: esolia-closing
+title:
+  en: "In Closing"
+  ja: "最後に"
+type: proposal-section
+category: proposals
+tags: ["proposal", "closing", "next-steps"]
+versions:
+  current: "2025-12"
+
+content:
+  en: |
+    ## Next Steps
+
+    1. **Review** — Review this proposal and let us know any questions
+    2. **Discussion** — Schedule a call to discuss details
+    3. **Agreement** — We prepare the MSA and SoW documents
+    4. **Signatures** — Both parties sign
+    5. **Kickoff** — Begin onboarding
+
+    We are flexible and can adjust scope and terms based on your feedback.
+
+    ## In Closing
+
+    Thank you for considering eSolia. We look forward to supporting your IT needs in Japan.
+
+    Please contact us anytime with questions.
+
+    **eSolia Inc.**
+
+    Tel: 03-4577-3380
+    Email: info@esolia.co.jp
+    Web: https://esolia.com
+
+  ja: |
+    ## 次のステップ
+
+    1. **レビュー** — 本提案をご確認、ご質問をお知らせください
+    2. **ディスカッション** — 詳細を話し合う電話を設定
+    3. **契約書** — MSAとSoW文書を準備
+    4. **署名** — 両者で署名
+    5. **キックオフ** — オンボーディング開始
+
+    スコープと条件はフィードバックに基づいて柔軟に調整可能です。
+
+    ## 最後に
+
+    イソリアをご検討いただきありがとうございます。日本でのITニーズをサポートできることを楽しみにしております。
+
+    ご質問があればいつでもお気軽にお問い合わせください。
+
+    **株式会社イソリア**
+
+    Tel: 03-4577-3380
+    Email: info@esolia.co.jp
+    Web: https://esolia.co.jp
+
+metadata:
+  last_updated: "2025-12-27"
+  author: "eSolia Technical Team"
+  usage_notes: |
+    Standard closing for all proposals.
+    Updated phone number as of 2025.

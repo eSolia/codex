@@ -1,0 +1,78 @@
+# Cloudflare Security Platform Fragment
+# ═══════════════════════════════════════════════════════════════════════════════
+# Reusable product overview for proposals and documentation
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# IDENTITY
+id: cloudflare-security-platform
+category: products
+version: "2025-01"
+
+# METADATA
+title:
+  en: "Cloudflare Security Platform"
+  ja: "Cloudflare セキュリティプラットフォーム"
+
+type: product-overview
+
+tags:
+  - cloudflare
+  - zero-trust
+  - security
+  - dns
+  - warp
+  - waf
+
+# LIFECYCLE
+status: production
+created: "2025-12-27"
+modified: "2025-12-27"
+author: "rick.cogley@esolia.co.jp"
+reviewer: null
+review_due: "2026-03-27"
+
+# ACCESS CONTROL
+sensitivity: normal
+allowed_collections:
+  - proposals
+  - help
+  - concepts
+  - blog
+
+# CONTENT
+content:
+  en: |
+    **Secure DNS:** All internet traffic from company devices routes through
+    Cloudflare's network, blocking malicious websites, malware downloads, and
+    phishing sites before they can cause harm.
+
+    **Secure Website:** A professional marketing website hosted on Cloudflare
+    Pages, protected by their web application firewall and DDoS protection.
+    Fast, secure, and globally distributed.
+
+    **Secure Access:** Every PC and mobile device connects through an encrypted
+    tunnel, protecting your team whether they're in the office, at home, or on
+    client sites—without the complexity or cost of traditional methods.
+
+    What this means for you: **enterprise-grade network security without buying
+    equipment.** No firewall appliances to maintain, no network expertise required.
+    Your team simply enables "WARP" on their device, and they're protected. It
+    works the same whether they're at their desk or working from a coffee shop.
+
+  ja: |
+    **セキュアDNS:** 会社のデバイスからのすべてのインターネットトラフィックが
+    Cloudflareのネットワークを経由し、悪意のあるウェブサイト、マルウェアの
+    ダウンロード、フィッシングサイトを被害が発生する前にブロックします。
+
+    **セキュアウェブサイト:** Cloudflare Pagesでホストされるプロフェッショナル
+    なマーケティングウェブサイト。Webアプリケーションファイアウォールと
+    DDoS保護との組み合わせ。高速、安全、グローバルに分散されています。
+
+    **セキュアアクセス:** すべてのPCとモバイルデバイスが暗号化トンネルを経由
+    して接続され、オフィス、自宅、クライアント先のいずれにいてもチームを
+    保護します。従来の方法のような複雑さやコストはありません。
+
+    これが意味すること：**機器を購入することなくエンタープライズグレードの
+    ネットワークセキュリティを実現。** 維持管理が必要なファイアウォール機器も、
+    ネットワークの専門知識も不要です。チームはデバイスで「WARP」を有効にする
+    だけで保護されます。デスクでもカフェでも同じように機能します。

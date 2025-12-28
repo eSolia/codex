@@ -1,0 +1,108 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://yourorg.com/schemas/quiz-bank.json",
+  "title": "Quiz Question Bank",
+  "description": "Schema for quiz question bank YAML files",
+  "type": "object",
+  "required": ["id", "title", "questions"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]+$",
+      "description": "Unique bank identifier"
+    },
+    "title": {
+      "type": "string",
+      "description": "Display title for the question bank"
+    },
+    "description": {
+      "type": "string",
+      "description": "Description of what this quiz covers"
+    },
+    "difficulty": {
+      "type": "string",
+      "enum": ["beginner", "intermediate", "advanced", "mixed"],
+      "description": "Overall difficulty level"
+    },
+    "source_content": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Paths to source content documents"
+    },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Tags for categorization"
+    },
+    "questions": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/question" },
+      "minItems": 1
+    }
+  },
+  "definitions": {
+    "question": {
+      "type": "object",
+      "required": ["id", "type", "question", "correct"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]+$",
+          "description": "Unique question identifier"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["multiple-choice", "true-false", "scenario", "fill-blank"],
+          "description": "Question type"
+        },
+        "question": {
+          "type": "string",
+          "description": "The question text (supports markdown)"
+        },
+        "scenario": {
+          "type": "string",
+          "description": "Scenario context for scenario-type questions"
+        },
+        "options": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "text"],
+            "properties": {
+              "id": { "type": "string" },
+              "text": { "type": "string" }
+            }
+          },
+          "description": "Answer options (for multiple-choice)"
+        },
+        "correct": {
+          "oneOf": [
+            { "type": "string" },
+            { "type": "boolean" },
+            { "type": "array", "items": { "type": "string" } }
+          ],
+          "description": "Correct answer(s)"
+        },
+        "explanation": {
+          "type": "string",
+          "description": "Explanation shown after answering"
+        },
+        "reference": {
+          "type": "string",
+          "description": "Path to source content for this question"
+        },
+        "difficulty": {
+          "type": "string",
+          "enum": ["beginner", "intermediate", "advanced"],
+          "description": "Question difficulty"
+        },
+        "points": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 1,
+          "description": "Points awarded for correct answer"
+        }
+      }
+    }
+  }
+}

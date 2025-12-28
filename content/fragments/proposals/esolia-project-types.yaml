@@ -1,0 +1,86 @@
+# eSolia Project Types Fragment
+# Track record demonstrating breadth of experience
+
+id: esolia-project-types
+title:
+  en: "eSolia Project Types"
+  ja: "プロジェクト実績"
+type: proposal-section
+category: proposals
+tags: ["proposal", "projects", "experience"]
+versions:
+  current: "2025-12"
+
+content:
+  en: |
+    ## Track Record
+
+    Since 1999, we have successfully delivered projects across multiple industries including finance, legal, healthcare, manufacturing, and retail. Our experience spans:
+
+    **Office & Facilities**
+    - Office moves and setup (IT, security, AV)
+    - Data center construction and optimization
+    - Building power outage coordination (annual Japan requirement)
+
+    **Infrastructure & Security**
+    - Network design, implementation, upgrades
+    - Microsoft 365 deployment and management
+    - VPN and secure remote access
+    - Security assessments and compliance
+
+    **Compliance & Audit**
+    - SOX IT controls design, testing, documentation
+    - FDA/PMDA regulatory compliance support
+    - SSAE audit support for financial services
+
+    **Systems & Development**
+    - Enterprise software projects (ERP, CRM)
+    - Database development and migration
+    - Cloud PBX and video conferencing
+
+    **Ongoing Support**
+    - Helpdesk services (Tier 1, 2, 3)
+    - IT department interim management
+    - Co-support with client IT teams
+
+    For detailed success stories, visit: **https://esolia.com/success/**
+
+  ja: |
+    ## 実績
+
+    1999年以来、金融、法律、ヘルスケア、製造、小売など複数の業界でプロジェクトを成功裏に遂行してきました。経験分野は以下の通りです：
+
+    **オフィス・施設**
+    - オフィス移転・セットアップ（IT、セキュリティ、AV）
+    - データセンター構築・最適化
+    - ビル停電対応調整（日本の年次法定点検）
+
+    **インフラ・セキュリティ**
+    - ネットワーク設計、導入、アップグレード
+    - Microsoft 365展開・管理
+    - VPNおよびセキュアリモートアクセス
+    - セキュリティ評価とコンプライアンス
+
+    **コンプライアンス・監査**
+    - SOX IT統制の設計、テスト、文書化
+    - FDA/PMDA規制対応コンプライアンスサポート
+    - 金融サービス向けSSAE監査サポート
+
+    **システム・開発**
+    - エンタープライズソフトウェアプロジェクト（ERP、CRM）
+    - データベース開発・移行
+    - クラウドPBX・ビデオ会議
+
+    **継続サポート**
+    - ヘルプデスクサービス（ティア1、2、3）
+    - IT部門暫定管理
+    - クライアントITチームとの共同サポート
+
+    詳細な成功事例については、こちらをご覧ください: **https://esolia.co.jp/success/**
+
+metadata:
+  last_updated: "2025-12-27"
+  author: "eSolia Technical Team"
+  usage_notes: |
+    Condensed track record for proposals.
+    Directs to website for detailed success stories.

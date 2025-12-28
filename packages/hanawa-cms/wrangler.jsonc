@@ -1,0 +1,64 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "hanawa-cms",
+  "compatibility_date": "2024-12-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "pages_build_output_dir": ".svelte-kit/cloudflare",
+
+  // Custom domain: hanawa.esolia.co.jp
+  // Configure in Cloudflare Pages dashboard
+
+  // D1 Database for content, fragments, users
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "hanawa-db",
+      "database_id": "0b00e3b9-528c-4620-a7f8-c4cbba0dc62b"
+    }
+  ],
+
+  // R2 Bucket for published content and assets
+  "r2_buckets": [
+    {
+      "binding": "R2",
+      "bucket_name": "codex"
+    }
+  ],
+
+  // KV for sessions (optional, can use D1)
+  // "kv_namespaces": [
+  //   {
+  //     "binding": "SESSIONS",
+  //     "id": "YOUR_KV_NAMESPACE_ID"
+  //   }
+  // ],
+
+  // Workers AI for embeddings and generation
+  "ai": {
+    "binding": "AI"
+  },
+
+  // Vectorize for semantic search (create with: wrangler vectorize create codex-index --dimensions=768 --metric=cosine)
+  "vectorize": [
+    {
+      "binding": "VECTORIZE",
+      "index_name": "codex-index"
+    }
+  ],
+
+  // Environment variables
+  "vars": {
+    "ENVIRONMENT": "production"
+  },
+
+  // Cron triggers for scheduled publishing
+  // Runs every minute to check for due scheduled jobs
+  "triggers": {
+    "crons": ["* * * * *"]
+  }
+
+  // Secrets (set via wrangler secret put):
+  // - SESSION_SECRET
+  // - CLOUDFLARE_ACCESS_CLIENT_ID (if using Access)
+  // - CLOUDFLARE_ACCESS_CLIENT_SECRET
+}

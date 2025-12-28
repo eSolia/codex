@@ -1,0 +1,129 @@
+/**
+ * Callout Extension for Tiptap
+ * Renders alert blocks (info, warning, danger, success)
+ *
+ * Markdown syntax: :::type{title="..."}content:::
+ * InfoSec: No external dependencies, sanitized content rendering
+ */
+
+import { Node, mergeAttributes } from "@tiptap/core";
+
+export type CalloutType = "info" | "warning" | "danger" | "success";
+
+export interface CalloutOptions {
+  HTMLAttributes: Record<string, unknown>;
+  types: CalloutType[];
+}
+
+declare module "@tiptap/core" {
+  interface Commands<ReturnType> {
+    callout: {
+      setCallout: (type: CalloutType, title?: string) => ReturnType;
+      toggleCallout: (type: CalloutType) => ReturnType;
+      unsetCallout: () => ReturnType;
+    };
+  }
+}
+
+export const Callout = Node.create<CalloutOptions>({
+  name: "callout",
+
+  addOptions() {
+    return {
+      HTMLAttributes: {},
+      types: ["info", "warning", "danger", "success"],
+    };
+  },
+
+  group: "block",
+
+  content: "block+",
+
+  defining: true,
+
+  addAttributes() {
+    return {
+      type: {
+        default: "info",
+        parseHTML: (element) =>
+          element.getAttribute("data-callout-type") || "info",
+        renderHTML: (attributes) => ({
+          "data-callout-type": attributes.type,
+        }),
+      },
+      title: {
+        default: null,
+        parseHTML: (element) => element.getAttribute("data-callout-title"),
+        renderHTML: (attributes) =>
+          attributes.title
+            ? { "data-callout-title": attributes.title }
+            : {},
+      },
+    };
+  },
+
+  parseHTML() {
+    return [
+      {
+        tag: 'div[data-callout-type]',
+      },
+    ];
+  },
+
+  renderHTML({ node, HTMLAttributes }) {
+    const type = node.attrs.type as CalloutType;
+    const title = node.attrs.title;
+
+    const typeClasses: Record<CalloutType, string> = {
+      info: "callout-info border-blue-500 bg-blue-50",
+      warning: "callout-warning border-yellow-500 bg-yellow-50",
+      danger: "callout-danger border-red-500 bg-red-50",
+      success: "callout-success border-green-500 bg-green-50",
+    };
+
+    return [
+      "div",
+      mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, {
+        class: `callout ${typeClasses[type]} border-l-4 p-4 my-4 rounded-r`,
+        "data-callout-type": type,
+        "data-callout-title": title || undefined,
+      }),
+      title
+        ? [
+            "div",
+            { class: "callout-title font-semibold mb-2" },
+            title,
+          ]
+        : "",
+      ["div", { class: "callout-content" }, 0],
+    ];
+  },
+
+  addCommands() {
+    return {
+      setCallout:
+        (type: CalloutType, title?: string) =>
+        ({ commands }) => {
+          return commands.wrapIn(this.name, { type, title });
+        },
+      toggleCallout:
+        (type: CalloutType) =>
+        ({ commands }) => {
+          return commands.toggleWrap(this.name, { type });
+        },
+      unsetCallout:
+        () =>
+        ({ commands }) => {
+          return commands.lift(this.name);
+        },
+    };
+  },
+
+  addKeyboardShortcuts() {
+    return {
+      "Mod-Shift-c": () => this.editor.commands.toggleCallout("info"),
+    };
+  },
+});
+
+export default Callout;

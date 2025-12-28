@@ -1,0 +1,146 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://codex.esolia.pro/schemas/fragment.json",
+  "title": "Codex Fragment",
+  "description": "Schema for validating Codex content fragments",
+  "type": "object",
+  "required": ["id", "category", "version", "title", "type", "status", "content"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]+$",
+      "description": "Unique, URL-safe identifier (lowercase, hyphen-separated)"
+    },
+    "category": {
+      "type": "string",
+      "enum": ["products", "services", "comparisons", "diagrams", "boilerplate", "pricing"],
+      "description": "Fragment category (must match parent directory)"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}(-v[0-9]+)?$",
+      "description": "CalVer version: YYYY-MM or YYYY-MM-vN"
+    },
+    "title": {
+      "type": "object",
+      "required": ["en", "ja"],
+      "properties": {
+        "en": {
+          "type": "string",
+          "minLength": 1,
+          "description": "English title"
+        },
+        "ja": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Japanese title"
+        }
+      },
+      "additionalProperties": false
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "product-overview",
+        "service-description",
+        "comparison",
+        "diagram",
+        "boilerplate",
+        "pricing-table"
+      ],
+      "description": "Type of fragment content"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9-]+$"
+      },
+      "description": "Lowercase, hyphen-separated tags for discovery"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["draft", "review", "production", "deprecated"],
+      "description": "Lifecycle status"
+    },
+    "created": {
+      "type": "string",
+      "format": "date",
+      "description": "Creation date (ISO 8601)"
+    },
+    "modified": {
+      "type": "string",
+      "format": "date",
+      "description": "Last modification date (ISO 8601)"
+    },
+    "author": {
+      "type": "string",
+      "format": "email",
+      "description": "Author email address"
+    },
+    "reviewer": {
+      "type": ["string", "null"],
+      "format": "email",
+      "description": "Reviewer email address (null if not in review)"
+    },
+    "review_due": {
+      "type": "string",
+      "format": "date",
+      "description": "Next review due date (ISO 8601)"
+    },
+    "sensitivity": {
+      "type": "string",
+      "enum": ["normal", "internal", "confidential"],
+      "default": "normal",
+      "description": "Access control level"
+    },
+    "allowed_collections": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Document types allowed to reference this fragment"
+    },
+    "content": {
+      "type": "object",
+      "required": ["en", "ja"],
+      "properties": {
+        "en": {
+          "type": "string",
+          "minLength": 10,
+          "description": "English content (Markdown)"
+        },
+        "ja": {
+          "type": "string",
+          "minLength": 10,
+          "description": "Japanese content (Markdown)"
+        }
+      },
+      "additionalProperties": false
+    },
+    "diagram": {
+      "type": "object",
+      "properties": {
+        "format": {
+          "type": "string",
+          "enum": ["mermaid", "svg", "png"],
+          "description": "Diagram format"
+        },
+        "source": {
+          "type": "string",
+          "description": "Diagram source code (for mermaid) or path (for svg/png)"
+        }
+      },
+      "required": ["format", "source"],
+      "description": "Diagram specification (only for type: diagram)"
+    }
+  },
+  "if": {
+    "properties": {
+      "type": { "const": "diagram" }
+    }
+  },
+  "then": {
+    "required": ["diagram"]
+  }
+}

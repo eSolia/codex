@@ -1,0 +1,105 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+/* eSolia Brand Colors */
+@theme {
+  --color-esolia-navy: #2d2f63;
+  --color-esolia-orange: #ffbc68;
+  --color-esolia-cream: #fffad7;
+  --color-esolia-emerald: #10b981;
+  --color-esolia-sky: #0ea5e9;
+  --color-esolia-fuchsia: #d946ef;
+}
+
+/* IBM Plex Sans fonts */
+@font-face {
+  font-family: "IBM Plex Sans";
+  font-style: normal;
+  font-weight: 400;
+  src: url("https://fonts.gstatic.com/s/ibmplexsans/v19/zYXgKVElMYYaJe8bpLHnCwDKtdbUFI5NadY.woff2")
+    format("woff2");
+}
+
+@font-face {
+  font-family: "IBM Plex Sans";
+  font-style: normal;
+  font-weight: 500;
+  src: url("https://fonts.gstatic.com/s/ibmplexsans/v19/zYX9KVElMYYaJe8bpLHnCwDKjSL9AIFsdP3pBms.woff2")
+    format("woff2");
+}
+
+@font-face {
+  font-family: "IBM Plex Sans";
+  font-style: normal;
+  font-weight: 600;
+  src: url("https://fonts.gstatic.com/s/ibmplexsans/v19/zYX9KVElMYYaJe8bpLHnCwDKjQ76AIFsdP3pBms.woff2")
+    format("woff2");
+}
+
+/* Base styles */
+body {
+  font-family:
+    "IBM Plex Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+}
+
+/* Tiptap editor styles */
+.tiptap {
+  @apply prose prose-lg max-w-none focus:outline-none;
+  min-height: 400px;
+  padding: 1rem;
+}
+
+.tiptap p.is-editor-empty:first-child::before {
+  @apply text-gray-400 pointer-events-none float-left h-0;
+  content: attr(data-placeholder);
+}
+
+/* Callout styles for editor */
+.tiptap .callout {
+  @apply p-4 my-4 rounded-lg border-l-4;
+}
+
+.tiptap .callout.info {
+  @apply bg-blue-50 border-blue-500;
+}
+
+.tiptap .callout.warning {
+  @apply bg-amber-50 border-amber-500;
+}
+
+.tiptap .callout.danger {
+  @apply bg-red-50 border-red-500;
+}
+
+.tiptap .callout.success {
+  @apply bg-emerald-50 border-emerald-500;
+}
+
+/* Fragment reference in editor */
+.tiptap .fragment-ref {
+  @apply inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-800 rounded text-sm font-mono;
+}
+
+/* Status badge in editor */
+.tiptap .status-badge {
+  @apply inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium;
+}
+
+.tiptap .status-badge.compliant {
+  @apply bg-emerald-100 text-emerald-800;
+}
+
+.tiptap .status-badge.non-compliant {
+  @apply bg-red-100 text-red-800;
+}
+
+.tiptap .status-badge.in-progress {
+  @apply bg-amber-100 text-amber-800;
+}
+
+.tiptap .status-badge.pending-review {
+  @apply bg-blue-100 text-blue-800;
+}

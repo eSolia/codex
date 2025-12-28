@@ -1,0 +1,16 @@
+# Codex Development Variables
+# Copy to .dev.vars and fill in your values
+
+# PDF Worker Configuration
+# Used by scripts/proposal.ts for PDF generation
+PDF_WORKER_URL=https://pdf.esolia.co.jp
+PDF_API_KEY=your-pdf-api-key-here
+
+# The PDF_API_KEY is the shared secret configured in the pdf-worker.
+# Get this from the team or generate a new one if deploying the worker:
+#   openssl rand -hex 32
+
+# For local development, you can run the pdf-worker locally:
+#   cd packages/pdf-worker && npm run dev
+# Then use:
+#   PDF_WORKER_URL=http://localhost:8787

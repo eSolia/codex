@@ -1,0 +1,99 @@
+# Client Code Registry
+# ═══════════════════════════════════════════════════════════════════════════════
+# Maps client codes to allowed domains for recipient validation.
+# Copy to client-registry.yaml and customize (gitignored for privacy).
+# ═══════════════════════════════════════════════════════════════════════════════
+
+clients:
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Active Clients
+  # ─────────────────────────────────────────────────────────────────────────────
+
+  ACME:
+    name_en: "Acme Corporation"
+    name_ja: "アクメ株式会社"
+    allowed_domains:
+      - acme.com
+      - acme.co.jp
+    contacts:
+      - john.smith@acme.com
+    status: active
+    created: "2020-03-15"
+    notes: "Example client - replace with actual data"
+
+  JAC:
+    name_en: "Japan Activation Capital, Inc."
+    name_ja: "ジャパン・アクティベーション・キャピタル株式会社"
+    allowed_domains:
+      - japanactivationcapital.com
+    contacts:
+      - hotsuka@japanactivationcapital.com
+      - ysaegusa@japanactivationcapital.com
+      - ksatake@japanactivationcapital.com
+    status: active
+    created: "2024-10-01"
+
+  NQNJ:
+    name_en: "Norqain Japan K.K."
+    name_ja: "ノルケイン・ジャパン株式会社"
+    allowed_domains:
+      - norqain.co.jp
+      - norqain.com
+    status: active
+    created: "2025-12-01"
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Internal
+  # ─────────────────────────────────────────────────────────────────────────────
+
+  INT:
+    name_en: "eSolia Internal"
+    name_ja: "イソリア社内"
+    allowed_domains:
+      - esolia.co.jp
+      - esolia.com
+    internal: true
+    status: active
+    notes: "Used for internal documents, SOPs, templates"
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Archived/Inactive (for reference)
+  # ─────────────────────────────────────────────────────────────────────────────
+
+  # OLDCLIENT:
+  #   name_en: "Former Client Inc."
+  #   name_ja: "旧クライアント株式会社"
+  #   allowed_domains:
+  #     - oldclient.com
+  #   status: archived
+  #   archived_date: "2024-06-30"
+  #   notes: "Contract ended June 2024"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Aliases
+# ─────────────────────────────────────────────────────────────────────────────
+# Common variations or full names that map to official codes
+
+aliases:
+  JAPAN-ACTIVATION: JAC
+  JAPAN_ACTIVATION: JAC
+  NORQAIN: NQNJ
+  NORQAIN-JAPAN: NQNJ
+  ESOLIA: INT
+  INTERNAL: INT
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Global Settings
+# ─────────────────────────────────────────────────────────────────────────────
+
+settings:
+  # Domains that are always allowed regardless of client code
+  always_allowed_domains:
+    - esolia.co.jp
+    - esolia.com
+
+  # Default behavior when client code not found
+  unknown_client_action: warn  # 'warn' | 'block' | 'allow'
+
+  # Strict mode for confidential documents
+  confidential_strict_mode: true

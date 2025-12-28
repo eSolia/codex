@@ -1,0 +1,85 @@
+# eSolia Support Types Fragment
+# TotalSupport vs Co-Support comparison
+
+id: esolia-support-types
+title:
+  en: "Support Types"
+  ja: "サポートの種類"
+type: proposal-section
+category: proposals
+tags: ["proposal", "support", "totalsupport", "co-support"]
+versions:
+  current: "2025-12"
+
+content:
+  en: |
+    ## Support Models
+
+    We offer two primary support models:
+
+    ### Comparison
+
+    | Feature | TotalSupport | Co-Support |
+    |---------|--------------|------------|
+    | **Nature** | Proactive, SLA-based | Request-based, flexible |
+    | **Rate Structure** | Role-based rates | Blended rate |
+    | **User Contact** | Direct user support | Via designated contact |
+    | **Meetings** | 2x per month | 1x per month |
+    | **Best For** | Full IT coverage | IT team augmentation |
+
+    ### TotalSupport
+
+    Comprehensive IT coverage for organizations without dedicated local IT:
+
+    - Regular scheduled support and availability
+    - Project work at agreed rates
+    - Vendor coordination and procurement
+    - User onboarding and training
+
+    ### Co-Support
+
+    Flexible support for organizations with existing IT staff:
+
+    - On-demand assistance
+    - Skill augmentation for gaps
+    - Project surge capacity
+    - Knowledge transfer
+
+  ja: |
+    ## サポートモデル
+
+    2つの主要なサポートモデルを提供しています：
+
+    ### 比較
+
+    | 特徴 | TotalSupport | Co-Support |
+    |------|--------------|------------|
+    | **性質** | プロアクティブ、SLAベース | リクエストベース、柔軟 |
+    | **レート体系** | 役割別レート | ブレンドレート |
+    | **ユーザー対応** | 直接ユーザーサポート | 指定連絡先経由 |
+    | **ミーティング** | 月2回 | 月1回 |
+    | **最適な用途** | フルITカバレッジ | ITチーム補強 |
+
+    ### TotalSupport
+
+    専任ローカルITがない組織向けの包括的ITカバレッジ：
+
+    - 定期的なスケジュールサポートと対応
+    - 合意レートでのプロジェクト作業
+    - ベンダー調整と調達
+    - ユーザーオンボーディングとトレーニング
+
+    ### Co-Support
+
+    既存ITスタッフがいる組織向けの柔軟なサポート：
+
+    - オンデマンド支援
+    - ギャップを埋めるスキル補完
+    - プロジェクト増員キャパシティ
+    - ナレッジトランスファー
+
+metadata:
+  last_updated: "2025-12-27"
+  author: "eSolia Technical Team"
+  usage_notes: |
+    Use when explaining support model options.

@@ -1,0 +1,72 @@
+# eSolia Background Fragment
+# How we work - team approach and focus areas
+
+id: esolia-background
+title:
+  en: "eSolia Background"
+  ja: "イソリア バックグラウンド"
+type: proposal-section
+category: proposals
+tags: ["proposal", "background", "approach"]
+versions:
+  current: "2025-12"
+
+content:
+  en: |
+    ## How We Work
+
+    eSolia functions as a **virtual IT department** for our clients. We provide the full range of skills typically found in an internal IT team—from daily support and helpdesk to infrastructure, security, and project management.
+
+    ### Our Approach
+
+    **Quality over quantity** — We focus on delivering real value, not just completing tasks. Our goal is to solve your actual business problems, not just provide generic IT services.
+
+    **Team-based coverage** — We never send a single engineer. Your dedicated team has complementary skills covering all typical IT department functions, ensuring continuity and comprehensive support.
+
+    **Your problems, our focus** — We work as an extension of your team, following your policies and adapting to your environment while bringing our expertise and experience.
+
+    **Clear communication** — With bilingual professionals experienced in both Japanese and Western business cultures, we bridge the gap between headquarters and local operations.
+
+    ### Areas of Focus
+
+    | Area | Description |
+    |------|-------------|
+    | **Operations** | Helpdesk, user support, day-to-day IT operations |
+    | **Infrastructure** | Networks, servers, cloud services, security |
+    | **Management** | Project management, vendor coordination, budgeting |
+    | **Governance** | IT strategy, policy, compliance, risk management |
+
+    We adjust emphasis across these areas based on your specific requirements.
+
+  ja: |
+    ## 私たちの働き方
+
+    イソリアは、お客様の**バーチャルIT部門**として機能します。日常サポートやヘルプデスクからインフラ、セキュリティ、プロジェクト管理まで、社内ITチームに通常求められるあらゆるスキルを提供します。
+
+    ### アプローチ
+
+    **量より質** — タスクをこなすだけでなく、真の価値を提供することに注力します。一般的なITサービスではなく、お客様の実際のビジネス課題を解決することが目標です。
+
+    **チームベースのカバレッジ** — 単独のエンジニアは派遣しません。お客様専任のチームが補完的なスキルを持ち、IT部門の全機能をカバーし、継続性と包括的なサポートを確保します。
+
+    **お客様の課題に集中** — お客様のチームの延長として、お客様のポリシーに従い環境に適応しながら、私たちの専門知識と経験を活かします。
+
+    **明確なコミュニケーション** — 日本とウェスタンの両方のビジネス文化に精通したバイリンガルプロフェッショナルが、本社と現地拠点の橋渡しをします。
+
+    ### 注力分野
+
+    | 分野 | 説明 |
+    |------|------|
+    | **オペレーション** | ヘルプデスク、ユーザーサポート、日常IT運用 |
+    | **インフラストラクチャ** | ネットワーク、サーバー、クラウドサービス、セキュリティ |
+    | **マネジメント** | プロジェクト管理、ベンダー調整、予算管理 |
+    | **ガバナンス** | IT戦略、ポリシー、コンプライアンス、リスク管理 |
+
+    お客様の具体的なご要望に応じて、各分野への注力度を調整します。
+
+metadata:
+  last_updated: "2025-12-27"
+  author: "eSolia Technical Team"
+  usage_notes: |
+    Explains eSolia's team approach and focus areas.
+    Aligned with 2025 website messaging.

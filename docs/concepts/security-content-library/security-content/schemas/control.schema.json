@@ -1,0 +1,90 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://yourorg.com/schemas/control.json",
+  "title": "Control Document",
+  "description": "Schema for Pulse compliance control documents",
+  "type": "object",
+  "required": [
+    "id",
+    "framework",
+    "category",
+    "severity",
+    "keywords"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]+$",
+      "description": "Unique identifier (kebab-case)"
+    },
+    "framework": {
+      "type": "string",
+      "description": "Parent framework, e.g., 'm365-security-baseline', 'iso27001-2022'"
+    },
+    "category": {
+      "type": "string",
+      "description": "Control category, e.g., 'identity', 'data', 'devices'"
+    },
+    "control_family": {
+      "type": "string",
+      "description": "Control family, e.g., 'authentication', 'encryption'"
+    },
+    "severity": {
+      "type": "string",
+      "enum": ["critical", "high", "medium", "low"],
+      "description": "How important is this control"
+    },
+    "effort": {
+      "type": "string",
+      "enum": ["low", "medium", "high"],
+      "description": "Implementation effort"
+    },
+    "keywords": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1,
+      "description": "Keywords for search/retrieval"
+    },
+    "related_controls": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "IDs of related control documents"
+    },
+    "maps_to": {
+      "type": "object",
+      "description": "Mapping to other frameworks",
+      "properties": {
+        "iso27001": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "nist": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "cis": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "soc2": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "products": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["periodic", "pulse", "quiz", "nexus"]
+      },
+      "default": ["pulse"],
+      "description": "Which products use this content"
+    },
+    "last_updated": {
+      "type": "string",
+      "format": "date",
+      "description": "Last update date (YYYY-MM-DD)"
+    }
+  }
+}

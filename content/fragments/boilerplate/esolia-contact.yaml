@@ -1,0 +1,57 @@
+# eSolia Contact Information Fragment
+# ═══════════════════════════════════════════════════════════════════════════════
+# Standard contact block for proposals and documents
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# IDENTITY
+id: esolia-contact
+category: boilerplate
+version: '2025-01'
+
+# METADATA
+title:
+  en: 'eSolia Contact Information'
+  ja: 'イソリア お問い合わせ'
+
+type: boilerplate
+
+tags:
+  - contact
+  - esolia
+  - company-info
+
+# LIFECYCLE
+status: production
+created: '2025-12-27'
+modified: '2025-12-27'
+author: 'rick.cogley@esolia.co.jp'
+reviewer: null
+review_due: '2026-06-27'
+
+# ACCESS CONTROL
+sensitivity: normal
+allowed_collections:
+  - proposals
+  - reports
+  - help
+
+# CONTENT
+content:
+  en: |
+    **eSolia Inc.**
+    Shiodome City Center 5F (Work Styling)
+    1-5-2 Higashi-Shimbashi, Minato-ku
+    Tokyo 105-7105, Japan
+
+    **Tel:** +81-3-4577-3380
+    **Web:** https://esolia.co.jp/en
+    **Email:** hello@esolia.co.jp
+
+  ja: |
+    **株式会社イソリア**
+    〒105-7105　東京都港区東新橋一丁目５番２号
+    汐留シティセンター５階（Work Styling）
+
+    **Tel (代表):** +81-3-4577-3380
+    **Web:** https://esolia.co.jp
+    **Email:** hello@esolia.co.jp
