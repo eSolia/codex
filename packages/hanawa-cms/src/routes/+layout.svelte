@@ -3,14 +3,18 @@
   import CommandPalette from '$lib/components/CommandPalette.svelte';
   import KeyboardShortcuts from '$lib/components/KeyboardShortcuts.svelte';
   import RocketLaunch from 'phosphor-svelte/lib/RocketLaunch';
+  import ShieldCheck from 'phosphor-svelte/lib/ShieldCheck';
+  import Lock from 'phosphor-svelte/lib/Lock';
 
   let { children } = $props();
 
   let commandPaletteOpen = $state(false);
   let shortcutsOpen = $state(false);
+
+  const currentYear = new Date().getFullYear();
 </script>
 
-<div class="min-h-screen bg-gray-50">
+<div class="min-h-screen bg-gray-50 flex flex-col">
   <!-- Top Navigation -->
   <nav class="bg-rose-600 text-white shadow-lg">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -84,9 +88,92 @@
   </nav>
 
   <!-- Main Content -->
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <main class="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
     {@render children()}
   </main>
+
+  <!-- Footer -->
+  <footer class="bg-zinc-800 text-zinc-300 mt-auto">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <!-- eSolia Brand -->
+        <div>
+          <div class="flex items-center gap-2 mb-3">
+            <img
+              src="https://esolia.com/img/eSolia-Logo-Color.svg"
+              alt="eSolia Inc."
+              class="h-6 w-auto brightness-0 invert"
+            />
+          </div>
+          <p class="text-sm text-zinc-400">
+            Enterprise content management for compliance documentation and knowledge sharing.
+          </p>
+          <p class="text-xs text-zinc-500 mt-2">
+            &copy; {currentYear} eSolia Inc. All rights reserved.
+          </p>
+        </div>
+
+        <!-- Security & Compliance -->
+        <div>
+          <h3 class="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+            <ShieldCheck size={18} weight="duotone" />
+            Security & Compliance
+          </h3>
+          <ul class="space-y-2 text-sm text-zinc-400">
+            <li class="flex items-center gap-2">
+              <Lock size={14} class="text-zinc-500" />
+              Cloudflare Access protected
+            </li>
+            <li class="flex items-center gap-2">
+              <Lock size={14} class="text-zinc-500" />
+              All data encrypted at rest
+            </li>
+            <li class="flex items-center gap-2">
+              <Lock size={14} class="text-zinc-500" />
+              Full audit trail logging
+            </li>
+            <li class="flex items-center gap-2">
+              <Lock size={14} class="text-zinc-500" />
+              ISO 27001 aligned controls
+            </li>
+          </ul>
+        </div>
+
+        <!-- Product Info -->
+        <div>
+          <h3 class="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+            <RocketLaunch size={18} weight="duotone" />
+            Hanawa CMS
+          </h3>
+          <p class="text-sm text-zinc-400 mb-2">
+            Part of the eSolia Codex knowledge platform.
+          </p>
+          <p class="text-xs text-zinc-500">
+            Named after Hanawa Hokiichi (塙保己一), the blind scholar who compiled 1,273 classical texts.
+          </p>
+          <div class="mt-3 flex items-center gap-3">
+            <a
+              href="https://esolia.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-xs text-zinc-400 hover:text-white transition-colors"
+            >
+              esolia.com
+            </a>
+            <span class="text-zinc-600">•</span>
+            <a
+              href="https://esolia.co.jp"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-xs text-zinc-400 hover:text-white transition-colors"
+            >
+              esolia.co.jp
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
 </div>
 
 <!-- Command Palette (Global) -->
