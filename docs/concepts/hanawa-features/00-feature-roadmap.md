@@ -179,21 +179,22 @@ Each specification follows a consistent structure:
 
 | # | Document | Status | Category |
 |---|----------|--------|----------|
-| 01 | [Audit System](./01-audit-system.md) | Ready | Foundation |
-| 02 | [Version Control](./02-version-control.md) | Ready | Foundation |
-| 03 | [Real-time Collaboration](./03-realtime-collaboration.md) | Ready | Collaboration |
-| 04 | [Comments System](./04-comments-system.md) | Ready | Collaboration |
-| 05 | [Workflow Engine](./05-workflow-engine.md) | Ready | Workflow |
-| 06 | [Scheduled Publishing](./06-scheduled-publishing.md) | Ready | Workflow |
-| 07 | [Localization](./07-localization.md) | Ready | Localization |
-| 08 | [AI Assistant](./08-ai-assistant.md) | Ready | Intelligence |
-| 09 | [Codex Integration](./09-codex-integration.md) | Ready | Intelligence |
-| 10 | [Media Library](./10-media-library.md) | Ready | Polish |
-| 11 | [Webhooks & Integrations](./11-webhooks-integrations.md) | Ready | Polish |
-| 12 | [Editor Productivity](./12-editor-productivity.md) | Ready | Polish |
-| 13 | [Content Intelligence](./13-content-intelligence.md) | Ready | Polish |
-| 14 | [Preview Deployments](./14-preview-deployments.md) | Ready | Polish |
-| 15 | [Delivery API](./15-delivery-api.md) | Ready | Polish |
+| 01 | [Audit System](./01-audit-system.md) | ✅ Implemented | Foundation |
+| 02 | [Version Control](./02-version-control.md) | ✅ Implemented | Foundation |
+| 03 | [Real-time Collaboration](./03-realtime-collaboration.md) | ⏳ Planned | Collaboration |
+| 04 | [Comments System](./04-comments-system.md) | ✅ Implemented | Collaboration |
+| 05 | [Workflow Engine](./05-workflow-engine.md) | ✅ Implemented | Workflow |
+| 06 | [Scheduled Publishing](./06-scheduled-publishing.md) | ✅ Implemented | Workflow |
+| 07 | [Localization](./07-localization.md) | ✅ Implemented | Localization |
+| 08 | [AI Assistant](./08-ai-assistant.md) | ✅ Implemented | Intelligence |
+| 09 | [Codex Integration](./09-codex-integration.md) | ✅ Implemented | Intelligence |
+| 10 | [Media Library](./10-media-library.md) | ✅ Implemented | Polish |
+| 11 | [Webhooks & Integrations](./11-webhooks-integrations.md) | ⏳ Planned | Polish |
+| 12 | [Editor Productivity](./12-editor-productivity.md) | ✅ Implemented | Polish |
+| 13 | [Content Intelligence](./13-content-intelligence.md) | ✅ Implemented | Polish |
+| 14 | [Preview Deployments](./14-preview-deployments.md) | ✅ Implemented | Polish |
+| 15 | [Delivery API](./15-delivery-api.md) | ⏳ Planned | Polish |
+| 16 | [Block Editor](./16-block-editor.md) | ✅ Implemented | Core |
 
 ---
 
@@ -216,5 +217,10 @@ Each document is self-contained with enough context for focused implementation.
 
 ---
 
-*Document version: 1.0*
+*Document version: 1.1*
 *Last updated: December 2025*
+
+### Implementation Progress Legend
+- ✅ Implemented — Feature is complete and in production
+- 🔶 Partial — Some components implemented, others planned
+- ⏳ Planned — Specification ready, awaiting implementation

@@ -2,6 +2,20 @@
 
 Power-user features for faster content creation.
 
+## Implementation Status
+
+| Feature | Status | Location |
+|---------|--------|----------|
+| Command Palette (⌘K) | ✅ Implemented | `lib/components/CommandPalette.svelte` |
+| Keyboard Shortcuts Modal | ✅ Implemented | `lib/components/KeyboardShortcuts.svelte` |
+| Autosave with Indicator | ✅ Implemented | `lib/components/editor/SaveIndicator.svelte` |
+| Reading Time Estimate | ✅ Implemented | `lib/components/editor/HanawaEditor.svelte` |
+| Focus Mode | ⏳ Planned | - |
+| Recent Documents | ⏳ Planned | - |
+| Favorites | ⏳ Planned | - |
+| Bulk Operations | ⏳ Planned | - |
+| Saved Views | ⏳ Planned | - |
+
 ## Overview
 
 Productivity features reduce friction and make the CMS feel fast.
@@ -361,4 +375,34 @@ CREATE TABLE saved_views (
 
 ---
 
-*Document version: 1.0*
+## Implementation Notes
+
+### Command Palette (Implemented Dec 2025)
+
+The command palette opens with ⌘K and provides:
+- Navigation commands (Dashboard, Content, Fragments, Sites, Assets)
+- Create commands (new document, new fragment)
+- Action commands (toggle theme, keyboard shortcuts)
+- Keyboard navigation (↑↓ to navigate, Enter to select, Esc to close)
+- Fuzzy search across command titles and keywords
+- Grouped display by category
+
+### Autosave System (Implemented Dec 2025)
+
+Integrated into HanawaEditor with:
+- Configurable delay (`autosaveDelay` prop, default 2000ms)
+- Status indicator showing: idle, saving, saved (with timestamp), unsaved, error
+- Manual save with ⌘S that uses the same save mechanism
+- Reading time estimate in footer (based on 200 words/minute)
+
+### Keyboard Shortcuts Modal (Implemented Dec 2025)
+
+- Opens with `?` key from anywhere (except input fields)
+- Displays shortcuts grouped by: Global, Navigation, Text Formatting, Blocks, Editor
+- Two-column responsive layout
+- Closes with Esc or clicking backdrop
+
+---
+
+*Document version: 1.1*
+*Last updated: December 2025*
