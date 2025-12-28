@@ -1,5 +1,4 @@
-@import "tailwindcss";
-@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap");
+@import 'tailwindcss';
 @plugin "@tailwindcss/typography";
 
 /* eSolia Brand Colors */
@@ -11,21 +10,74 @@
   --color-esolia-sky: #0ea5e9;
   --color-esolia-fuchsia: #d946ef;
 
-  /* Codex Theme - Rose accent */
+  /* Codex/Hanawa Theme - Rose with complementary colors */
   --color-codex-rose: #e11d48;
   --color-codex-rose-light: #fda4af;
   --color-codex-rose-dark: #9f1239;
   --color-codex-bg: #fff1f2;
   --color-codex-surface: #ffe4e6;
+
+  /* Complementary accents for rose */
+  --color-accent-slate: #475569;
+  --color-accent-zinc: #3f3f46;
+  --color-accent-teal: #0d9488;
+  --color-accent-amber: #d97706;
 }
 
 /* Base styles */
-body {
-  font-family:
-    "IBM Plex Sans",
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
+@layer base {
+  @font-face {
+    font-family: 'IBM Plex Sans';
+    font-display: swap;
+    src: url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+  }
+
+  body {
+    font-family:
+      'IBM Plex Sans',
+      -apple-system,
+      BlinkMacSystemFont,
+      sans-serif;
+  }
+
+  /* Form element base styles - bits-ui polish */
+  input[type='text'],
+  input[type='email'],
+  input[type='password'],
+  input[type='number'],
+  input[type='search'],
+  input[type='url'],
+  input[type='tel'],
+  input[type='date'],
+  input[type='datetime-local'],
+  textarea,
+  select {
+    @apply px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg;
+    @apply placeholder:text-gray-400;
+    @apply focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500;
+    @apply disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed;
+    @apply transition-colors duration-150;
+  }
+
+  /* Checkbox and radio base */
+  input[type='checkbox'],
+  input[type='radio'] {
+    @apply h-4 w-4 rounded border-gray-300 text-rose-600;
+    @apply focus:ring-2 focus:ring-rose-500/20 focus:ring-offset-0;
+  }
+
+  input[type='radio'] {
+    @apply rounded-full;
+  }
+
+  /* Select arrow styling */
+  select {
+    @apply appearance-none bg-no-repeat;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.5rem center;
+    background-size: 1.5em 1.5em;
+    padding-right: 2.5rem;
+  }
 }
 
 /* Tiptap editor styles */
@@ -219,16 +271,16 @@ body {
 }
 
 /* Tippy theme for slash menu */
-.tippy-box[data-theme~="slash-menu"] {
+.tippy-box[data-theme~='slash-menu'] {
   background: transparent;
   padding: 0;
 }
 
-.tippy-box[data-theme~="slash-menu"] > .tippy-content {
+.tippy-box[data-theme~='slash-menu'] > .tippy-content {
   padding: 0;
 }
 
-.tippy-box[data-theme~="slash-menu"] > .tippy-arrow {
+.tippy-box[data-theme~='slash-menu'] > .tippy-arrow {
   display: none;
 }
 
@@ -245,19 +297,19 @@ body {
   transition-property: transform, visibility, opacity;
 }
 
-.tippy-box[data-placement^="top"] > .tippy-arrow {
+.tippy-box[data-placement^='top'] > .tippy-arrow {
   bottom: 0;
 }
 
-.tippy-box[data-placement^="bottom"] > .tippy-arrow {
+.tippy-box[data-placement^='bottom'] > .tippy-arrow {
   top: 0;
 }
 
-.tippy-box[data-placement^="left"] > .tippy-arrow {
+.tippy-box[data-placement^='left'] > .tippy-arrow {
   right: 0;
 }
 
-.tippy-box[data-placement^="right"] > .tippy-arrow {
+.tippy-box[data-placement^='right'] > .tippy-arrow {
   left: 0;
 }
 
@@ -268,7 +320,7 @@ body {
 }
 
 .tippy-arrow::before {
-  content: "";
+  content: '';
   position: absolute;
   border-color: transparent;
   border-style: solid;
@@ -279,4 +331,3 @@ body {
   padding: 5px 9px;
   z-index: 1;
 }
-// Trigger deploy
