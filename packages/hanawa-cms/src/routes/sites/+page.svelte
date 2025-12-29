@@ -39,14 +39,6 @@
               <h3 class="text-lg font-semibold text-gray-900">{site.name}</h3>
               <p class="text-sm text-gray-500 mt-1">{site.slug}</p>
             </div>
-            <span
-              class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                {site.status === 'active'
-                ? 'bg-green-100 text-green-800'
-                : 'bg-gray-100 text-gray-800'}"
-            >
-              {site.status}
-            </span>
           </div>
           {#if site.domain}
             <p class="mt-3 text-sm text-esolia-navy">

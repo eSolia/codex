@@ -15,7 +15,7 @@ export const load: PageServerLoad = async ({ platform }) => {
   try {
     const result = await db
       .prepare(
-        `SELECT id, name, slug, domain, description, status, created_at, updated_at
+        `SELECT id, name, slug, domain, description, default_language, created_at, updated_at
          FROM sites
          ORDER BY name ASC`
       )

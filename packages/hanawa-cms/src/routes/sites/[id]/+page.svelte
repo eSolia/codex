@@ -5,6 +5,7 @@
   import Article from 'phosphor-svelte/lib/Article';
   import Clock from 'phosphor-svelte/lib/Clock';
   import ArrowLeft from 'phosphor-svelte/lib/ArrowLeft';
+  import Translate from 'phosphor-svelte/lib/Translate';
 
   let { data }: { data: PageData } = $props();
 </script>
@@ -29,20 +30,12 @@
         <h1 class="text-3xl font-bold text-esolia-navy">{data.site.name}</h1>
         <p class="mt-1 text-gray-500">{data.site.slug}</p>
       </div>
-      <span
-        class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
-          {data.site.status === 'active'
-          ? 'bg-green-100 text-green-800'
-          : 'bg-gray-100 text-gray-800'}"
-      >
-        {data.site.status}
-      </span>
     </div>
   </div>
 
   <!-- Site Info Card -->
   <div class="bg-white rounded-lg shadow p-6">
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
       {#if data.site.domain}
         <div class="flex items-center gap-3">
           <div class="flex-shrink-0 w-10 h-10 bg-esolia-navy/10 rounded-lg flex items-center justify-center">
@@ -67,8 +60,18 @@
           <Folder size={20} class="text-esolia-navy" />
         </div>
         <div>
-          <p class="text-sm text-gray-500">Collections</p>
-          <p class="font-medium">{data.collections.length}</p>
+          <p class="text-sm text-gray-500">Content Types</p>
+          <p class="font-medium">{data.contentTypes.length}</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <div class="flex-shrink-0 w-10 h-10 bg-esolia-navy/10 rounded-lg flex items-center justify-center">
+          <Translate size={20} class="text-esolia-navy" />
+        </div>
+        <div>
+          <p class="text-sm text-gray-500">Default Language</p>
+          <p class="font-medium">{data.site.default_language?.toUpperCase() ?? 'JA'}</p>
         </div>
       </div>
     </div>
@@ -80,31 +83,31 @@
     {/if}
   </div>
 
-  <!-- Collections -->
+  <!-- Content Types -->
   <div class="bg-white rounded-lg shadow">
     <div class="px-6 py-4 border-b flex items-center justify-between">
-      <h2 class="text-lg font-semibold text-gray-900">Collections</h2>
+      <h2 class="text-lg font-semibold text-gray-900">Content Types</h2>
       <a
-        href="/sites/{data.site.id}/collections/new"
+        href="/sites/{data.site.id}/content-types/new"
         class="text-sm text-esolia-navy hover:underline"
       >
-        Add Collection
+        Add Content Type
       </a>
     </div>
 
-    {#if data.collections.length > 0}
+    {#if data.contentTypes.length > 0}
       <div class="divide-y">
-        {#each data.collections as collection}
+        {#each data.contentTypes as contentType}
           <a
-            href="/collections/{collection.id}"
+            href="/content-types/{contentType.id}"
             class="block px-6 py-4 hover:bg-gray-50 transition-colors"
           >
             <div class="flex items-center gap-3">
               <Folder size={20} class="text-gray-400" />
               <div>
-                <p class="font-medium text-gray-900">{collection.name}</p>
-                {#if collection.description}
-                  <p class="text-sm text-gray-500">{collection.description}</p>
+                <p class="font-medium text-gray-900">{contentType.name}</p>
+                {#if contentType.description}
+                  <p class="text-sm text-gray-500">{contentType.description}</p>
                 {/if}
               </div>
             </div>
@@ -114,7 +117,7 @@
     {:else}
       <div class="px-6 py-8 text-center text-gray-500">
         <Folder size={32} class="mx-auto mb-2 text-gray-300" />
-        <p>No collections yet</p>
+        <p>No content types yet</p>
       </div>
     {/if}
   </div>
@@ -137,7 +140,7 @@
                 <Article size={20} class="text-gray-400" />
                 <div>
                   <p class="font-medium text-gray-900">{doc.title}</p>
-                  <p class="text-sm text-gray-500">{doc.collection_name}</p>
+                  <p class="text-sm text-gray-500">{doc.content_type_name}</p>
                 </div>
               </div>
               <div class="flex items-center gap-3">
