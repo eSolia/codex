@@ -102,7 +102,7 @@
             <img
               src="/esolia-logo-white.svg"
               alt="eSolia Inc."
-              class="h-6 w-auto"
+              class="h-12 w-auto"
             />
           </div>
           <p class="text-sm text-zinc-400">
