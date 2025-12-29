@@ -43,34 +43,40 @@ This is a monorepo with multiple deployable packages:
 ```
 codex/
 ├── packages/
-│   ├── hanawa-cms/           # → hanawa.esolia.co.jp (SvelteKit + D1 + Tiptap)
-│   ├── hanawa-editor/        # Reusable Tiptap editor (npm package)
-│   ├── miko-widget/          # Embeddable Q&A component
-│   ├── codex-sync/           # Git → R2 sync worker
-│   └── shared/               # Types, branding, utilities
-│
-├── demos/                    # → demos.esolia.pro
-│   ├── spf-builder/          # SPF Record Builder
-│   ├── vpn-explainer/        # VPN Concept Explainer
-│   └── ...                   # More educational tools
+│   ├── hanawa-cms/           # → hanawa.esolia.co.jp (v0.1.0 ✓)
+│   ├── hanawa-scheduler/     # Scheduled publishing worker (✓)
+│   ├── pdf-worker/           # Shared PDF generation (✓)
+│   ├── miko-widget/          # Embeddable Q&A component (planned)
+│   └── codex-sync/           # Git → R2 sync worker (planned)
 │
 ├── content/                  # Git-authored content (synced to R2)
-│   ├── concepts/             # Explanation articles (EN/JA)
-│   ├── how-to/               # Task-oriented guides
-│   ├── fragments/            # Reusable content blocks
+│   ├── fragments/            # Reusable content blocks (proposals/)
+│   ├── proposals/            # Proposal fragments (EN/JA)
 │   └── templates/            # Document templates
 │
 ├── docs/                     # Design docs & shared resources
+│   ├── README.md             # Documentation index
+│   ├── ARCHITECTURE.md       # Current system architecture
 │   ├── concepts/             # Architecture documents
 │   └── shared/               # Cross-repo development resources
 │       ├── guides/           # TypeScript, SvelteKit, security practices
 │       └── reference/        # Branding, naming conventions
 │
+├── assets/                   # Shared assets
+│   └── logos/                # eSolia logo variants
+│
+├── schemas/                  # JSON schemas
+│   └── fragment.json         # Fragment validation schema
+│
 └── config/                   # Central configuration
     ├── branding.yaml         # Colors, typography
-    ├── collections.yaml      # Content type definitions
-    └── mermaid-theme.json    # Diagram styling
+    └── collections.yaml      # Content type definitions
 ```
+
+**Planned additions:**
+- `demos/` - Interactive educational tools (SPF Builder, VPN Explainer, etc.)
+- `content/concepts/` - Explanation articles (EN/JA)
+- `content/how-to/` - Task-oriented guides
 
 ## Technology Stack
 
@@ -153,9 +159,9 @@ One of the key use cases is assembling proposals efficiently:
 5. **Export** as branded PDF with diagrams
 6. **Share** securely via Courier with full provenance tracking
 
-## Interactive Demos
+## Interactive Demos (Planned)
 
-Self-contained educational experiences that can be:
+Self-contained educational experiences that will be:
 - Embedded in blog posts and help articles
 - Accessed standalone at `demos.esolia.pro`
 - Bundled into omiyage packages
@@ -167,6 +173,8 @@ Planned demos:
 - Cloud Phone System
 - Cable Bend Radius
 - Structured Cabling Guide
+
+*Note: The `demos/` folder is not yet created.*
 
 ## Distribution Channels
 
@@ -240,13 +248,17 @@ npm run test       # Run tests
 
 | Document | Purpose |
 |----------|---------|
+| [docs/README.md](docs/README.md) | Documentation index with feature status |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Current system architecture (Mermaid diagrams) |
 | [CLAUDE.md](CLAUDE.md) | Project context for Claude Code |
 | [SECURITY.md](SECURITY.md) | Security guidelines |
-| [Architecture v3](docs/concepts/esolia-codex-architecture-v3.md) | Full system design |
+| [Architecture v3](docs/concepts/esolia-codex-architecture-v3.md) | Full system vision |
 | [Hanawa CMS](docs/concepts/hanawa-cms.md) | CMS specification |
+| [Feature Roadmap](docs/concepts/hanawa-features/00-feature-roadmap.md) | Feature specs & status |
 | [Proposal Workflow](docs/concepts/proposal-workflow.md) | Proposal assembly |
 | [Fragment Workflow](docs/concepts/fragment-workflow.md) | Fragment lifecycle & QC |
 | [Content Security](docs/concepts/cms-content-security.md) | Security controls |
+| [Miko AI Search](docs/concepts/miko-ai-search.md) | AI search interface |
 | [TypeScript Practices](docs/shared/guides/typescript-practices.md) | Coding standards |
 | [Branding](docs/shared/reference/esolia-branding.md) | Visual identity |
 

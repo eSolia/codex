@@ -171,7 +171,7 @@ const encrypted = await crypto.subtle.encrypt(
 
 - Parameterized D1 queries (prepared statements)
 - Input validation with Zod schemas
-- Output encoding for HTML (DOMPurify)
+- Output encoding for HTML (regex-based sanitization, Workers-compatible)
 - CSP headers on all responses
 
 ### A04: Insecure Design
@@ -450,5 +450,5 @@ npm audit
 
 ---
 
-*Last updated: 2025-12-26*
+*Last updated: 2025-12-29*
 *Security contact: security@esolia.co.jp*
