@@ -4,26 +4,32 @@ eSolia's unified knowledge infrastructure—the single source of truth for conte
 
 ## Project Overview
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                              CODEX ECOSYSTEM                                 │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                              │
-│  AUTHORING                     STORAGE              DISTRIBUTION            │
-│  ─────────                     ───────              ────────────            │
-│                                                                              │
-│  hanawa.esolia.co.jp ────┐                     ┌─► AI Search (Miko)         │
-│  (Centralized CMS)       │     ┌──────────┐    │   codex.esolia.pro         │
-│                          ├────►│    R2    │────┤   help.esolia.pro          │
-│  Git + Claude Code ──────┤     │ (codex)  │    │                            │
-│  (Technical docs)        │     └──────────┘    ├─► SharePoint (M365)        │
-│                          │           │         │   Copilot access           │
-│  Proposal Assembly ──────┘           │         │                            │
-│  (Fragments + Templates)             ▼         └─► Courier                  │
-│                               Interactive           Secure sharing          │
-│                               Demos                                         │
-│                                                                              │
-└─────────────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart LR
+    subgraph Authoring["✍️ AUTHORING"]
+        H["🚀 Hanawa CMS<br/>hanawa.esolia.co.jp"]
+        G["📁 Git + Claude Code<br/>Technical docs"]
+        P["📋 Proposal Assembly<br/>Fragments + Templates"]
+    end
+
+    subgraph Storage["💾 STORAGE"]
+        R2[("☁️ R2<br/>codex bucket")]
+        DEMO["🎮 Interactive<br/>Demos"]
+    end
+
+    subgraph Distribution["📤 DISTRIBUTION"]
+        MIKO["🏮 Miko AI Search<br/>codex.esolia.pro<br/>help.esolia.pro"]
+        SP["📊 SharePoint<br/>M365 Copilot"]
+        COUR["🔒 Courier<br/>Secure sharing"]
+    end
+
+    H --> R2
+    G --> R2
+    P --> R2
+    R2 --> DEMO
+    R2 --> MIKO
+    R2 --> SP
+    R2 --> COUR
 ```
 
 ## Monorepo + Deployments
@@ -67,29 +73,38 @@ codex/                              # This repository
 
 Hanawa is a **centralized headless CMS** at a fixed domain:
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│  HANAWA AS AUTHORING SYSTEM (NOT EMBEDDED)                                   │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                              │
-│  hanawa.esolia.co.jp                    Sites consume from R2 (not API)     │
-│  ─────────────────────                  ────────────────────────────────     │
-│  • Editor UI (CF Access)                                                     │
-│  • D1 for drafts/metadata               help.esolia.pro → R2:/help/*        │
-│  • Preview system                       blog.esolia.com → R2:/blog/*        │
-│  • Publish → writes to R2               codex.esolia.pro → R2:/concepts/*   │
-│  • Fragment library                     nexus.esolia.pro → R2:/clients/*    │
-│  • Proposal assembly                                                         │
-│                                                                              │
-│  Sites have NO CMS code—they read from R2 at build/request time             │
-│                                                                              │
-└─────────────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart LR
+    subgraph Hanawa["🚀 hanawa.esolia.co.jp"]
+        ED["Editor UI<br/>(CF Access)"]
+        D1[("D1<br/>drafts/metadata")]
+        PREV["Preview system"]
+        FRAG["Fragment library"]
+        PROP["Proposal assembly"]
+    end
+
+    R2[("☁️ R2<br/>codex bucket")]
+
+    subgraph Sites["📡 Sites (read from R2)"]
+        HELP["help.esolia.pro<br/>→ /help/*"]
+        BLOG["blog.esolia.com<br/>→ /blog/*"]
+        CODEX["codex.esolia.pro<br/>→ /concepts/*"]
+        NEXUS["nexus.esolia.pro<br/>→ /clients/*"]
+    end
+
+    ED --> D1
+    ED --> R2
+    PREV --> R2
+    R2 --> HELP
+    R2 --> BLOG
+    R2 --> CODEX
+    R2 --> NEXUS
+
+    style Hanawa fill:#fef3c7,stroke:#f59e0b
+    style Sites fill:#dbeafe,stroke:#3b82f6
 ```
 
-**Difference from Lume CMS / Decap:**
-- Those are embedded (one instance per site)
-- Hanawa is centralized (one instance serves all sites)
-- Content flows through R2, not API calls
+**Key difference from Lume CMS / Decap:** Those are embedded (one instance per site). Hanawa is centralized (one instance serves all sites). Sites have NO CMS code—they read from R2 at build/request time.
 
 ## Durable Objects (Future Phase)
 
@@ -150,23 +165,14 @@ Start with single-user editing. Add collaboration only after validating actual n
 
 **Principle:** Use Claude Max subscription for heavy lifting, API for light touches.
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│  SUBSCRIPTION vs API                                                         │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                              │
-│  Claude Max ($200/mo fixed)              API (pay per token)                │
-│  ──────────────────────────              ──────────────────                 │
-│  • Claude Desktop: drafting              • Fragment review (occasional)     │
-│  • Claude Desktop: translation           • Miko queries (user-initiated)    │
-│  • Claude Desktop: analysis              • Embedding generation             │
-│  • Claude Code: fragment authoring                                          │
-│  • Claude Code: technical docs                                              │
-│                                                                              │
-│  Do the heavy work here                  Keep this minimal                  │
-│                                                                              │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
+| Claude Max ($200/mo fixed) | API (pay per token) |
+|---------------------------|---------------------|
+| Claude Desktop: drafting | Fragment review (occasional) |
+| Claude Desktop: translation | Miko queries (user-initiated) |
+| Claude Desktop: analysis | Embedding generation |
+| Claude Code: fragment authoring | |
+| Claude Code: technical docs | |
+| **→ Do the heavy work here** | **→ Keep this minimal** |
 
 **Workflow:**
 1. Draft in Claude Desktop → export markdown
@@ -182,45 +188,48 @@ See: `docs/concepts/proposal-workflow.md`
 
 **Solution:** Fragment-based assembly in Hanawa.
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│  PROPOSAL ASSEMBLY WORKFLOW                                                  │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                              │
-│  1. GATHER (Various Sources)                                                │
-│     ├── Claude Desktop conversations → Export markdown                     │
-│     ├── Team member notes → Markdown files                                  │
-│     ├── Meeting transcripts → Summarized markdown                          │
-│     └── Client requirements → Structured notes                             │
-│                                                                              │
-│  2. IMPORT TO HANAWA                                                        │
-│     ├── Upload/paste markdown                                               │
-│     ├── Auto-detect structure                                               │
-│     └── Apply proposal template                                             │
-│                                                                              │
-│  3. ASSEMBLE FROM FRAGMENTS                                                 │
-│     ├── Insert: M365 Business Premium overview (EN/JA)                     │
-│     ├── Insert: License comparison table (E3 vs E5 vs BP)                  │
-│     ├── Insert: Cloudflare security features                               │
-│     ├── Insert: eSolia implementation methodology                          │
-│     └── Fragments auto-update when source changes                          │
-│                                                                              │
-│  4. CUSTOMIZE                                                               │
-│     ├── Add client-specific sections (stays in proposal)                   │
-│     ├── Add pricing (from estimate system)                                 │
-│     ├── Add timeline and next steps                                        │
-│     └── Review and polish                                                   │
-│                                                                              │
-│  5. EXPORT & SHARE                                                          │
-│     ├── Export as branded PDF                                               │
-│     ├── Include diagrams (Mermaid → SVG/PDF)                               │
-│     ├── Package with supporting docs                                        │
-│     └── Share via Courier (PIN-protected, tracked)                         │
-│                                                                              │
-│  6. PROVENANCE                                                              │
-│     └── Full trace: which fragments, what version, when assembled          │
-│                                                                              │
-└─────────────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    subgraph G["1️⃣ GATHER"]
+        G1["Claude Desktop<br/>conversations"]
+        G2["Team notes"]
+        G3["Meeting transcripts"]
+        G4["Client requirements"]
+    end
+
+    subgraph I["2️⃣ IMPORT"]
+        I1["Upload/paste<br/>markdown"]
+        I2["Auto-detect<br/>structure"]
+        I3["Apply proposal<br/>template"]
+    end
+
+    subgraph A["3️⃣ ASSEMBLE"]
+        A1["Insert fragments<br/>(EN/JA bilingual)"]
+        A2["Auto-update when<br/>source changes"]
+    end
+
+    subgraph C["4️⃣ CUSTOMIZE"]
+        C1["Client-specific<br/>sections"]
+        C2["Pricing &<br/>timeline"]
+    end
+
+    subgraph E["5️⃣ EXPORT"]
+        E1["Branded PDF<br/>with diagrams"]
+        E2["Share via Courier<br/>(PIN-protected)"]
+    end
+
+    subgraph P["6️⃣ PROVENANCE"]
+        P1["Full trace:<br/>fragments, versions"]
+    end
+
+    G --> I --> A --> C --> E --> P
+
+    style G fill:#fef3c7,stroke:#f59e0b
+    style I fill:#dbeafe,stroke:#3b82f6
+    style A fill:#d1fae5,stroke:#10b981
+    style C fill:#fce7f3,stroke:#ec4899
+    style E fill:#e0e7ff,stroke:#6366f1
+    style P fill:#f3e8ff,stroke:#a855f7
 ```
 
 ### Fragment Reference Syntax
@@ -279,37 +288,29 @@ The `docs/shared/` directory contains resources that should be available across 
 
 ### Distribution Strategy
 
+**Source of truth:** `codex/docs/shared/`
+
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│  SHARED DOCS DISTRIBUTION                                                    │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                              │
-│  codex/docs/shared/              (Source of truth)                          │
-│  ├── guides/                                                                 │
-│  │   ├── typescript-practices.md                                            │
-│  │   ├── svelte-5-migration.md                                              │
-│  │   ├── security-checklist.md                                              │
-│  │   └── ...                                                                 │
-│  └── reference/                                                              │
-│      ├── esolia-branding.md                                                  │
-│      ├── esolia-resource-naming.md                                          │
-│      └── ...                                                                 │
-│                                                                              │
-│  Distribution options:                                                       │
-│                                                                              │
-│  Option A: Git submodule (complex but automatic)                            │
-│  Option B: CI sync on push (simpler, one-way)                               │
-│  Option C: npm package @esolia/dev-docs (versioned)                         │
-│  Option D: Symlinks in .claude/ (local dev only)   ← Pragmatic start        │
-│                                                                              │
-│  Repos that consume:                                                         │
-│  ├── nexus/.claude/shared/ → symlink or copy                                │
-│  ├── courier/.claude/shared/ → symlink or copy                              │
-│  ├── pulse/.claude/shared/ → symlink or copy                                │
-│  └── periodic/.claude/shared/ → symlink or copy                             │
-│                                                                              │
-└─────────────────────────────────────────────────────────────────────────────┘
+docs/shared/
+├── guides/
+│   ├── typescript-practices.md
+│   ├── svelte-5-migration.md
+│   └── security-checklist.md
+└── reference/
+    ├── esolia-branding.md
+    └── esolia-resource-naming.md
 ```
+
+**Distribution Options:**
+
+| Option | Method | Notes |
+|--------|--------|-------|
+| A | Git submodule | Complex but automatic |
+| B | CI sync on push | Simpler, one-way |
+| C | npm package `@esolia/dev-docs` | Versioned |
+| **D** | **Symlinks in `.claude/`** | **← Pragmatic start** |
+
+**Consuming Repos:** nexus, courier, pulse, periodic → `.claude/shared/` (symlink or copy)
 
 ### Immediate Approach
 
@@ -328,35 +329,40 @@ For Claude Code to reference shared docs across repos:
 
 ## Related Systems Integration
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│  eSolia APPLICATION ECOSYSTEM                                                │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                              │
-│  PLATFORM LAYER                                                              │
-│  ──────────────                                                              │
-│  Nexus         → Central hub, OAuth, org management, secure sharing backend │
-│  Courier       → File sharing UI (uses Nexus for delivery)                  │
-│                                                                              │
-│  KNOWLEDGE LAYER (This Project)                                              │
-│  ─────────────────────────────                                              │
-│  Codex         → Content repository (R2)                                    │
-│  Hanawa        → CMS for authoring (hanawa.esolia.co.jp)                    │
-│  Miko          → Conversational interface (AI Search)                       │
-│                                                                              │
-│  APPLICATION LAYER                                                           │
-│  ─────────────────                                                           │
-│  Periodic      → DNS/email monitoring                                       │
-│  Pulse         → Security compliance tracking                               │
-│                                                                              │
-│  INTEGRATION POINTS                                                          │
-│  ──────────────────                                                          │
-│  Proposals     → Hanawa → PDF → Courier → Client                            │
-│  Omiyage       → Hanawa → Package → Nexus → Client                          │
-│  Help          → Hanawa → R2 → help.esolia.pro                              │
-│  SharePoint    → Hanawa → PDF → Graph API → M365                            │
-│                                                                              │
-└─────────────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    subgraph Platform["🏛️ PLATFORM LAYER"]
+        NEX["Nexus<br/>Central hub, OAuth"]
+        COUR["Courier<br/>File sharing UI"]
+    end
+
+    subgraph Knowledge["📚 KNOWLEDGE LAYER (This Project)"]
+        COD["Codex<br/>Content (R2)"]
+        HAN["Hanawa<br/>CMS authoring"]
+        MIK["Miko<br/>AI Search"]
+    end
+
+    subgraph Apps["⚙️ APPLICATION LAYER"]
+        PER["Periodic<br/>DNS/email monitoring"]
+        PUL["Pulse<br/>Security compliance"]
+    end
+
+    subgraph Flows["🔄 INTEGRATION FLOWS"]
+        F1["Proposals → PDF → Courier → Client"]
+        F2["Omiyage → Package → Nexus → Client"]
+        F3["Help → R2 → help.esolia.pro"]
+        F4["SharePoint → Graph API → M365"]
+    end
+
+    HAN --> COD
+    COD --> MIK
+    HAN --> COUR
+    COUR --> NEX
+
+    style Platform fill:#e0e7ff,stroke:#6366f1
+    style Knowledge fill:#fef3c7,stroke:#f59e0b
+    style Apps fill:#d1fae5,stroke:#10b981
+    style Flows fill:#f3e8ff,stroke:#a855f7
 ```
 
 ## Development Guidelines
@@ -600,4 +606,4 @@ provenance:
 
 ---
 
-*Last updated: 2025-12-27*
+*Last updated: 2025-12-29*

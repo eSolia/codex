@@ -6,22 +6,18 @@ This document outlines security considerations for the eSolia Codex platform.
 
 Codex handles content with varying sensitivity levels. Security controls are applied proportionally based on content classification.
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│  CONTENT SECURITY MATRIX                                                     │
-├───────────────┬────────────────┬────────────────┬────────────────────────────┤
-│               │ Normal         │ Confidential   │ Embargoed                  │
-├───────────────┼────────────────┼────────────────┼────────────────────────────┤
-│ Storage       │ Plaintext      │ Encrypted      │ Encrypted                  │
-│ Editor Access │ Any editor     │ Assigned only  │ Assigned only              │
-│ Preview Auth  │ CF Access      │ CF Access      │ CF Access                  │
-│ Share Preview │ Immediate      │ After approval │ After embargo              │
-│ Token Expiry  │ 7 days         │ 24 hours       │ 4 hours                    │
-│ Max Views     │ Unlimited      │ 10             │ 3                          │
-│ IP Restrict   │ Optional       │ Recommended    │ Required                   │
-│ Audit Level   │ Standard       │ Detailed       │ Full + alerts              │
-└───────────────┴────────────────┴────────────────┴────────────────────────────┘
-```
+### Content Security Matrix
+
+| Control | 🟢 Normal | 🟡 Confidential | 🔴 Embargoed |
+|---------|-----------|-----------------|--------------|
+| **Storage** | Plaintext | Encrypted | Encrypted |
+| **Editor Access** | Any editor | Assigned only | Assigned only |
+| **Preview Auth** | CF Access | CF Access | CF Access |
+| **Share Preview** | Immediate | After approval | After embargo |
+| **Token Expiry** | 7 days | 24 hours | 4 hours |
+| **Max Views** | Unlimited | 10 | 3 |
+| **IP Restrict** | Optional | Recommended | Required |
+| **Audit Level** | Standard | Detailed | Full + alerts |
 
 ## Authentication & Authorization
 
@@ -249,36 +245,44 @@ Proposals and client-specific documents require additional security consideratio
 
 ### Proposal Lifecycle Security
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│  PROPOSAL SECURITY CONTROLS                                                  │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                              │
-│  DRAFT PHASE                                                                │
-│  ├── Stored in D1 (encrypted for confidential)                             │
-│  ├── Accessible only to assigned authors                                    │
-│  ├── Fragment references resolved at view time (not stored)                │
-│  └── Auto-save with version history                                         │
-│                                                                              │
-│  REVIEW PHASE                                                               │
-│  ├── Preview links with restricted access                                   │
-│  ├── Watermarked with reviewer identity                                     │
-│  ├── Comments stored separately (never in exported PDF)                    │
-│  └── Approval workflow required before export                               │
-│                                                                              │
-│  EXPORT PHASE                                                               │
-│  ├── Fragments "baked in" at export time (snapshot)                        │
-│  ├── Provenance metadata embedded in PDF                                    │
-│  ├── Export logged with recipient info                                      │
-│  └── PDF watermarked if confidential                                        │
-│                                                                              │
-│  DELIVERY PHASE (via Courier)                                               │
-│  ├── PIN-protected access                                                   │
-│  ├── View tracking and limits                                               │
-│  ├── Expiring links (default 7 days for proposals)                         │
-│  └── Download audit trail                                                   │
-│                                                                              │
-└─────────────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    subgraph DRAFT["📝 DRAFT PHASE"]
+        D1["Stored in D1<br/>(encrypted for confidential)"]
+        D2["Accessible only to<br/>assigned authors"]
+        D3["Fragment refs resolved<br/>at view time"]
+        D4["Auto-save with<br/>version history"]
+    end
+
+    subgraph REVIEW["👀 REVIEW PHASE"]
+        R1["Preview links with<br/>restricted access"]
+        R2["Watermarked with<br/>reviewer identity"]
+        R3["Comments stored separately<br/>(never in PDF)"]
+        R4["Approval workflow<br/>before export"]
+    end
+
+    subgraph EXPORT["📄 EXPORT PHASE"]
+        E1["Fragments baked in<br/>(snapshot)"]
+        E2["Provenance metadata<br/>embedded in PDF"]
+        E3["Export logged with<br/>recipient info"]
+        E4["PDF watermarked<br/>if confidential"]
+    end
+
+    subgraph DELIVERY["🔒 DELIVERY (Courier)"]
+        L1["PIN-protected access"]
+        L2["View tracking<br/>and limits"]
+        L3["Expiring links<br/>(7 days default)"]
+        L4["Download audit trail"]
+    end
+
+    DRAFT --> REVIEW
+    REVIEW --> EXPORT
+    EXPORT --> DELIVERY
+
+    style DRAFT fill:#fef3c7,stroke:#f59e0b
+    style REVIEW fill:#dbeafe,stroke:#3b82f6
+    style EXPORT fill:#d1fae5,stroke:#10b981
+    style DELIVERY fill:#fce7f3,stroke:#ec4899
 ```
 
 ### Fragment Security

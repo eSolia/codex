@@ -12,78 +12,59 @@ The conversational interface to Codex is **Miko** (巫女)—an approachable nam
 
 Think of Codex as the **knowledge infrastructure** for eSolia—like municipal water mains that feed every building in the city. The CMS and Git repo are two treatment plants preparing water, R2 is the main reservoir, AI Search and SharePoint are two distribution networks (external and internal), and the various touchpoints (apps, blogs, omiyage, Copilot) are the taps.
 
-```
-+-----------------------------------------------------------------------------+
-|                              eSolia CODEX                                   |
-|                       (Conversational Interface: Miko)                      |
-+-----------------------------------------------------------------------------+
-|                                                                             |
-|  +-----------------------------------------------------------------------+  |
-|  |                     DUAL AUTHORING PATHS                              |  |
-|  |                                                                       |  |
-|  |   +---------------------------+      +---------------------------+    |  |
-|  |   |     Codex CMS (D1)        |      |    Git Repo (Codex)       |    |  |
-|  |   |                           |      |                           |    |  |
-|  |   |  Content:                 |      |  Content:                 |    |  |
-|  |   |  * Blog posts             |      |  * Concepts (EN/JA)       |    |  |
-|  |   |  * Help articles          |      |  * How-to guides          |    |  |
-|  |   |  * Client docs            |      |  * Technical reference    |    |  |
-|  |   |                           |      |                           |    |  |
-|  |   |  Illustrations:           |      |  Illustrations:           |    |  |
-|  |   |  * AI generation UI       |      |  * Mermaid files          |    |  |
-|  |   |  * Browse & share         |      |  * draw.io sources        |    |  |
-|  |   |  * Edit-a-copy            |      |  * SVG assets             |    |  |
-|  |   +------------+--------------+      +------------+--------------+    |  |
-|  |                |                                  |                   |  |
-|  |                | On publish                       | CI on push        |  |
-|  |                v                                  v                   |  |
-|  |   +---------------------------------------------------------------+   |  |
-|  |   |                R2 Bucket (codex-content)                      |   |  |
-|  |   |                                                               |   |  |
-|  |   |  /content/blog/*.md            (CMS-owned)                   |   |  |
-|  |   |  /content/concepts/*.md        (Git-owned)                   |   |  |
-|  |   |  /illustrations/*.mmd          (Mermaid diagrams)            |   |  |
-|  |   |  /illustrations/*.svg          (Rendered/static)             |   |  |
-|  |   |  /illustrations/*.drawio       (Editable sources)            |   |  |
-|  |   +-------------------------------+-------------------------------+   |  |
-|  |                                   |                                   |  |
-|  +-----------------------------------+-----------------------------------+  |
-|                                      |                                      |
-|  +-----------------------------------+-----------------------------------+  |
-|  |                     DISTRIBUTION CHANNELS                             |  |
-|  |                                   |                                   |  |
-|  |              +--------------------+--------------------+              |  |
-|  |              |                                        |              |  |
-|  |              v                                        v              |  |
-|  |  +-----------------------------+    +-----------------------------+  |  |
-|  |  |   AI SEARCH (Cloudflare)    |    |   SHAREPOINT (M365)         |  |  |
-|  |  |                             |    |                             |  |  |
-|  |  |  Indexes .md, .pdf, images  |    |  PDF export via Graph API   |  |  |
-|  |  |  .search() -> 1-2 Neurons   |    |  Same filename = version    |  |  |
-|  |  |  .aiSearch() -> 100-200     |    |  M365 Search indexes all    |  |  |
-|  |  +-------------+---------------+    +-------------+---------------+  |  |
-|  |                |                                  |                  |  |
-|  |    +-----------+----------+-----------+           |                  |  |
-|  |    |           |          |           |           |                  |  |
-|  |    v           v          v           v           v                  |  |
-|  | +-------+ +--------+ +--------+ +--------+ +-------------------+     |  |
-|  | |CMS API| |RAG/Miko| |Illustr.| |Omiyage | |Copilot, Teams,    |     |  |
-|  | |       | |        | |Library | |Tool    | |Outlook Search     |     |  |
-|  | +---+---+ +----+---+ +----+---+ +----+---+ +---------+---------+     |  |
-|  |     |          |          |          |               |               |  |
-|  +-----+----------+----------+----------+---------------+---------------+  |
-|        |          |          |          |               |                  |
-+--------+----------+----------+----------+---------------+------------------+
-         |          |          |          |               |
-         v          v          v          v               v
-  +-----------+ +--------+ +--------+ +----------+ +------------------+
-  |   Apps    | | "Ask   | |Diagram | | Client   | | Internal Staff   |
-  |           | | Miko"  | |Sharing | | Packages | | & Client M365    |
-  | Periodic  | |        | |        | |          | |                  |
-  | Pulse     | |In apps,| |Stand-  | |Content + | |"Hey Copilot,     |
-  | Quiz      | |blog,   | |alone   | |diagrams  | | find our SPF     |
-  |           | |help    | |or sets | |via Nexus | | guide"           |
-  +-----------+ +--------+ +--------+ +----------+ +------------------+
+```mermaid
+flowchart TB
+    subgraph Miko["🏮 eSolia CODEX (Conversational Interface: Miko)"]
+        subgraph Authoring["✍️ DUAL AUTHORING PATHS"]
+            subgraph CMS["Hanawa CMS (D1)"]
+                CMS1["Blog posts"]
+                CMS2["Help articles"]
+                CMS3["Client docs"]
+                CMS4["AI illustration UI"]
+            end
+            subgraph Git["Git Repo (Codex)"]
+                GIT1["Concepts (EN/JA)"]
+                GIT2["How-to guides"]
+                GIT3["Technical reference"]
+                GIT4["Mermaid/SVG assets"]
+            end
+        end
+
+        subgraph Storage["💾 R2 Bucket (codex-content)"]
+            R1["/content/blog/*.md"]
+            R2["/content/concepts/*.md"]
+            R3["/illustrations/*.mmd"]
+            R4["/illustrations/*.svg"]
+        end
+
+        subgraph Distribution["📤 DISTRIBUTION CHANNELS"]
+            subgraph AI["AI Search (Cloudflare)"]
+                AI1["Indexes .md, .pdf, images"]
+                AI2[".search() → 1-2 Neurons"]
+                AI3[".aiSearch() → 100-200"]
+            end
+            subgraph SP["SharePoint (M365)"]
+                SP1["PDF via Graph API"]
+                SP2["M365 Search indexes"]
+            end
+        end
+    end
+
+    CMS -->|"On publish"| Storage
+    Git -->|"CI on push"| Storage
+    Storage --> AI
+    Storage --> SP
+
+    AI --> APPS["Apps<br/>(Periodic, Pulse)"]
+    AI --> MIKOQ["Ask Miko<br/>(apps, blog, help)"]
+    AI --> ILLUST["Illustration<br/>Library"]
+    AI --> OMIYAGE["Omiyage<br/>Packages"]
+    SP --> COPILOT["Copilot, Teams,<br/>Outlook Search"]
+
+    style Miko fill:#2d2f63,color:#fff
+    style Authoring fill:#fef3c7,stroke:#f59e0b
+    style Storage fill:#dbeafe,stroke:#3b82f6
+    style Distribution fill:#d1fae5,stroke:#10b981
 ```
 
 ---
@@ -105,15 +86,14 @@ The key architectural insight: **same content, multiple distribution channels** 
 
 ### Publish Targets Flow
 
+```mermaid
+flowchart LR
+    SRC["CMS / Git"] --> R2[("R2")]
+    R2 --> AIS["AI Search"] --> OUT1["Miko, Portal, Apps"]
+    R2 --> SP["SharePoint (PDF)"] --> M365["M365 Search"] --> OUT2["Copilot, Teams, Outlook"]
 ```
-CMS / Git
-    |
-    +---> R2 ---> AI Search ---> Miko, Portal, Apps
-    |
-    +---> SharePoint (PDF) ---> M365 Search ---> Copilot, Teams, Outlook
 
-Same source, multiple distribution channels
-```
+*Same source, multiple distribution channels*
 
 ---
 
@@ -123,21 +103,15 @@ Every artifact leaving Codex—whether a PDF export, Miko response, omiyage pack
 
 ### Design Principles
 
-```
-+-------------------------------------------------------------------------+
-|  ARTIFACT IDENTITY SYSTEM                                               |
-+-------------------------------------------------------------------------+
-|                                                                         |
-|  Every Codex artifact must answer:                                      |
-|                                                                         |
-|  WHO made this?     --> eSolia branding (logo, contacts, website)       |
-|  WHAT version?      --> Embedded metadata (version, date, source)       |
-|  WHERE to verify?   --> Canonical URL or Codex reference page           |
-|  HOW to cite?       --> AI-readable provenance instructions             |
-|  WHEN updated?      --> Last modified timestamp, author info            |
-|                                                                         |
-+-------------------------------------------------------------------------+
-```
+Every Codex artifact must answer:
+
+| Question | Answer |
+|----------|--------|
+| **WHO** made this? | eSolia branding (logo, contacts, website) |
+| **WHAT** version? | Embedded metadata (version, date, source) |
+| **WHERE** to verify? | Canonical URL or Codex reference page |
+| **HOW** to cite? | AI-readable provenance instructions |
+| **WHEN** updated? | Last modified timestamp, author info |
 
 ### Branding Requirements
 
@@ -299,56 +273,32 @@ const mermaidConfig = {
 ```
 
 **PDF template structure:**
-```
-+------------------------------------------+
-|  [eSolia Logo]                    v2.3   |  <- Header
-+------------------------------------------+
-|                                          |
-|  Document Title                          |
-|  ==================                      |
-|                                          |
-|  Content body with consistent            |
-|  typography and spacing...               |
-|                                          |
-|  [Diagrams with branded styling]         |
-|                                          |
-+------------------------------------------+
-|  eSolia Inc. | esolia.com | info@...     |  <- Footer
-|  Source: Codex | Modified: 2025-01-10    |
-|  Cite: https://codex.esolia.pro/...      |
-+------------------------------------------+
-```
+
+| Section | Content |
+|---------|---------|
+| **Header** | [eSolia Logo] + version (e.g., v2.3) |
+| **Body** | Document title, content with consistent typography, diagrams with branded styling |
+| **Footer** | eSolia Inc. \| esolia.com \| info@... / Source: Codex \| Modified: date / Cite: canonical URL |
 
 ### Bulk Update Capability
 
 Branding elements are centrally managed for easy updates:
 
+```mermaid
+flowchart TB
+    CONFIG["📁 config/branding.yaml<br/>(Single source of truth)"]
+
+    CONFIG --> PDF["PDF Templates<br/>(WeasyPrint CSS)"]
+    CONFIG --> WEB["Web Components<br/>(Svelte)"]
+    CONFIG --> EMAIL["Email Templates<br/>(Mjml)"]
 ```
-+-------------------------------------------------------------------------+
-|  BULK UPDATE ARCHITECTURE                                               |
-+-------------------------------------------------------------------------+
-|                                                                         |
-|  +-------------------+                                                  |
-|  | config/           |                                                  |
-|  | branding.yaml     |  <-- Single source of truth                     |
-|  +--------+----------+                                                  |
-|           |                                                             |
-|           | Referenced by:                                              |
-|           |                                                             |
-|  +--------v----------+  +------------------+  +------------------+      |
-|  | PDF Templates     |  | Web Components   |  | Email Templates  |      |
-|  | (WeasyPrint CSS)  |  | (Svelte)         |  | (Mjml)           |      |
-|  +-------------------+  +------------------+  +------------------+      |
-|                                                                         |
-|  To update branding across all artifacts:                               |
-|  1. Edit config/branding.yaml                                           |
-|  2. Commit and push                                                     |
-|  3. CI regenerates templates                                            |
-|  4. New exports use updated branding                                    |
-|  5. (Optional) Batch re-export existing docs                            |
-|                                                                         |
-+-------------------------------------------------------------------------+
-```
+
+**Update process:**
+1. Edit `config/branding.yaml`
+2. Commit and push
+3. CI regenerates templates
+4. New exports use updated branding
+5. (Optional) Batch re-export existing docs
 
 **What can be bulk-updated:**
 - Logo (all variants)
@@ -407,25 +357,12 @@ After:  "Configure your SPF record to specify which servers
 
 Authors can't be expected to memorize style guides. Automated feedback catches issues before publish:
 
-```
-+-------------------------------------------------------------------------+
-|  STYLE LINTING PIPELINE                                                 |
-+-------------------------------------------------------------------------+
-|                                                                         |
-|  CMS Editor (real-time)           Git Commits (CI check)                |
-|  ----------------------           ------------------                    |
-|                                                                         |
-|  Author types -> Vale linter      Push -> GitHub Action                 |
-|  runs in browser -> inline        runs Vale + markdownlint              |
-|  warnings like spellcheck         -> PR blocked if errors               |
-|                                                                         |
-|  "Passive voice detected"         "Build failed: 3 style issues"        |
-|  "Sentence too long (>25 words)"  - line 42: passive voice              |
-|  "Jargon: consider simpler term"  - line 58: jargon 'utilize'           |
-|                                   - line 71: missing alt text           |
-|                                                                         |
-+-------------------------------------------------------------------------+
-```
+| CMS Editor (real-time) | Git Commits (CI check) |
+|------------------------|------------------------|
+| Author types → Vale linter runs in browser → inline warnings like spellcheck | Push → GitHub Action runs Vale + markdownlint → PR blocked if errors |
+| "Passive voice detected" | "Build failed: 3 style issues" |
+| "Sentence too long (>25 words)" | - line 42: passive voice |
+| "Jargon: consider simpler term" | - line 58: jargon 'utilize' |
 
 **Linting tools:**
 - **Vale** — Prose linter with Google style rules, custom eSolia rules
@@ -476,39 +413,22 @@ Beyond static diagrams and documents, Codex includes **interactive demos**—sel
 
 ### The Concept
 
-```
-+-------------------------------------------------------------------------+
-|  INTERACTIVE DEMOS                                                      |
-+-------------------------------------------------------------------------+
-|                                                                         |
-|  What they are:                                                         |
-|  * Self-contained mini-applications                                     |
-|  * Embeddable in any eSolia web property                               |
-|  * Shareable via standalone URL                                         |
-|  * Educational, not just decorative                                     |
-|                                                                         |
-|  Examples:                                                              |
-|  +------------------+  +------------------+  +------------------+       |
-|  | SPF Record       |  | Network Topology |  | Password         |       |
-|  | Builder          |  | Simulator        |  | Strength Checker |       |
-|  |                  |  |                  |  |                  |       |
-|  | User enters      |  | Drag/drop nodes, |  | Real-time        |       |
-|  | domain, picks    |  | see traffic flow,|  | feedback as      |       |
-|  | options, sees    |  | simulate failure |  | user types,      |       |
-|  | generated record |  | scenarios        |  | explains why     |       |
-|  +------------------+  +------------------+  +------------------+       |
-|                                                                         |
-|  +------------------+  +------------------+  +------------------+       |
-|  | M365 License     |  | Backup Recovery  |  | DNS Propagation  |       |
-|  | Comparison       |  | Time Calculator  |  | Visualizer       |       |
-|  |                  |  |                  |  |                  |       |
-|  | Interactive      |  | Input data size, |  | Enter domain,    |       |
-|  | feature matrix,  |  | connection speed,|  | watch records    |       |
-|  | filter by need   |  | see RTO/RPO      |  | update globally  |       |
-|  +------------------+  +------------------+  +------------------+       |
-|                                                                         |
-+-------------------------------------------------------------------------+
-```
+**What they are:**
+- Self-contained mini-applications
+- Embeddable in any eSolia web property
+- Shareable via standalone URL
+- Educational, not just decorative
+
+**Examples:**
+
+| Demo | Description |
+|------|-------------|
+| **SPF Record Builder** | User enters domain, picks options, sees generated record |
+| **Network Topology Simulator** | Drag/drop nodes, see traffic flow, simulate failure scenarios |
+| **Password Strength Checker** | Real-time feedback as user types, explains why |
+| **M365 License Comparison** | Interactive feature matrix, filter by need |
+| **Backup Recovery Calculator** | Input data size, connection speed, see RTO/RPO |
+| **DNS Propagation Visualizer** | Enter domain, watch records update globally |
 
 ### Demo Architecture
 
@@ -517,30 +437,17 @@ Demos are built as **standalone Svelte components** that can be:
 - Loaded directly at their own URL
 - Bundled into omiyage packages
 
-```
-+-------------------------------------------------------------------------+
-|  DEMO DISTRIBUTION                                                      |
-+-------------------------------------------------------------------------+
-|                                                                         |
-|       +-------------------+                                             |
-|       |  Demo Component   |  (Svelte, self-contained)                   |
-|       |  /demos/spf-builder|                                            |
-|       +---------+---------+                                             |
-|                 |                                                       |
-|       +---------+---------+---------+---------+                         |
-|       |         |         |         |         |                         |
-|       v         v         v         v         v                         |
-|   +-------+ +-------+ +-------+ +-------+ +----------+                  |
-|   |Standalone| |Blog  | |Help  | |Omiyage| |Client   |                  |
-|   |URL     | |Post  | |Article| |Package| |Portal   |                  |
-|   |        | |Embed | |Embed | |Embed | |(Nexus)  |                  |
-|   +-------+ +-------+ +-------+ +-------+ +----------+                  |
-|                                                                         |
-|   demos.esolia.pro/spf-builder  <- Standalone, shareable                |
-|   blog.esolia.pro/email-security#demo  <- Embedded in context           |
-|   nexus.esolia.pro/package/xyz  <- Part of omiyage                      |
-|                                                                         |
-+-------------------------------------------------------------------------+
+```mermaid
+flowchart TB
+    DEMO["🎮 Demo Component<br/>(Svelte, self-contained)<br/>/demos/spf-builder"]
+
+    DEMO --> STANDALONE["Standalone URL<br/>demos.esolia.pro/spf-builder"]
+    DEMO --> BLOG["Blog Post Embed<br/>blog.esolia.pro/email-security#demo"]
+    DEMO --> HELP["Help Article Embed"]
+    DEMO --> OMIYAGE["Omiyage Package"]
+    DEMO --> NEXUS["Client Portal<br/>nexus.esolia.pro/package/xyz"]
+
+    style DEMO fill:#fef3c7,stroke:#f59e0b
 ```
 
 ### Demo Types
@@ -621,21 +528,12 @@ provenance:
 
 Every demo gets wrapped with consistent branding and functionality:
 
-```
-+-------------------------------------------------------------------------+
-|  [eSolia Logo]              SPF Record Builder              [Share] [?] |
-+-------------------------------------------------------------------------+
-|                                                                         |
-|                                                                         |
-|                      [ Demo Content Area ]                              |
-|                                                                         |
-|                                                                         |
-+-------------------------------------------------------------------------+
-|  Learn more: What is SPF? | Configure SPF for M365     [Fullscreen]    |
-+-------------------------------------------------------------------------+
-|  esolia.com | v1.2 | Feedback                                          |
-+-------------------------------------------------------------------------+
-```
+| Area | Content |
+|------|---------|
+| **Header** | [eSolia Logo] + Demo Title + [Share] [?] buttons |
+| **Main** | Demo Content Area |
+| **Links** | Learn more: What is SPF? \| Configure SPF for M365 + [Fullscreen] |
+| **Footer** | esolia.com \| version \| Feedback |
 
 **Wrapper features:**
 - eSolia branding (configurable visibility)
@@ -675,34 +573,15 @@ Every demo gets wrapped with consistent branding and functionality:
 
 ### Demo Lifecycle
 
-```
-+-------------------------------------------------------------------------+
-|  DEMO DEVELOPMENT FLOW                                                  |
-+-------------------------------------------------------------------------+
-|                                                                         |
-|  1. PROPOSE                                                             |
-|     "We keep explaining SPF to clients—let's build an interactive tool" |
-|                                                                         |
-|  2. DESIGN                                                              |
-|     Sketch interactions, define inputs/outputs, identify edge cases     |
-|                                                                         |
-|  3. BUILD                                                               |
-|     Svelte component + logic, follows Codex styling                     |
-|                                                                         |
-|  4. REVIEW                                                              |
-|     Test on mobile, verify branding, check accessibility                |
-|                                                                         |
-|  5. PUBLISH                                                             |
-|     Deploy to demos.esolia.pro, register in Codex catalog               |
-|                                                                         |
-|  6. EMBED                                                               |
-|     Add to relevant blog posts, help articles, omiyage packages         |
-|                                                                         |
-|  7. ITERATE                                                             |
-|     Analytics show drop-off -> improve UX -> version bump               |
-|                                                                         |
-+-------------------------------------------------------------------------+
-```
+| Step | Phase | Description |
+|------|-------|-------------|
+| 1 | **PROPOSE** | "We keep explaining SPF to clients—let's build an interactive tool" |
+| 2 | **DESIGN** | Sketch interactions, define inputs/outputs, identify edge cases |
+| 3 | **BUILD** | Svelte component + logic, follows Codex styling |
+| 4 | **REVIEW** | Test on mobile, verify branding, check accessibility |
+| 5 | **PUBLISH** | Deploy to demos.esolia.pro, register in Codex catalog |
+| 6 | **EMBED** | Add to relevant blog posts, help articles, omiyage packages |
+| 7 | **ITERATE** | Analytics show drop-off → improve UX → version bump |
 
 ### Integration with Other Codex Components
 
@@ -736,46 +615,13 @@ Every demo gets wrapped with consistent branding and functionality:
 
 Beyond basic SvelteKit/Pages hosting, several Cloudflare services could enhance demos:
 
-```
-+-------------------------------------------------------------------------+
-|  CLOUDFLARE TECH OPTIONS FOR DEMOS                                      |
-+-------------------------------------------------------------------------+
-|                                                                         |
-|  MOST DEMOS (Static + Client-Side Interactivity)                       |
-|  ────────────────────────────────────────────────                       |
-|  Pages + SvelteKit = sufficient                                         |
-|  All state lives in browser (Svelte stores)                            |
-|  No backend needed for simulators, explorers, calculators              |
-|                                                                         |
-|  WITH PERSISTENCE (Save Progress, Shareable Configs)                   |
-|  ────────────────────────────────────────────────────                   |
-|  D1 — User progress, quiz scores, completion tracking                  |
-|  KV — Fast reads for leaderboards, cached config                       |
-|  R2 — User-generated exports (diagrams, configs)                       |
-|                                                                         |
-|  REAL-TIME COLLABORATION ("Same Room" Features)                        |
-|  ────────────────────────────────────────────────                       |
-|  Durable Objects + WebSockets                                          |
-|  • Multiple users manipulating same diagram                            |
-|  • Live cursor positions ("Alice is here")                             |
-|  • Turn-based simulations                                              |
-|  • Chat alongside demo                                                 |
-|                                                                         |
-|  VIDEO CONTENT (Explainer Clips)                                       |
-|  ────────────────────────────────                                       |
-|  Stream — Pre-recorded 30-60 second overviews                          |
-|  • "Watch first, then try" pattern                                     |
-|  • Signed URLs for access control                                      |
-|  • Embeds alongside interactive portion                                |
-|                                                                         |
-|  LIVE VIDEO (Expert Assistance) — Probably Overkill                    |
-|  ────────────────────────────────────────────────────                   |
-|  Realtime/Calls — WebRTC, <100ms latency                               |
-|  • "Expert joins your session" feature                                 |
-|  • Complex, high-cost, Phase 10+ territory                             |
-|                                                                         |
-+-------------------------------------------------------------------------+
-```
+| Category | Tech | Description |
+|----------|------|-------------|
+| **Static + Client-Side** | Pages + SvelteKit | Sufficient for most demos. All state in browser (Svelte stores). No backend needed for simulators, explorers, calculators. |
+| **With Persistence** | D1, KV, R2 | D1: progress, scores. KV: leaderboards, cached config. R2: user-generated exports. |
+| **Real-Time Collab** | Durable Objects + WebSockets | Multiple users in same diagram, live cursors, turn-based simulations, chat. |
+| **Video Content** | Stream | 30-60 second explainer clips. "Watch first, then try" pattern. Signed URLs for access control. |
+| **Live Video** | Realtime/Calls | Expert assistance via WebRTC. Complex, high-cost, Phase 10+ territory. |
 
 **Practical Assessment:**
 
@@ -794,87 +640,41 @@ DOs shine when multiple users need to see the same state. The obvious pitch is "
 
 The more realistic sweet spot is **internal peer pairing**:
 
-```
-+-------------------------------------------------------------------------+
-|  SHARED EDITOR: REALISTIC USE CASES                                    |
-+-------------------------------------------------------------------------+
-|                                                                         |
-|  CLIENT-FACING (High pressure — probably won't use)                    |
-|  ─────────────────────────────────────────────────                      |
-|  ✗ "Let me draw your network while you watch"                          |
-|     → Most staff would freeze                                          |
-|     → Mistakes feel like judgment                                      |
-|     → Better to prepare materials BEFORE the meeting                   |
-|                                                                         |
-|  PEER PAIRING (Low pressure — real value here)                         |
-|  ────────────────────────────────────────────────                       |
-|  ✓ "You do the network side, I'll do cabling"                         |
-|     → Mistakes are just "oh, move that"                                |
-|     → Faster than email back-and-forth                                 |
-|                                                                         |
-|  ✓ "Let's review this report together"                                 |
-|     → Both see same doc, point at sections                             |
-|     → 2.5 days of async ping-pong → 30-minute sync                     |
-|                                                                         |
-|  ✓ "Show me how you'd structure this" (mentoring)                      |
-|     → Junior watches senior work                                       |
-|     → Senior reviews junior's draft live                               |
-|                                                                         |
-+-------------------------------------------------------------------------+
-```
+| Context | Use Case | Reality |
+|---------|----------|---------|
+| **Client-Facing** (High pressure) | ✗ "Let me draw your network while you watch" | Most staff freeze. Mistakes feel like judgment. Better to prepare BEFORE the meeting. |
+| **Peer Pairing** (Low pressure) | ✓ "You do network, I'll do cabling" | Mistakes are just "oh, move that." Faster than email back-and-forth. |
+| **Peer Pairing** | ✓ "Let's review this report together" | Both see same doc. 2.5 days async → 30-minute sync. |
+| **Peer Pairing** | ✓ "Show me how you'd structure this" (mentoring) | Junior watches senior. Senior reviews draft live. |
 
 **The async ping-pong problem this solves:**
 
-```
-CURRENT (email/chat back-and-forth):
-
-Mon 10:00  A sends draft
-Mon 15:00  B finally opens it
-Mon 16:00  B sends comments
-Tue 09:00  A sees comments
-Tue 11:00  A sends revision
-Tue 14:00  B reviews, more comments
-Wed 10:00  A finalizes
-
-Elapsed: ~2.5 days for 1 hour of actual work
-
-WITH SHARED EDITOR:
-
-Mon 10:00  "Got 30 mins to go through this?"
-Mon 10:30  Done.
-```
+| Method | Timeline | Result |
+|--------|----------|--------|
+| **Current (async)** | Mon 10:00 draft → Mon 15:00 open → Mon 16:00 comments → Tue 09:00 see → Tue 11:00 revision → Tue 14:00 more comments → Wed 10:00 final | ~2.5 days for 1 hour of actual work |
+| **With Shared Editor** | Mon 10:00 "Got 30 mins?" → Mon 10:30 Done | 30 minutes |
 
 **Architecture sketch (for when we explore this):**
 
-```
-+-------------------------------------------------------------------------+
-|  SHARED EDITOR ARCHITECTURE                                            |
-+-------------------------------------------------------------------------+
-|                                                                         |
-|  Browser A                      Browser B                               |
-|       │                              │                                  |
-|       │    WebSocket                 │    WebSocket                     |
-|       └──────────────┬───────────────┘                                  |
-|                      │                                                  |
-|                      ▼                                                  |
-|           ┌──────────────────────┐                                      |
-|           │   Durable Object     │                                      |
-|           │   "session-abc123"   │                                      |
-|           │                      │                                      |
-|           │  SQLite: shapes,     │  <- Persistent diagram state        |
-|           │  connections, notes  │                                      |
-|           │                      │                                      |
-|           │  Memory: cursors,    │  <- Transient (don't need to save)  |
-|           │  who's online        │                                      |
-|           │                      │                                      |
-|           │  Broadcasts changes  │                                      |
-|           │  to all connections  │                                      |
-|           └──────────────────────┘                                      |
-|                                                                         |
-|  On "Save to Library":                                                  |
-|  Export SVG → R2 → D1 metadata → appears in Illustration Library       |
-|                                                                         |
-+-------------------------------------------------------------------------+
+```mermaid
+flowchart TB
+    subgraph Browsers
+        A["Browser A"]
+        B["Browser B"]
+    end
+
+    subgraph DO["Durable Object (session-abc123)"]
+        SQLITE["SQLite: shapes,<br/>connections, notes<br/>(Persistent)"]
+        MEM["Memory: cursors,<br/>who's online<br/>(Transient)"]
+        BC["Broadcasts changes<br/>to all connections"]
+    end
+
+    A -->|WebSocket| DO
+    B -->|WebSocket| DO
+
+    DO -->|"Save to Library"| R2[("R2")]
+    R2 --> D1[("D1 metadata")]
+    D1 --> LIB["Illustration Library"]
 ```
 
 **Recommendation: Explore, don't commit**
@@ -891,27 +691,16 @@ If answers are positive → real phase. If not → we've spent a day learning, n
 
 Short clips complement interactive demos beautifully:
 
-```
-+-------------------------------------------------------------------------+
-|  VIDEO + INTERACTIVE PATTERN                                           |
-+-------------------------------------------------------------------------+
-|                                                                         |
-|  ┌──────────────────────────┐  ┌────────────────────────────────────┐  |
-|  │                          │  │                                    │  |
-|  │  [▶ 45-second overview] │  │      INTERACTIVE DEMO              │  |
-|  │                          │  │                                    │  |
-|  │  Stream embed            │  │  Toggle VPN on/off                │  |
-|  │  Narrated explanation    │  │  See packets encrypted            │  |
-|  │                          │  │  Click to inspect                 │  |
-|  └──────────────────────────┘  │                                    │  |
-|                                │                                    │  |
-|  • Sets context before play   └────────────────────────────────────┘  |
-|  • Accessible (audio/captions)                                         |
-|  • Reusable across demos                                               |
-|  • Analytics on watch completion                                       |
-|                                                                         |
-+-------------------------------------------------------------------------+
-```
+| Component | Description |
+|-----------|-------------|
+| **Video (Stream embed)** | [▶ 45-second overview] - Narrated explanation |
+| **Interactive Demo** | Toggle VPN on/off, see packets encrypted, click to inspect |
+
+**Benefits:**
+- Sets context before play
+- Accessible (audio/captions)
+- Reusable across demos
+- Analytics on watch completion
 
 Stream pricing: ~$5/1000 minutes watched + $1/1000 minutes stored.
 For 30-60 second explainer clips, very affordable.

@@ -6,26 +6,32 @@
 
 Codex is knowledge infrastructure for eSolia—like municipal water mains feeding every building. Multiple authoring sources (CMS and Git) flow into a central reservoir (R2), which feeds distribution networks: AI Search for external access, SharePoint for M365 integration, and Courier for secure client sharing.
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                              CODEX ECOSYSTEM                                 │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                              │
-│  AUTHORING                     STORAGE              DISTRIBUTION            │
-│  ─────────                     ───────              ────────────            │
-│                                                                              │
-│  hanawa.esolia.co.jp ────┐                     ┌─► AI Search (Miko)         │
-│  (Centralized CMS)       │     ┌──────────┐    │   codex.esolia.pro         │
-│                          ├────►│    R2    │────┤   help.esolia.pro          │
-│  Git + Claude Code ──────┤     │ (codex)  │    │                            │
-│  (Technical docs)        │     └──────────┘    ├─► SharePoint (M365)        │
-│                          │           │         │   Copilot access           │
-│  Proposal Assembly ──────┘           │         │                            │
-│  (Fragments + Templates)             ▼         └─► Courier                  │
-│                               Interactive           Secure sharing          │
-│                               Demos                                         │
-│                                                                              │
-└─────────────────────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart LR
+    subgraph Authoring["✍️ AUTHORING"]
+        H["🚀 Hanawa CMS<br/>hanawa.esolia.co.jp"]
+        G["📁 Git + Claude Code<br/>Technical docs"]
+        P["📋 Proposal Assembly<br/>Fragments + Templates"]
+    end
+
+    subgraph Storage["💾 STORAGE"]
+        R2[("☁️ R2<br/>codex bucket")]
+        DEMO["🎮 Interactive<br/>Demos"]
+    end
+
+    subgraph Distribution["📤 DISTRIBUTION"]
+        MIKO["🏮 Miko AI Search<br/>codex.esolia.pro<br/>help.esolia.pro"]
+        SP["📊 SharePoint<br/>M365 Copilot"]
+        COUR["🔒 Courier<br/>Secure sharing"]
+    end
+
+    H --> R2
+    G --> R2
+    P --> R2
+    R2 --> DEMO
+    R2 --> MIKO
+    R2 --> SP
+    R2 --> COUR
 ```
 
 ## Named Components
