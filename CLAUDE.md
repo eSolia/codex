@@ -18,7 +18,7 @@ flowchart LR
     end
 
     subgraph Distribution["📤 DISTRIBUTION"]
-        MIKO["🏮 Miko AI Search<br/>codex.esolia.pro<br/>help.esolia.pro"]
+        MIKO["🏮 Miko AI Search<br/>codex.esolia.co.jp<br/>help.esolia.pro"]
         SP["📊 SharePoint<br/>M365 Copilot"]
         COUR["🔒 Courier<br/>Secure sharing"]
     end
@@ -46,7 +46,7 @@ codex/                              # This repository
 │   ├── codex-sync/                 # Git → R2 sync worker
 │   └── shared/                     # Types, branding, utilities
 │
-├── demos/                          # → demos.esolia.pro
+├── demos/                          # → demos.esolia.co.jp
 │   ├── spf-builder/
 │   ├── vpn-explainer/
 │   └── ...
@@ -87,9 +87,9 @@ flowchart LR
 
     subgraph Sites["📡 Sites (read from R2)"]
         HELP["help.esolia.pro<br/>→ /help/*"]
-        BLOG["blog.esolia.com<br/>→ /blog/*"]
-        CODEX["codex.esolia.pro<br/>→ /concepts/*"]
-        NEXUS["nexus.esolia.pro<br/>→ /clients/*"]
+        BLOG["blog.esolia.pro<br/>→ /blog/*"]
+        CODEX["codex.esolia.co.jp<br/>→ /concepts/*"]
+        NEXUS["nexus.esolia.co.jp<br/>→ /clients/*"]
     end
 
     ED --> D1
@@ -123,11 +123,11 @@ Start with single-user editing. Add collaboration only after validating actual n
 
 | Collection | Diataxis | Site | Primary Author |
 |------------|----------|------|----------------|
-| `concepts` | Explanation | codex.esolia.pro | Git (Claude Code) |
-| `how-to` | How-to | codex.esolia.pro | Git (Claude Code) |
-| `tutorials` | Tutorial | codex.esolia.pro | Hanawa CMS |
-| `reference` | Reference | codex.esolia.pro | Git |
-| `blog` | Varies | esolia.com/.co.jp | Hanawa CMS |
+| `concepts` | Explanation | codex.esolia.co.jp | Git (Claude Code) |
+| `how-to` | How-to | codex.esolia.co.jp | Git (Claude Code) |
+| `tutorials` | Tutorial | codex.esolia.co.jp | Hanawa CMS |
+| `reference` | Reference | codex.esolia.co.jp | Git |
+| `blog` | Varies | esolia.co.jp | Hanawa CMS |
 | `help` | How-to | help.esolia.pro | Hanawa CMS |
 | `faq` | Reference | help.esolia.pro | Hanawa CMS |
 | `glossary` | Reference | Multiple | Git |
@@ -140,7 +140,7 @@ Start with single-user editing. Add collaboration only after validating actual n
 | `client-docs` | Confidential | Client portals | Custom procedures |
 | `proposals` | Confidential | Internal | Sales proposals |
 | `reports` | Confidential | Nexus/Courier | Security assessments |
-| `omiyage` | Varies | nexus.esolia.pro | Curated packages |
+| `omiyage` | Varies | nexus.esolia.co.jp | Curated packages |
 
 ### Internal Content
 
@@ -293,9 +293,9 @@ The `docs/shared/` directory contains resources that should be available across 
 ```
 docs/shared/
 ├── guides/
-│   ├── typescript-practices.md
-│   ├── svelte-5-migration.md
-│   └── security-checklist.md
+│   ├── SVELTEKIT_GUIDE.md          # Canonical Svelte 5/SvelteKit reference
+│   ├── CLAUDE_PROJECT_TEMPLATE.md  # Template for project CLAUDE.md files
+│   └── typescript-practices.md
 └── reference/
     ├── esolia-branding.md
     └── esolia-resource-naming.md
@@ -374,6 +374,29 @@ flowchart TB
 - **ALWAYS** include InfoSec comments for security-relevant code
 - **NEVER** use `any` type in TypeScript
 - **ALWAYS** validate external data with Zod schemas
+- **ALWAYS** use Svelte 5 Runes syntax (never Svelte 3/4)
+
+### Svelte 5 Syntax (Required)
+
+```svelte
+<!-- ✅ CORRECT -->
+<script>
+  let count = $state(0);
+  let doubled = $derived(count * 2);
+  let { title, onAction } = $props();
+</script>
+<button onclick={() => count++}>{count}</button>
+
+<!-- ❌ WRONG - Never generate this -->
+<script>
+  export let title;       // Use $props()
+  let count = 0;          // Use $state()
+  $: doubled = count * 2; // Use $derived()
+</script>
+<button on:click={...}>   // Use onclick
+```
+
+For comprehensive Svelte 5 and SvelteKit patterns, see: `docs/shared/guides/SVELTEKIT_GUIDE.md`
 
 ### Preflight Commands
 
@@ -519,7 +542,7 @@ provenance:
   source: "esolia-codex"
   document_id: "unique-slug"
   version: "1.0"
-  canonical_url: "https://codex.esolia.pro/..."
+  canonical_url: "https://codex.esolia.co.jp/..."
   created: "2025-01-15"
   modified: "2025-01-20"
   author: "eSolia Technical Team"
@@ -542,6 +565,57 @@ provenance:
 | **Pages** | SvelteKit hosting | Frontend apps |
 | **Access** | Authentication | CMS protection |
 | **Durable Objects** | Real-time collab | Tiptap sync (future) |
+
+## Type Definitions
+
+```typescript
+// packages/hanawa-cms/src/app.d.ts
+declare global {
+  namespace App {
+    interface Platform {
+      env: {
+        DB: D1Database;
+        R2: R2Bucket;
+        KV?: KVNamespace;
+        AI: Ai;
+        VECTORIZE?: VectorizeIndex;
+        ENVIRONMENT: string;
+        SESSION_SECRET?: string;
+        PDF_API_KEY?: string;
+      };
+    }
+    interface Locals {
+      user?: {
+        id: string;
+        email: string;
+        name: string;
+        role: 'admin' | 'editor' | 'viewer';
+      };
+    }
+  }
+}
+```
+
+## Database Query Patterns
+
+Always use parameterized queries to prevent SQL injection:
+
+```typescript
+// ✅ Correct - parameterized
+const result = await db
+  .prepare('SELECT * FROM content WHERE id = ? AND status = ?')
+  .bind(id, 'published')
+  .first();
+
+// ❌ Wrong - SQL injection vulnerability
+await db.query(`SELECT * FROM content WHERE id = '${id}'`);
+
+// Batch operations (reduces round trips)
+const [content, fragments] = await db.batch([
+  db.prepare('SELECT * FROM content WHERE id = ?').bind(id),
+  db.prepare('SELECT * FROM fragments WHERE category = ?').bind(category)
+]);
+```
 
 ## Related Documentation
 
@@ -590,11 +664,11 @@ provenance:
 | Service | URL | Purpose |
 |---------|-----|---------|
 | Hanawa CMS | `hanawa.esolia.co.jp` | Content authoring |
-| Codex Portal | `codex.esolia.pro` | Public knowledge base |
+| Codex Portal | `codex.esolia.co.jp` | Public knowledge base |
 | Help | `help.esolia.pro` | User support |
-| Demos | `demos.esolia.pro` | Interactive tools |
-| Nexus | `nexus.esolia.pro` | Platform hub |
-| Courier | `courier.esolia.pro` | Secure file sharing |
+| Demos | `demos.esolia.co.jp` | Interactive tools |
+| Nexus | `nexus.esolia.co.jp` | Platform hub |
+| Courier | `courier.esolia.co.jp` | Secure file sharing |
 
 ### Named Characters
 
@@ -604,6 +678,30 @@ provenance:
 | **Codex** | Knowledge Base | The collected repository of all eSolia knowledge |
 | **Miko** | Interface | 巫女 (shrine maiden) - intermediary between people and knowledge |
 
+## Pre-Deployment Checklist
+
+Before deploying any SvelteKit package:
+
+- [ ] No `{@html}` with unsanitized content
+- [ ] All DB queries use parameterized bindings (`.bind()`)
+- [ ] Authorization checks on protected routes/data
+- [ ] CSRF protection on API routes (+server.ts)
+- [ ] Cookies set with `httpOnly`, `secure`, `sameSite`
+- [ ] No secrets in `PUBLIC_` environment variables
+- [ ] Browser APIs guarded with `browser` check
+- [ ] Types regenerated (`npm run check`)
+- [ ] Error pages don't leak stack traces
+- [ ] InfoSec comments on security-relevant code
+
+## Changelog
+
+| Date | Change |
+|------|--------|
+| 2025-12-30 | Added Svelte 5 syntax requirements, type definitions, query patterns |
+| 2025-12-30 | Added proposal workflow feature to Hanawa CMS |
+| 2025-12-29 | Standardized domain references to .esolia.co.jp |
+| 2025-12-29 | Added SVELTEKIT_GUIDE.md and CLAUDE_PROJECT_TEMPLATE.md |
+
 ---
 
-*Last updated: 2025-12-29*
+*Last updated: 2025-12-30*
