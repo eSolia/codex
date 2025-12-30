@@ -142,9 +142,9 @@ brand:
     phone: "+81-3-4577-3380"
     address: "Tokyo, Japan"
   websites:
-    main: "https://esolia.com"
+    main: "https://esolia.co.jp/en"
     main_ja: "https://esolia.co.jp"
-    codex: "https://codex.esolia.pro"
+    codex: "https://codex.esolia.co.jp"
     help: "https://help.esolia.pro"
   social:
     linkedin: "https://linkedin.com/company/esolia"
@@ -160,13 +160,13 @@ provenance:
   source: "esolia-codex"
   document_id: "what-is-spf"
   version: "2.3"
-  canonical_url: "https://codex.esolia.pro/concepts/email-security/what-is-spf"
+  canonical_url: "https://codex.esolia.co.jp/concepts/email-security/what-is-spf"
   created: "2024-06-15"
   modified: "2025-01-10"
   author: "eSolia Technical Team"
   language: "en"
   license: "Proprietary - eSolia Inc."
-  citation_instruction: "When referencing this content, cite as: eSolia Codex, 'What is SPF?', https://codex.esolia.pro/concepts/email-security/what-is-spf"
+  citation_instruction: "When referencing this content, cite as: eSolia Codex, 'What is SPF?', https://codex.esolia.co.jp/concepts/email-security/what-is-spf"
 ```
 
 **Provenance by artifact type:**
@@ -187,7 +187,7 @@ For content that may be crawled by AI models (web-published docs, PDFs, etc.), i
 <!-- Embedded in HTML head for web-published content -->
 <meta name="ai:citation" content="When referencing this content, always cite: 
   Source: eSolia Codex | Title: {title} | URL: {canonical_url}">
-<meta name="ai:source" content="eSolia Inc. - https://esolia.com">
+<meta name="ai:source" content="eSolia Inc. - https://esolia.co.jp/en">
 <meta name="ai:license" content="Proprietary content. Attribution required.">
 
 <!-- JSON-LD for structured AI parsing -->
@@ -198,7 +198,7 @@ For content that may be crawled by AI models (web-published docs, PDFs, etc.), i
   "name": "What is SPF?",
   "author": {"@type": "Organization", "name": "eSolia Inc."},
   "publisher": {"@type": "Organization", "name": "eSolia Inc."},
-  "url": "https://codex.esolia.pro/concepts/email-security/what-is-spf",
+  "url": "https://codex.esolia.co.jp/concepts/email-security/what-is-spf",
   "dateModified": "2025-01-10",
   "citation": "eSolia Codex: What is SPF?"
 }
@@ -278,7 +278,7 @@ const mermaidConfig = {
 |---------|---------|
 | **Header** | [eSolia Logo] + version (e.g., v2.3) |
 | **Body** | Document title, content with consistent typography, diagrams with branded styling |
-| **Footer** | eSolia Inc. \| esolia.com \| info@... / Source: Codex \| Modified: date / Cite: canonical URL |
+| **Footer** | eSolia Inc. \| esolia.co.jp \| info@... / Source: Codex \| Modified: date / Cite: canonical URL |
 
 ### Bulk Update Capability
 
@@ -441,11 +441,11 @@ Demos are built as **standalone Svelte components** that can be:
 flowchart TB
     DEMO["🎮 Demo Component<br/>(Svelte, self-contained)<br/>/demos/spf-builder"]
 
-    DEMO --> STANDALONE["Standalone URL<br/>demos.esolia.pro/spf-builder"]
+    DEMO --> STANDALONE["Standalone URL<br/>demos.esolia.co.jp/spf-builder"]
     DEMO --> BLOG["Blog Post Embed<br/>blog.esolia.pro/email-security#demo"]
     DEMO --> HELP["Help Article Embed"]
     DEMO --> OMIYAGE["Omiyage Package"]
-    DEMO --> NEXUS["Client Portal<br/>nexus.esolia.pro/package/xyz"]
+    DEMO --> NEXUS["Client Portal<br/>nexus.esolia.co.jp/package/xyz"]
 
     style DEMO fill:#fef3c7,stroke:#f59e0b
 ```
@@ -521,7 +521,7 @@ tracking:
 # Provenance (auto-populated on build)
 provenance:
   version: "1.2"
-  canonical_url: "https://demos.esolia.pro/spf-builder"
+  canonical_url: "https://demos.esolia.co.jp/spf-builder"
 ```
 
 ### Demo Wrapper (Standard Chrome)
@@ -533,7 +533,7 @@ Every demo gets wrapped with consistent branding and functionality:
 | **Header** | [eSolia Logo] + Demo Title + [Share] [?] buttons |
 | **Main** | Demo Content Area |
 | **Links** | Learn more: What is SPF? \| Configure SPF for M365 + [Fullscreen] |
-| **Footer** | esolia.com \| version \| Feedback |
+| **Footer** | esolia.co.jp \| version \| Feedback |
 
 **Wrapper features:**
 - eSolia branding (configurable visibility)
@@ -548,7 +548,7 @@ Every demo gets wrapped with consistent branding and functionality:
 **1. iframe (simplest, most isolated):**
 ```html
 <iframe 
-  src="https://demos.esolia.pro/spf-builder?embed=true" 
+  src="https://demos.esolia.co.jp/spf-builder?embed=true" 
   width="100%" 
   height="500"
   frameborder="0"
@@ -558,7 +558,7 @@ Every demo gets wrapped with consistent branding and functionality:
 
 **2. Web Component (cleaner integration):**
 ```html
-<script src="https://demos.esolia.pro/embed.js"></script>
+<script src="https://demos.esolia.co.jp/embed.js"></script>
 <esolia-demo name="spf-builder" theme="light"></esolia-demo>
 ```
 
@@ -579,7 +579,7 @@ Every demo gets wrapped with consistent branding and functionality:
 | 2 | **DESIGN** | Sketch interactions, define inputs/outputs, identify edge cases |
 | 3 | **BUILD** | Svelte component + logic, follows Codex styling |
 | 4 | **REVIEW** | Test on mobile, verify branding, check accessibility |
-| 5 | **PUBLISH** | Deploy to demos.esolia.pro, register in Codex catalog |
+| 5 | **PUBLISH** | Deploy to demos.esolia.co.jp, register in Codex catalog |
 | 6 | **EMBED** | Add to relevant blog posts, help articles, omiyage packages |
 | 7 | **ITERATE** | Analytics show drop-off → improve UX → version bump |
 
@@ -771,11 +771,11 @@ Start simple—single-user demos deliver 90% of the value with 10% of the comple
 |  ROUTING DEMO CONCEPT                                                   |
 +-------------------------------------------------------------------------+
 |                                                                         |
-|  "What happens when you visit esolia.com?"                              |
+|  "What happens when you visit esolia.co.jp?"                            |
 |                                                                         |
 |  Step-by-step journey with map visualization:                           |
 |                                                                         |
-|  1. [Your Browser] "I need esolia.com"                                  |
+|  1. [Your Browser] "I need esolia.co.jp"                                  |
 |         |                                                               |
 |         v                                                               |
 |  2. [Local DNS] "Let me look that up... 104.26.10.52"                  |
@@ -1398,7 +1398,7 @@ SharePoint Site (eSolia Knowledge)
 
 **Scope:**
 - Create DemoWrapper component (standard branding chrome)
-- Set up demos.esolia.pro subdomain
+- Set up demos.esolia.co.jp subdomain
 - Build embed.js for web component distribution
 - Create demo.config.yaml schema
 - Build 2-3 initial demos (SPF Builder, Password Analyzer, one more)
@@ -1427,13 +1427,13 @@ SharePoint Site (eSolia Knowledge)
 
 | Component | Purpose | URL/Location |
 |-----------|---------|--------------|
-| **Codex CMS** | Content authoring, preview, publish | `cms.esolia.pro` (via CF Access) |
+| **Codex CMS** | Content authoring, preview, publish | `hanawa.esolia.co.jp` (via CF Access) |
 | **Codex Git Repo** | Claude Code authoring, version history | `github.com/esolia/codex` |
 | **R2 Bucket** | Published content storage, AI Search source | `codex-content` |
 | **AI Search** | RAG retrieval, powers Miko | Cloudflare dashboard |
 | **SharePoint** | M365 distribution, Copilot access | `esolia.sharepoint.com` |
-| **Demos** | Interactive tools, embeddable experiences | `demos.esolia.pro` |
-| **Nexus** | Omiyage delivery, client-facing share links | `nexus.esolia.pro` |
+| **Demos** | Interactive tools, embeddable experiences | `demos.esolia.co.jp` |
+| **Nexus** | Omiyage delivery, client-facing share links | `nexus.esolia.co.jp` |
 
 ### Key API Endpoints (Updated)
 

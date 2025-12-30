@@ -20,7 +20,7 @@ flowchart LR
     end
 
     subgraph Distribution["📤 DISTRIBUTION"]
-        MIKO["🏮 Miko AI Search<br/>codex.esolia.pro<br/>help.esolia.pro"]
+        MIKO["🏮 Miko AI Search<br/>codex.esolia.co.jp<br/>help.esolia.pro"]
         SP["📊 SharePoint<br/>M365 Copilot"]
         COUR["🔒 Courier<br/>Secure sharing"]
     end
@@ -169,7 +169,7 @@ One of the key use cases is assembling proposals efficiently:
 
 Self-contained educational experiences that will be:
 - Embedded in blog posts and help articles
-- Accessed standalone at `demos.esolia.pro`
+- Accessed standalone at `demos.esolia.co.jp`
 - Bundled into omiyage packages
 
 Planned demos:
@@ -207,11 +207,11 @@ Planned demos:
 | Service | URL | Purpose |
 |---------|-----|---------|
 | Hanawa CMS | `hanawa.esolia.co.jp` | Content authoring |
-| Codex Portal | `codex.esolia.pro` | Public knowledge base |
+| Codex Portal | `codex.esolia.co.jp` | Public knowledge base |
 | Help | `help.esolia.pro` | User support articles |
-| Demos | `demos.esolia.pro` | Interactive tools |
-| Nexus | `nexus.esolia.pro` | Platform hub |
-| Courier | `courier.esolia.pro` | Secure file sharing |
+| Demos | `demos.esolia.co.jp` | Interactive tools |
+| Nexus | `nexus.esolia.co.jp` | Platform hub |
+| Courier | `courier.esolia.co.jp` | Secure file sharing |
 
 ## Development
 

@@ -71,7 +71,7 @@ Thank you sincerely for the opportunity.
 | **Company** | 株式会社イソリア d.b.a. eSolia Inc. |
 | **Headquarters** | Sawa Building 6F, Nishi-Shimbashi 2-2-2, Minato-ku, Tokyo 105-0003 Japan |
 | **Contact** | Tel: 03-6273-3510 (Main) \| Fax: 03-3593-3511 |
-| **Websites** | https://esolia.com, https://esolia.co.jp |
+| **Websites** | https://esolia.co.jp/en, https://esolia.co.jp |
 | **Representative Directors** | James R. Cogley (CEO), Takumi Fukuoka (COO) |
 | **Established** | 7 July 1999 as "kabushiki gaisha" shared-stock entity |
 | **Paid-in Capital** | 30 MM JPY |
@@ -118,11 +118,11 @@ We adjust the emphasis on each of these areas, depending upon client requirement
 
 ### Learn More
 
-- Vision & General Info: https://esolia.com/about/
-- Management Team: https://esolia.com/management-team/
-- Our Mandate & Process: https://esolia.com/why-esolia/
-- Code of Conduct: https://esolia.com/esolia-code-of-conduct/
-- Services: https://esolia.com/topics/services/
+- Vision & General Info: https://esolia.co.jp/en/about/
+- Management Team: https://esolia.co.jp/en/management-team/
+- Our Mandate & Process: https://esolia.co.jp/en/why-esolia/
+- Code of Conduct: https://esolia.co.jp/en/esolia-code-of-conduct/
+- Services: https://esolia.co.jp/en/topics/services/
 
 ---
 
@@ -408,7 +408,7 @@ Please feel free to contact us at any time if you have questions or require clar
 
 Tel: 03-6273-3510
 Email: info@esolia.co.jp
-Web: https://esolia.com | https://esolia.co.jp
+Web: https://esolia.co.jp/en | https://esolia.co.jp
 
 ---
 

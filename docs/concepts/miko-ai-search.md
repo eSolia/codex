@@ -14,7 +14,7 @@ Miko (巫女) serves as the intermediary between users and Codex knowledge—lik
 │  USER INTERFACES                 AI SEARCH                CONTENT           │
 │  ───────────────                 ─────────                ───────           │
 │                                                                              │
-│  codex.esolia.pro ────┐                               ┌── Hanawa CMS        │
+│  codex.esolia.co.jp ────┐                               ┌── Hanawa CMS        │
 │  (Ask Miko widget)    │     ┌─────────────────┐       │   (proposals,       │
 │                       │     │   Cloudflare    │       │    help, blog)      │
 │  help.esolia.pro ─────┼────►│   AI Search     │◄──────┤                     │
@@ -230,7 +230,7 @@ Embeddable component for "Ask Miko" functionality:
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
 
-  export let endpoint = 'https://codex.esolia.pro/api/ask';
+  export let endpoint = 'https://codex.esolia.co.jp/api/ask';
   export let collection: string | undefined = undefined;
   export let language: 'en' | 'ja' = 'en';
   export let placeholder = 'Ask Miko...';
@@ -287,11 +287,11 @@ Embeddable component for "Ask Miko" functionality:
 
 ```html
 <!-- help.esolia.pro -->
-<script src="https://codex.esolia.pro/miko-widget.js"></script>
+<script src="https://codex.esolia.co.jp/miko-widget.js"></script>
 <miko-widget collection="help" language="ja"></miko-widget>
 
-<!-- periodic.esolia.pro -->
-<script src="https://codex.esolia.pro/miko-widget.js"></script>
+<!-- periodic.esolia.co.jp -->
+<script src="https://codex.esolia.co.jp/miko-widget.js"></script>
 <miko-widget collection="periodic" language="en"></miko-widget>
 ```
 
@@ -484,7 +484,7 @@ ORDER BY date DESC;
 ### Asking Miko (API)
 
 ```bash
-curl -X POST https://codex.esolia.pro/api/ask \
+curl -X POST https://codex.esolia.co.jp/api/ask \
   -H "Content-Type: application/json" \
   -d '{"question": "What is SPF?", "language": "en"}'
 ```

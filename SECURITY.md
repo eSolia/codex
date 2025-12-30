@@ -32,7 +32,7 @@ Codex handles content with varying sensitivity levels. Security controls are app
 Shareable previews use token-based authentication:
 
 ```
-https://codex.esolia.pro/preview/{token}
+https://codex.esolia.co.jp/preview/{token}
 ```
 
 Token validation includes:

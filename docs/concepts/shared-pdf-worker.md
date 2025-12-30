@@ -96,10 +96,10 @@ Since this is internal, use a simple shared secret:
 ```typescript
 // Worker validates incoming requests
 const ALLOWED_ORIGINS = [
-  "https://codex.esolia.pro",
+  "https://codex.esolia.co.jp",
   "https://chocho.esolia.co.jp",
-  "https://pulse.esolia.pro",
-  "https://periodic.esolia.pro",
+  "https://pulse.esolia.co.jp",
+  "https://periodic.esolia.co.jp",
   "http://localhost:*",
 ];
 

@@ -32,7 +32,7 @@ flowchart TB
 
     subgraph Consumers["DISTRIBUTION"]
         HELP["help.esolia.pro"]
-        CODEX["codex.esolia.pro"]
+        CODEX["codex.esolia.co.jp"]
         SP["SharePoint"]
         PDF["PDF Export"]
         API["Delivery API"]

@@ -33,7 +33,7 @@ graph TB
 
     subgraph "DISTRIBUTION"
         HELP[help.esolia.pro]
-        CODEX[codex.esolia.pro]
+        CODEX[codex.esolia.co.jp]
         SP[SharePoint/M365]
         PDF[PDF Export]
         COUR[Courier]
