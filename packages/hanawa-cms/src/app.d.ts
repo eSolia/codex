@@ -55,6 +55,7 @@ declare global {
         VECTORIZE?: VectorizeIndex;
         ENVIRONMENT: string;
         SESSION_SECRET?: string;
+        PDF_API_KEY?: string;
       };
       context: ExecutionContext;
       caches: CacheStorage & { default: Cache };

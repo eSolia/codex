@@ -1,0 +1,676 @@
+<script lang="ts">
+  import type { PageData, ActionData } from './$types';
+  import { enhance } from '$app/forms';
+  import { goto } from '$app/navigation';
+  import FileText from 'phosphor-svelte/lib/FileText';
+  import FilePdf from 'phosphor-svelte/lib/FilePdf';
+  import Share from 'phosphor-svelte/lib/Share';
+  import Check from 'phosphor-svelte/lib/Check';
+  import X from 'phosphor-svelte/lib/X';
+  import ArrowLeft from 'phosphor-svelte/lib/ArrowLeft';
+  import Eye from 'phosphor-svelte/lib/Eye';
+  import PencilSimple from 'phosphor-svelte/lib/PencilSimple';
+  import Trash from 'phosphor-svelte/lib/Trash';
+  import DotsSixVertical from 'phosphor-svelte/lib/DotsSixVertical';
+  import Copy from 'phosphor-svelte/lib/Copy';
+  import Clock from 'phosphor-svelte/lib/Clock';
+
+  interface Fragment {
+    id: string;
+    order: number;
+    enabled: boolean;
+  }
+
+  interface FragmentContent {
+    id: string;
+    name: string;
+    slug: string;
+    category: string;
+    content_en: string | null;
+    content_ja: string | null;
+  }
+
+  let { data, form }: { data: PageData; form: ActionData } = $props();
+
+  // State
+  let editMode = $state(false);
+  let showPreview = $state(false);
+  let showShareModal = $state(false);
+  let fragments = $state<Fragment[]>(data.fragments as Fragment[]);
+  let draggedIndex = $state<number | null>(null);
+  let isGeneratingPdf = $state(false);
+  let isSharing = $state(false);
+
+  // Derived
+  const fragmentsJson = $derived(JSON.stringify(fragments));
+  const proposal = $derived(data.proposal);
+  const fragmentContents = $derived(data.fragmentContents as FragmentContent[]);
+
+  // Content map for preview
+  const contentMap = $derived(new Map(fragmentContents.map((f: FragmentContent) => [f.id, f])));
+
+  // Status colors
+  function getStatusColor(status: string): string {
+    const colors: Record<string, string> = {
+      draft: 'bg-gray-100 text-gray-700',
+      review: 'bg-yellow-100 text-yellow-800',
+      approved: 'bg-green-100 text-green-800',
+      shared: 'bg-blue-100 text-blue-800',
+      archived: 'bg-gray-200 text-gray-600',
+    };
+    return colors[status] || colors.draft;
+  }
+
+  function getFragmentTitle(id: string): string {
+    const titles: Record<string, string> = {
+      'esolia-introduction': 'Introduction & Mission',
+      'esolia-profile': 'Company Profile',
+      'esolia-background': 'Virtual IT Background',
+      'esolia-project-types': 'Project Experience',
+      'esolia-support-types': 'Support Options',
+      'esolia-service-mechanics': 'Service Mechanics',
+      'esolia-agreement-characteristics': 'Agreement Terms',
+      'esolia-closing': 'Next Steps & Closing',
+    };
+    return titles[id] || id;
+  }
+
+  function toggleFragment(index: number) {
+    fragments[index].enabled = !fragments[index].enabled;
+  }
+
+  function handleDragStart(e: DragEvent, index: number) {
+    draggedIndex = index;
+    if (e.dataTransfer) {
+      e.dataTransfer.effectAllowed = 'move';
+    }
+  }
+
+  function handleDragOver(e: DragEvent, index: number) {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === index) return;
+
+    const newFragments = [...fragments];
+    const [removed] = newFragments.splice(draggedIndex, 1);
+    newFragments.splice(index, 0, removed);
+    newFragments.forEach((f, i) => (f.order = i + 1));
+
+    fragments = newFragments;
+    draggedIndex = index;
+  }
+
+  function handleDragEnd() {
+    draggedIndex = null;
+  }
+
+  function copyToClipboard(text: string) {
+    navigator.clipboard.writeText(text);
+  }
+
+  // Handle form results
+  $effect(() => {
+    if (form?.success && form?.redirect) {
+      goto(form.redirect);
+    }
+  });
+</script>
+
+<svelte:head>
+  <title>{proposal.title} | Proposals | Hanawa CMS</title>
+</svelte:head>
+
+<div class="space-y-6">
+  <!-- Header -->
+  <div class="flex items-start justify-between">
+    <div class="flex items-center gap-4">
+      <a
+        href="/proposals"
+        class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+      >
+        <ArrowLeft size={20} />
+      </a>
+      <div>
+        <div class="flex items-center gap-3">
+          <h1 class="text-2xl font-bold text-esolia-navy">{proposal.title}</h1>
+          <span
+            class="px-2 py-1 text-xs font-medium rounded-full {getStatusColor(proposal.status)}"
+          >
+            {proposal.status}
+          </span>
+        </div>
+        <p class="mt-1 text-gray-600">
+          {proposal.client_name || proposal.client_code}
+          {#if proposal.client_name_ja}
+            <span class="text-gray-400">({proposal.client_name_ja})</span>
+          {/if}
+        </p>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex items-center gap-2">
+      <button
+        type="button"
+        onclick={() => (showPreview = !showPreview)}
+        class="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 bg-white border rounded-lg hover:bg-gray-50 transition-colors"
+      >
+        <Eye size={16} />
+        {showPreview ? 'Hide Preview' : 'Preview'}
+      </button>
+
+      <button
+        type="button"
+        onclick={() => (editMode = !editMode)}
+        class="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 bg-white border rounded-lg hover:bg-gray-50 transition-colors"
+      >
+        <PencilSimple size={16} />
+        {editMode ? 'View Mode' : 'Edit'}
+      </button>
+    </div>
+  </div>
+
+  <!-- Alerts -->
+  {#if form?.error}
+    <div class="bg-red-50 border border-red-200 rounded-lg p-4 text-red-800">
+      {form.error}
+    </div>
+  {/if}
+
+  {#if form?.success && form?.message}
+    <div class="bg-green-50 border border-green-200 rounded-lg p-4 text-green-800">
+      {form.message}
+    </div>
+  {/if}
+
+  <!-- Share success with PIN -->
+  {#if form?.success && form?.shareUrl}
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-3">
+      <p class="text-blue-800 font-medium">Share link created!</p>
+      <div class="flex items-center gap-2">
+        <code class="flex-1 px-3 py-2 bg-white rounded border text-sm">{form.shareUrl}</code>
+        <button
+          type="button"
+          onclick={() => copyToClipboard(form?.shareUrl || '')}
+          class="p-2 text-blue-600 hover:bg-blue-100 rounded transition-colors"
+        >
+          <Copy size={16} />
+        </button>
+      </div>
+      <div class="flex items-center gap-4 text-sm">
+        <span class="text-blue-800">
+          <strong>PIN:</strong>
+          <code class="ml-1 px-2 py-1 bg-white rounded">{form.pin}</code>
+        </span>
+        <span class="text-blue-600">
+          <Clock size={14} class="inline" />
+          Expires: {new Date(form.expiresAt).toLocaleDateString()}
+        </span>
+      </div>
+    </div>
+  {/if}
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Left Column: Details & Fragments -->
+    <div class="lg:col-span-2 space-y-6">
+      <!-- Proposal Details -->
+      {#if editMode}
+        <form
+          method="POST"
+          action="?/update"
+          use:enhance
+          class="bg-white rounded-lg shadow p-6 space-y-4"
+        >
+          <input type="hidden" name="fragments" value={fragmentsJson} />
+
+          <h2 class="text-lg font-semibold text-gray-900">Proposal Details</h2>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label for="client_code" class="block text-sm font-medium text-gray-700">
+                Client Code
+              </label>
+              <input
+                type="text"
+                id="client_code"
+                name="client_code"
+                value={proposal.client_code}
+                required
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-esolia-navy focus:ring-esolia-navy"
+              />
+            </div>
+            <div>
+              <label for="language" class="block text-sm font-medium text-gray-700">Language</label>
+              <select
+                id="language"
+                name="language"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-esolia-navy focus:ring-esolia-navy"
+              >
+                <option value="en" selected={proposal.language === 'en'}>English</option>
+                <option value="ja" selected={proposal.language === 'ja'}>Japanese</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label for="client_name" class="block text-sm font-medium text-gray-700">
+                Client Name (EN)
+              </label>
+              <input
+                type="text"
+                id="client_name"
+                name="client_name"
+                value={proposal.client_name || ''}
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-esolia-navy focus:ring-esolia-navy"
+              />
+            </div>
+            <div>
+              <label for="client_name_ja" class="block text-sm font-medium text-gray-700">
+                Client Name (JA)
+              </label>
+              <input
+                type="text"
+                id="client_name_ja"
+                name="client_name_ja"
+                value={proposal.client_name_ja || ''}
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-esolia-navy focus:ring-esolia-navy"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label for="title" class="block text-sm font-medium text-gray-700">Title</label>
+            <input
+              type="text"
+              id="title"
+              name="title"
+              value={proposal.title}
+              required
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-esolia-navy focus:ring-esolia-navy"
+            />
+          </div>
+
+          <div>
+            <label for="title_ja" class="block text-sm font-medium text-gray-700">Title (JA)</label>
+            <input
+              type="text"
+              id="title_ja"
+              name="title_ja"
+              value={proposal.title_ja || ''}
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-esolia-navy focus:ring-esolia-navy"
+            />
+          </div>
+
+          <div>
+            <label for="scope" class="block text-sm font-medium text-gray-700">Scope</label>
+            <textarea
+              id="scope"
+              name="scope"
+              rows="3"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-esolia-navy focus:ring-esolia-navy"
+              >{proposal.scope || ''}</textarea
+            >
+          </div>
+
+          <div>
+            <label for="custom_sections" class="block text-sm font-medium text-gray-700">
+              Custom Sections (Markdown)
+            </label>
+            <textarea
+              id="custom_sections"
+              name="custom_sections"
+              rows="6"
+              placeholder="Add client-specific content here..."
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-esolia-navy focus:ring-esolia-navy font-mono text-sm"
+              >{proposal.custom_sections || ''}</textarea
+            >
+          </div>
+
+          <div class="flex justify-end">
+            <button
+              type="submit"
+              class="px-4 py-2 bg-esolia-navy text-white rounded-lg hover:bg-esolia-navy/90 transition-colors"
+            >
+              Save Changes
+            </button>
+          </div>
+        </form>
+      {:else}
+        <div class="bg-white rounded-lg shadow p-6 space-y-4">
+          <h2 class="text-lg font-semibold text-gray-900">Proposal Details</h2>
+
+          <dl class="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <dt class="text-gray-500">Client Code</dt>
+              <dd class="font-medium">{proposal.client_code}</dd>
+            </div>
+            <div>
+              <dt class="text-gray-500">Language</dt>
+              <dd class="font-medium">{proposal.language === 'ja' ? 'Japanese' : 'English'}</dd>
+            </div>
+            <div>
+              <dt class="text-gray-500">Created</dt>
+              <dd class="font-medium">{new Date(proposal.created_at).toLocaleDateString()}</dd>
+            </div>
+            <div>
+              <dt class="text-gray-500">Updated</dt>
+              <dd class="font-medium">{new Date(proposal.updated_at).toLocaleDateString()}</dd>
+            </div>
+          </dl>
+
+          {#if proposal.scope}
+            <div>
+              <h3 class="text-sm font-medium text-gray-500">Scope</h3>
+              <p class="mt-1 text-gray-900">{proposal.scope}</p>
+            </div>
+          {/if}
+        </div>
+      {/if}
+
+      <!-- Fragments -->
+      <div class="bg-white rounded-lg shadow p-6 space-y-4">
+        <div class="flex items-center justify-between">
+          <h2 class="text-lg font-semibold text-gray-900">Fragments</h2>
+          <span class="text-sm text-gray-500">
+            {fragments.filter((f) => f.enabled).length} of {fragments.length} enabled
+          </span>
+        </div>
+
+        <div class="space-y-2">
+          {#each fragments as fragment, index (fragment.id)}
+            <div
+              draggable={editMode}
+              ondragstart={(e) => editMode && handleDragStart(e, index)}
+              ondragover={(e) => editMode && handleDragOver(e, index)}
+              ondragend={() => editMode && handleDragEnd()}
+              class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border transition-all
+                     {fragment.enabled ? 'border-gray-200' : 'border-gray-100 opacity-50'}
+                     {editMode ? 'cursor-move' : ''}
+                     {draggedIndex === index ? 'ring-2 ring-esolia-navy ring-offset-2' : ''}"
+            >
+              {#if editMode}
+                <DotsSixVertical size={20} class="text-gray-400 flex-shrink-0" />
+              {/if}
+
+              <span
+                class="w-6 h-6 flex items-center justify-center rounded-full text-xs font-medium
+                       {fragment.enabled
+                  ? 'bg-esolia-navy text-white'
+                  : 'bg-gray-200 text-gray-500'}"
+              >
+                {fragment.order}
+              </span>
+
+              <span class="flex-1 text-sm {fragment.enabled ? 'text-gray-900' : 'text-gray-400'}">
+                {getFragmentTitle(fragment.id)}
+              </span>
+
+              {#if editMode}
+                <button
+                  type="button"
+                  onclick={() => toggleFragment(index)}
+                  class="p-1.5 rounded-md transition-colors
+                         {fragment.enabled
+                    ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                    : 'bg-gray-200 text-gray-500 hover:bg-gray-300'}"
+                >
+                  {#if fragment.enabled}
+                    <Check size={16} weight="bold" />
+                  {:else}
+                    <X size={16} weight="bold" />
+                  {/if}
+                </button>
+              {/if}
+            </div>
+          {/each}
+        </div>
+      </div>
+
+      <!-- Preview -->
+      {#if showPreview}
+        <div class="bg-white rounded-lg shadow p-6 space-y-4">
+          <h2 class="text-lg font-semibold text-gray-900">Preview</h2>
+
+          <div class="prose max-w-none">
+            <h1>
+              {proposal.language === 'ja' && proposal.title_ja ? proposal.title_ja : proposal.title}
+            </h1>
+
+            {#if proposal.scope}
+              <h2>Scope</h2>
+              <p>{proposal.scope}</p>
+            {/if}
+
+            {#each fragments.filter((f) => f.enabled).sort((a, b) => a.order - b.order) as fragment}
+              {@const content = contentMap.get(fragment.id)}
+              {#if content}
+                <section class="border-t pt-4 mt-4">
+                  <h3 class="text-sm font-medium text-gray-500 mb-2">{content.name}</h3>
+                  <div class="text-gray-600 text-sm">
+                    {#if proposal.language === 'ja' && content.content_ja}
+                      {content.content_ja.substring(0, 200)}...
+                    {:else if content.content_en}
+                      {content.content_en.substring(0, 200)}...
+                    {:else}
+                      <em class="text-gray-400">No content available</em>
+                    {/if}
+                  </div>
+                </section>
+              {/if}
+            {/each}
+
+            {#if proposal.custom_sections}
+              <section class="border-t pt-4 mt-4">
+                <h2>Custom Content</h2>
+                <pre
+                  class="text-sm bg-gray-50 p-4 rounded overflow-x-auto">{proposal.custom_sections}</pre>
+              </section>
+            {/if}
+          </div>
+        </div>
+      {/if}
+    </div>
+
+    <!-- Right Column: Actions & Status -->
+    <div class="space-y-6">
+      <!-- Workflow Status -->
+      <div class="bg-white rounded-lg shadow p-6 space-y-4">
+        <h2 class="text-lg font-semibold text-gray-900">Workflow</h2>
+
+        <div class="space-y-2">
+          <form method="POST" action="?/updateStatus" use:enhance class="space-y-3">
+            <input type="hidden" name="status" value="review" />
+            <button
+              type="submit"
+              disabled={proposal.status === 'review'}
+              class="w-full px-4 py-2 text-sm font-medium rounded-lg transition-colors
+                     {proposal.status === 'review'
+                ? 'bg-yellow-100 text-yellow-800 cursor-default'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}"
+            >
+              Send for Review
+            </button>
+          </form>
+
+          <form method="POST" action="?/updateStatus" use:enhance class="space-y-3">
+            <input type="hidden" name="status" value="approved" />
+            <button
+              type="submit"
+              disabled={proposal.status === 'approved' || proposal.status === 'shared'}
+              class="w-full px-4 py-2 text-sm font-medium rounded-lg transition-colors
+                     {proposal.status === 'approved' || proposal.status === 'shared'
+                ? 'bg-green-100 text-green-800 cursor-default'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}"
+            >
+              Approve
+            </button>
+          </form>
+        </div>
+
+        {#if proposal.reviewed_at}
+          <div class="text-xs text-gray-500 pt-2 border-t">
+            Reviewed: {new Date(proposal.reviewed_at).toLocaleString()}
+            {#if proposal.review_notes}
+              <p class="mt-1">{proposal.review_notes}</p>
+            {/if}
+          </div>
+        {/if}
+      </div>
+
+      <!-- PDF Generation -->
+      <div class="bg-white rounded-lg shadow p-6 space-y-4">
+        <h2 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+          <FilePdf size={20} weight="duotone" class="text-red-600" />
+          PDF Generation
+        </h2>
+
+        <form
+          method="POST"
+          action="?/generatePdf"
+          use:enhance={() => {
+            isGeneratingPdf = true;
+            return async ({ update }) => {
+              await update();
+              isGeneratingPdf = false;
+            };
+          }}
+        >
+          <button
+            type="submit"
+            disabled={isGeneratingPdf}
+            class="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+          >
+            {isGeneratingPdf ? 'Generating...' : 'Generate PDF'}
+          </button>
+        </form>
+
+        {#if proposal.pdf_generated_at}
+          <div class="text-xs text-gray-500">
+            Last generated: {new Date(proposal.pdf_generated_at).toLocaleString()}
+          </div>
+        {/if}
+      </div>
+
+      <!-- Share via Courier -->
+      <div class="bg-white rounded-lg shadow p-6 space-y-4">
+        <h2 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+          <Share size={20} weight="duotone" class="text-blue-600" />
+          Share via Courier
+        </h2>
+
+        {#if !proposal.pdf_r2_key}
+          <p class="text-sm text-gray-500">Generate a PDF before sharing.</p>
+        {:else}
+          <form
+            method="POST"
+            action="?/share"
+            use:enhance={() => {
+              isSharing = true;
+              return async ({ update }) => {
+                await update();
+                isSharing = false;
+              };
+            }}
+            class="space-y-3"
+          >
+            <div>
+              <label for="recipient_email" class="block text-sm font-medium text-gray-700">
+                Recipient Email
+              </label>
+              <input
+                type="email"
+                id="recipient_email"
+                name="recipient_email"
+                required
+                placeholder="client@example.com"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-esolia-navy focus:ring-esolia-navy text-sm"
+              />
+            </div>
+
+            <div>
+              <label for="recipient_name" class="block text-sm font-medium text-gray-700">
+                Recipient Name
+              </label>
+              <input
+                type="text"
+                id="recipient_name"
+                name="recipient_name"
+                placeholder="John Smith"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-esolia-navy focus:ring-esolia-navy text-sm"
+              />
+            </div>
+
+            <div>
+              <label for="expires_in_days" class="block text-sm font-medium text-gray-700">
+                Expires In
+              </label>
+              <select
+                id="expires_in_days"
+                name="expires_in_days"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-esolia-navy focus:ring-esolia-navy text-sm"
+              >
+                <option value="7">7 days</option>
+                <option value="14">14 days</option>
+                <option value="30">30 days</option>
+                <option value="90">90 days</option>
+              </select>
+            </div>
+
+            <button
+              type="submit"
+              disabled={isSharing}
+              class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+            >
+              {isSharing ? 'Creating Share...' : 'Create Share Link'}
+            </button>
+          </form>
+        {/if}
+
+        {#if proposal.share_url}
+          <div class="pt-3 border-t space-y-2">
+            <div class="text-xs text-gray-500">Active share:</div>
+            <code class="block text-xs bg-gray-50 p-2 rounded break-all">{proposal.share_url}</code>
+            <div class="flex items-center gap-4 text-xs">
+              <span>PIN: <code>{proposal.share_pin}</code></span>
+              {#if proposal.share_expires_at}
+                <span class="text-gray-500">
+                  Expires: {new Date(proposal.share_expires_at).toLocaleDateString()}
+                </span>
+              {/if}
+            </div>
+          </div>
+        {/if}
+      </div>
+
+      <!-- Danger Zone -->
+      <div class="bg-white rounded-lg shadow p-6 space-y-4">
+        <h2 class="text-lg font-semibold text-red-600">Danger Zone</h2>
+
+        <form
+          method="POST"
+          action="?/delete"
+          use:enhance={({ cancel }) => {
+            const confirmed = confirm('Are you sure you want to delete this proposal?');
+            if (!confirmed) {
+              cancel();
+              return;
+            }
+            return async ({ result }) => {
+              if (result.type === 'success') {
+                goto('/proposals');
+              }
+            };
+          }}
+        >
+          <button
+            type="submit"
+            class="w-full px-4 py-2 text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors flex items-center justify-center gap-2"
+          >
+            <Trash size={16} />
+            Delete Proposal
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

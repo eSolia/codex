@@ -50,6 +50,12 @@
             Content
           </a>
           <a
+            href="/proposals"
+            class="px-3 py-2 rounded-md text-sm font-medium hover:bg-white/10 transition-colors"
+          >
+            Proposals
+          </a>
+          <a
             href="/fragments"
             class="px-3 py-2 rounded-md text-sm font-medium hover:bg-white/10 transition-colors"
           >
