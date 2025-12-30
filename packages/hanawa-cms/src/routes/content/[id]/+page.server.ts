@@ -248,7 +248,7 @@ export const actions: Actions = {
           source: 'hanawa-cms',
           document_id: content.id,
           version: '1.0',
-          canonical_url: `https://${content.site_slug || 'codex'}.esolia.pro/${content.slug}`,
+          canonical_url: `https://${content.site_slug || 'codex'}.esolia.co.jp/${content.slug}`,
         },
       };
 

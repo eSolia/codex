@@ -361,7 +361,7 @@ Please contact us anytime with questions.
 
 Tel: 03-4577-3380
 Email: info@esolia.co.jp
-Web: https://esolia.com
+Web: https://esolia.co.jp/en
 ',
   '## 次のステップ
 
@@ -464,7 +464,7 @@ VALUES (
 | **Headquarters** | Shiodome City Center 5F, Tokyo |
 | **Established** | July 7, 1999 |
 | **Leadership** | James R. Cogley (CEO), Takumi Fukuoka (COO) |
-| **Website** | https://esolia.com |
+| **Website** | https://esolia.co.jp/en |
 
 ### Our Services
 
@@ -481,7 +481,7 @@ VALUES (
 
 Our team holds certifications from Microsoft, CompTIA, Fortinet, and ITIL. We partner with industry leaders including Microsoft 365, AWS, Fortinet, HP, and Dell.
 
-For detailed company information, capability statement, and code of conduct, please visit: **https://esolia.com/about/**
+For detailed company information, capability statement, and code of conduct, please visit: **https://esolia.co.jp/en/about/**
 ',
   '## 会社概要
 
@@ -559,7 +559,7 @@ Since 1999, we have successfully delivered projects across multiple industries i
 - IT department interim management
 - Co-support with client IT teams
 
-For detailed success stories, visit: **https://esolia.com/success/**
+For detailed success stories, visit: **https://esolia.co.jp/en/success/**
 ',
   '## 実績
 
