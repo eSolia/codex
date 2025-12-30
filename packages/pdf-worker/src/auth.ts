@@ -11,13 +11,13 @@ import type { Env } from "./types";
  */
 const ALLOWED_ORIGINS = [
   // Production
-  "https://codex.esolia.pro",
+  "https://codex.esolia.co.jp",
   "https://hanawa.esolia.co.jp",
   "https://chocho.esolia.co.jp",
-  "https://pulse.esolia.pro",
-  "https://periodic.esolia.pro",
-  "https://nexus.esolia.pro",
-  "https://courier.esolia.pro",
+  "https://pulse.esolia.co.jp",
+  "https://periodic.esolia.co.jp",
+  "https://nexus.esolia.co.jp",
+  "https://courier.esolia.co.jp",
 
   // Staging
   "https://*.pages.dev",

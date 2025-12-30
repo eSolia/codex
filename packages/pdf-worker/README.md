@@ -119,13 +119,13 @@ The worker accepts two authentication methods:
 
 ### Whitelisted Origins
 
-- `https://codex.esolia.pro`
+- `https://codex.esolia.co.jp`
 - `https://hanawa.esolia.co.jp`
 - `https://chocho.esolia.co.jp`
-- `https://pulse.esolia.pro`
-- `https://periodic.esolia.pro`
-- `https://nexus.esolia.pro`
-- `https://courier.esolia.pro`
+- `https://pulse.esolia.co.jp`
+- `https://periodic.esolia.co.jp`
+- `https://nexus.esolia.co.jp`
+- `https://courier.esolia.co.jp`
 - `https://*.pages.dev` (staging)
 - `http://localhost:*` (development)
 
@@ -188,7 +188,7 @@ Share this key with all client applications that need to call the PDF worker.
 
 ```typescript
 // scripts/lib/pdf.ts
-const PDF_WORKER_URL = Deno.env.get("PDF_WORKER_URL") || "https://pdf.esolia.pro";
+const PDF_WORKER_URL = Deno.env.get("PDF_WORKER_URL") || "https://pdf.esolia.co.jp";
 const PDF_API_KEY = Deno.env.get("PDF_API_KEY");
 
 export async function generatePdf(html: string): Promise<Uint8Array> {
