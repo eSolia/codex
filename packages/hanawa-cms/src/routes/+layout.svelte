@@ -143,6 +143,21 @@
               ISO 27001 aligned controls
             </li>
           </ul>
+          <div class="mt-3 flex items-center gap-3">
+            <a
+              href="/security"
+              class="text-xs text-zinc-400 hover:text-rose-400 transition-colors"
+            >
+              Security
+            </a>
+            <span class="text-zinc-600">•</span>
+            <a
+              href="/security/assessment"
+              class="text-xs text-zinc-400 hover:text-rose-400 transition-colors"
+            >
+              ASVS Assessment
+            </a>
+          </div>
         </div>
 
         <!-- Product Info -->

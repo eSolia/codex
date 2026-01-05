@@ -1,0 +1,540 @@
+{
+  "timestamp": "2026-01-05T05:02:45.633Z",
+  "version": "0.2.0",
+  "summary": {
+    "total": 16,
+    "passed": 16,
+    "failed": 0,
+    "warnings": 0
+  },
+  "checks": [
+    {
+      "id": "V2.1.1",
+      "category": "V2 Authentication",
+      "name": "Cloudflare Access Protection",
+      "status": "pass",
+      "description": "All routes protected by Cloudflare Access zero-trust authentication",
+      "locations": [
+        {
+          "file": "src/routes/+layout.svelte",
+          "line": 131,
+          "snippet": "Cloudflare Access protected"
+        },
+        {
+          "file": "src/hooks.server.ts",
+          "line": 85,
+          "snippet": "// Extract actor from Cloudflare Access headers (or use defaults for dev)"
+        },
+        {
+          "file": "src/hooks.server.ts",
+          "line": 86,
+          "snippet": "const cfAccessEmail = event.request.headers.get('cf-access-authenticated-user-email');"
+        },
+        {
+          "file": "src/hooks.server.ts",
+          "line": 87,
+          "snippet": "const cfAccessId = event.request.headers.get('cf-access-jwt-assertion');"
+        }
+      ],
+      "asvsRef": "V2.1.1"
+    },
+    {
+      "id": "V2.2.1",
+      "category": "V2 Authentication",
+      "name": "Cryptographic Token Generation",
+      "status": "pass",
+      "description": "Cryptographically secure random token generation",
+      "locations": [
+        {
+          "file": "src/routes/content/new/+page.server.ts",
+          "line": 73,
+          "snippet": "const id = crypto.randomUUID();"
+        },
+        {
+          "file": "src/routes/fragments/new/+page.server.ts",
+          "line": 9,
+          "snippet": "function generateId(): string {"
+        },
+        {
+          "file": "src/routes/fragments/new/+page.server.ts",
+          "line": 45,
+          "snippet": "const id = generateId();"
+        },
+        {
+          "file": "src/lib/server/ai.ts",
+          "line": 163,
+          "snippet": "const id = crypto.randomUUID();"
+        },
+        {
+          "file": "src/lib/server/ai.ts",
+          "line": 327,
+          "snippet": "const id = crypto.randomUUID();"
+        }
+      ],
+      "asvsRef": "V2.2.1"
+    },
+    {
+      "id": "V2.3.1",
+      "category": "V2 Authentication",
+      "name": "CSRF Protection",
+      "status": "pass",
+      "description": "Cross-Site Request Forgery protection on state-changing endpoints",
+      "locations": [
+        {
+          "file": "src/routes/content/[id]/+page.server.ts",
+          "line": 3,
+          "snippet": "* InfoSec: Authorization checks, audit logging, CSRF protection"
+        },
+        {
+          "file": "src/hooks.server.ts",
+          "line": 20,
+          "snippet": "* Validate CSRF for API routes."
+        },
+        {
+          "file": "src/hooks.server.ts",
+          "line": 24,
+          "snippet": "function validateCsrf(request: Request, url: URL): void {"
+        },
+        {
+          "file": "src/hooks.server.ts",
+          "line": 37,
+          "snippet": "throw error(403, 'CSRF check failed: invalid referer');"
+        },
+        {
+          "file": "src/hooks.server.ts",
+          "line": 44,
+          "snippet": "throw error(403, 'CSRF check failed: origin mismatch');"
+        }
+      ],
+      "asvsRef": "V2.3.1"
+    },
+    {
+      "id": "V3.2.1",
+      "category": "V3 Session Management",
+      "name": "Request Correlation",
+      "status": "pass",
+      "description": "Request ID generation for audit trail correlation",
+      "locations": [
+        {
+          "file": "src/lib/server/audit.ts",
+          "line": 72,
+          "snippet": "sessionId?: string;"
+        },
+        {
+          "file": "src/lib/server/audit.ts",
+          "line": 73,
+          "snippet": "requestId?: string;"
+        },
+        {
+          "file": "src/lib/server/audit.ts",
+          "line": 94,
+          "snippet": "session_id: string | null;"
+        },
+        {
+          "file": "src/lib/server/audit.ts",
+          "line": 146,
+          "snippet": "session_id: context.sessionId || null,"
+        },
+        {
+          "file": "src/lib/server/audit.ts",
+          "line": 147,
+          "snippet": "request_id: context.requestId || null,"
+        }
+      ],
+      "asvsRef": "V3.2.1"
+    },
+    {
+      "id": "V4.1.1",
+      "category": "V4 Access Control",
+      "name": "Actor Context Tracking",
+      "status": "pass",
+      "description": "User/actor identity tracked for all operations",
+      "locations": [
+        {
+          "file": "src/routes/api/integrations/+server.ts",
+          "line": 20,
+          "snippet": "if (!locals.auditContext) {"
+        },
+        {
+          "file": "src/routes/api/integrations/+server.ts",
+          "line": 44,
+          "snippet": "if (!locals.auditContext) {"
+        },
+        {
+          "file": "src/routes/api/integrations/+server.ts",
+          "line": 80,
+          "snippet": "locals.auditContext"
+        },
+        {
+          "file": "src/routes/api/media/+server.ts",
+          "line": 52,
+          "snippet": "if (!locals.auditContext) {"
+        },
+        {
+          "file": "src/routes/api/media/+server.ts",
+          "line": 74,
+          "snippet": "const asset = await locals.media.upload(file, options, locals.auditContext);"
+        }
+      ],
+      "asvsRef": "V4.1.1"
+    },
+    {
+      "id": "V4.2.1",
+      "category": "V4 Access Control",
+      "name": "Content Sensitivity Controls",
+      "status": "pass",
+      "description": "Multi-level content sensitivity classification (normal/confidential/embargoed)",
+      "locations": [
+        {
+          "file": "src/routes/content/[id]/+page.server.ts",
+          "line": 8,
+          "snippet": "import { logAuditEvent, securityLevels } from '$lib/server/security';"
+        },
+        {
+          "file": "src/routes/content/[id]/+page.server.ts",
+          "line": 9,
+          "snippet": "import type { SensitivityLevel } from '$lib/server/security';"
+        },
+        {
+          "file": "src/routes/content/[id]/+page.server.ts",
+          "line": 22,
+          "snippet": "sensitivity: 'normal' as SensitivityLevel,"
+        },
+        {
+          "file": "src/routes/content/[id]/+page.server.ts",
+          "line": 107,
+          "snippet": "const sensitivity = (formData.get('sensitivity') as SensitivityLevel) || 'normal';"
+        },
+        {
+          "file": "src/routes/content/[id]/+page.server.ts",
+          "line": 124,
+          "snippet": "if (!['normal', 'confidential', 'embargoed'].includes(sensitivity)) {"
+        }
+      ],
+      "asvsRef": "V4.2.1"
+    },
+    {
+      "id": "V5.3.4",
+      "category": "V5 Validation",
+      "name": "SQL Injection Prevention",
+      "status": "pass",
+      "description": "Cloudflare D1 parameterized queries (.prepare().bind())",
+      "locations": [
+        {
+          "file": "src/routes/+page.server.ts",
+          "line": 17,
+          "snippet": "db.prepare('SELECT COUNT(*) as count FROM sites').first(),"
+        },
+        {
+          "file": "src/routes/+page.server.ts",
+          "line": 18,
+          "snippet": "db.prepare('SELECT COUNT(*) as count FROM content').first(),"
+        },
+        {
+          "file": "src/routes/+page.server.ts",
+          "line": 19,
+          "snippet": "db.prepare('SELECT COUNT(*) as count FROM fragments').first(),"
+        },
+        {
+          "file": "src/routes/+page.server.ts",
+          "line": 20,
+          "snippet": "db.prepare('SELECT COUNT(*) as count FROM assets').first(),"
+        },
+        {
+          "file": "src/routes/+page.server.ts",
+          "line": 25,
+          "snippet": ".prepare("
+        }
+      ],
+      "asvsRef": "V5.3.4"
+    },
+    {
+      "id": "V5.3.3",
+      "category": "V5 Validation",
+      "name": "XSS Prevention",
+      "status": "pass",
+      "description": "Comprehensive HTML sanitization module with tag/attribute whitelist",
+      "locations": [
+        {
+          "file": "src/lib/components/comments/CommentThread.svelte",
+          "line": 8,
+          "snippet": "import { sanitizeComment } from '$lib/sanitize';"
+        },
+        {
+          "file": "src/lib/components/comments/CommentThread.svelte",
+          "line": 167,
+          "snippet": "{@html sanitizeComment(thread.rootComment.contentHtml)}"
+        },
+        {
+          "file": "src/lib/components/comments/CommentThread.svelte",
+          "line": 321,
+          "snippet": "{@html sanitizeComment(reply.contentHtml)}"
+        },
+        {
+          "file": "src/lib/components/editor/EditorToolbar.svelte",
+          "line": 66,
+          "snippet": "// InfoSec: Validate URL before adding (OWASP A03)"
+        },
+        {
+          "file": "src/lib/editor/editor.ts",
+          "line": 5,
+          "snippet": "* InfoSec: All extensions reviewed for XSS prevention (OWASP A03)"
+        }
+      ],
+      "asvsRef": "V5.3.3"
+    },
+    {
+      "id": "V7.1.1",
+      "category": "V7 Error Handling",
+      "name": "Secure Error Handling",
+      "status": "pass",
+      "description": "Proper error handling without stack trace exposure",
+      "locations": [
+        {
+          "file": "src/routes/+page.server.ts",
+          "line": 39,
+          "snippet": "} catch (error) {"
+        },
+        {
+          "file": "src/routes/+page.server.ts",
+          "line": 40,
+          "snippet": "console.error('Dashboard load error:', error);"
+        },
+        {
+          "file": "src/routes/api/audit/+server.ts",
+          "line": 14,
+          "snippet": "throw error(500, 'Database not available');"
+        },
+        {
+          "file": "src/routes/api/audit/+server.ts",
+          "line": 30,
+          "snippet": "throw error(400, 'Missing required fields');"
+        },
+        {
+          "file": "src/routes/api/audit/+server.ts",
+          "line": 45,
+          "snippet": "throw error(400, 'Invalid event type');"
+        }
+      ],
+      "asvsRef": "V7.1.1"
+    },
+    {
+      "id": "V8.1.1",
+      "category": "V8 Data Protection",
+      "name": "Encryption at Rest",
+      "status": "pass",
+      "description": "AES-256-GCM encryption for sensitive content at rest",
+      "locations": [
+        {
+          "file": "src/routes/+layout.svelte",
+          "line": 135,
+          "snippet": "All data encrypted at rest"
+        },
+        {
+          "file": "src/routes/content/new/+page.server.ts",
+          "line": 73,
+          "snippet": "const id = crypto.randomUUID();"
+        },
+        {
+          "file": "src/lib/server/ai.ts",
+          "line": 163,
+          "snippet": "const id = crypto.randomUUID();"
+        },
+        {
+          "file": "src/lib/server/ai.ts",
+          "line": 327,
+          "snippet": "const id = crypto.randomUUID();"
+        },
+        {
+          "file": "src/lib/server/audit.ts",
+          "line": 108,
+          "snippet": "const hash = await crypto.subtle.digest('SHA-256', buffer);"
+        }
+      ],
+      "asvsRef": "V8.1.1"
+    },
+    {
+      "id": "V8.2.1",
+      "category": "V8 Data Protection",
+      "name": "Comprehensive Audit Logging",
+      "status": "pass",
+      "description": "Full audit trail with actor, IP, user-agent, and tamper detection (SOC 2/ISO 27001)",
+      "locations": [
+        {
+          "file": "src/routes/+layout.svelte",
+          "line": 143,
+          "snippet": "ISO 27001 aligned controls"
+        },
+        {
+          "file": "src/routes/api/integrations/+server.ts",
+          "line": 20,
+          "snippet": "if (!locals.auditContext) {"
+        },
+        {
+          "file": "src/routes/api/integrations/+server.ts",
+          "line": 44,
+          "snippet": "if (!locals.auditContext) {"
+        },
+        {
+          "file": "src/routes/api/integrations/+server.ts",
+          "line": 80,
+          "snippet": "locals.auditContext"
+        },
+        {
+          "file": "src/routes/api/media/+server.ts",
+          "line": 52,
+          "snippet": "if (!locals.auditContext) {"
+        }
+      ],
+      "asvsRef": "V8.2.1"
+    },
+    {
+      "id": "V8.3.1",
+      "category": "V8 Data Protection",
+      "name": "Secure File Storage",
+      "status": "pass",
+      "description": "Media stored in Cloudflare R2 with encryption at rest",
+      "locations": [
+        {
+          "file": "src/routes/api/media/+server.ts",
+          "line": 3,
+          "snippet": "* Handles file uploads to R2 and asset listing"
+        },
+        {
+          "file": "src/routes/api/media/[id]/+server.ts",
+          "line": 74,
+          "snippet": "* DELETE /api/media/:id - Delete asset from R2 and D1"
+        },
+        {
+          "file": "src/routes/api/v1/content/[collection]/+server.ts",
+          "line": 90,
+          "snippet": "platform.env.R2 as unknown as import('@cloudflare/workers-types').R2Bucket | undefined"
+        },
+        {
+          "file": "src/routes/api/v1/content/[collection]/[slug]/+server.ts",
+          "line": 86,
+          "snippet": "platform.env.R2 as unknown as import('@cloudflare/workers-types').R2Bucket | undefined"
+        },
+        {
+          "file": "src/routes/api/v1/keys/+server.ts",
+          "line": 29,
+          "snippet": "platform.env.R2 as unknown as import('@cloudflare/workers-types').R2Bucket | undefined,"
+        }
+      ],
+      "asvsRef": "V8.3.1"
+    },
+    {
+      "id": "V9.1.1",
+      "category": "V9 Communication",
+      "name": "Security Headers",
+      "status": "pass",
+      "description": "X-Frame-Options, X-Content-Type-Options, CSP, Permissions-Policy, Referrer-Policy",
+      "locations": [
+        {
+          "file": "src/lib/server/security.ts",
+          "line": 371,
+          "snippet": "'X-Frame-Options': 'DENY',"
+        },
+        {
+          "file": "src/lib/server/security.ts",
+          "line": 372,
+          "snippet": "'Content-Security-Policy': \"frame-ancestors 'none'\","
+        },
+        {
+          "file": "src/hooks.server.ts",
+          "line": 164,
+          "snippet": "response.headers.set('X-Frame-Options', 'DENY');"
+        },
+        {
+          "file": "src/hooks.server.ts",
+          "line": 165,
+          "snippet": "response.headers.set('X-Content-Type-Options', 'nosniff');"
+        },
+        {
+          "file": "src/hooks.server.ts",
+          "line": 166,
+          "snippet": "response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');"
+        }
+      ],
+      "asvsRef": "V9.1.1"
+    },
+    {
+      "id": "V9.2.1",
+      "category": "V9 Communication",
+      "name": "Rate Limiting",
+      "status": "pass",
+      "description": "Rate limiting on authentication and sensitive endpoints",
+      "locations": [
+        {
+          "file": "src/routes/api/v1/content/[collection]/+server.ts",
+          "line": 5,
+          "snippet": "* InfoSec: API key auth, rate limiting, CORS (OWASP A01, A04)"
+        },
+        {
+          "file": "src/routes/api/v1/content/[collection]/+server.ts",
+          "line": 23,
+          "snippet": "rateLimit?: number;"
+        },
+        {
+          "file": "src/routes/api/v1/content/[collection]/+server.ts",
+          "line": 30,
+          "snippet": "return { valid: true, rateLimit: 100 }; // Lower rate limit for unauthenticated"
+        },
+        {
+          "file": "src/routes/api/v1/content/[collection]/+server.ts",
+          "line": 54,
+          "snippet": "rateLimit: result.apiKey?.rate_limit,"
+        },
+        {
+          "file": "src/routes/api/v1/content/[collection]/+server.ts",
+          "line": 85,
+          "snippet": "// Check rate limit"
+        }
+      ],
+      "asvsRef": "V9.2.1"
+    },
+    {
+      "id": "V9.3.1",
+      "category": "V9 Communication",
+      "name": "Preview Token Security",
+      "status": "pass",
+      "description": "Cryptographic preview tokens with expiry, view limits, and IP restrictions",
+      "locations": [
+        {
+          "file": "src/routes/api/previews/validate/+server.ts",
+          "line": 56,
+          "snippet": "expires_at: result.preview!.expires_at,"
+        },
+        {
+          "file": "src/routes/content/[id]/+page.server.ts",
+          "line": 327,
+          "snippet": "preview_expires = NULL,"
+        },
+        {
+          "file": "src/routes/preview/[token]/+page.server.ts",
+          "line": 11,
+          "snippet": "validatePreviewToken,"
+        },
+        {
+          "file": "src/routes/preview/[token]/+page.server.ts",
+          "line": 25,
+          "snippet": "const result = await validatePreviewToken(db, params.token, clientIp);"
+        },
+        {
+          "file": "src/routes/preview/[token]/+page.server.ts",
+          "line": 42,
+          "snippet": "expired: 'This preview link has expired.',"
+        }
+      ],
+      "asvsRef": "V9.3.1"
+    },
+    {
+      "id": "V10.3.1",
+      "category": "V10 Malicious Code",
+      "name": "Dependency Audit",
+      "status": "pass",
+      "description": "No high/critical vulnerabilities found",
+      "asvsRef": "V10.3.1"
+    }
+  ]
+}
