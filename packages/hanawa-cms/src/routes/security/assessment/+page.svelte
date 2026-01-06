@@ -19,10 +19,13 @@
     ChartBar,
     Shield,
     Prohibit,
-    WarningCircle
+    WarningCircle,
+    Lock,
+    SignIn
   } from 'phosphor-svelte';
 
   let { data } = $props();
+  let isAuthenticated = $derived(data.authenticated);
 
   interface Location {
     file: string;
@@ -78,10 +81,12 @@
     checks: CheckResult[];
   }
 
-  const report = data.report as Report;
-  const applicableChecks = report.summary.total - (report.summary.notApplicable || 0);
-  const score = Math.round((report.summary.passed / applicableChecks) * 100);
-  const lastUpdated = new Date(report.timestamp);
+  // Report data comes from server load function (null for unauthenticated)
+  const report = data.report as Report | null;
+  const summary = data.summary;
+  const score = summary.score;
+  const applicableChecks = summary.total - (summary.notApplicable || 0);
+  const lastUpdated = new Date(summary.timestamp);
 
   let expandedChecks = $state(new Set<string>());
   let scopeExpanded = $state(false);
@@ -96,16 +101,19 @@
     }
   }
 
-  const checksByCategory = report.checks.reduce(
-    (acc, check) => {
-      if (!acc[check.category]) {
-        acc[check.category] = [];
-      }
-      acc[check.category].push(check);
-      return acc;
-    },
-    {} as Record<string, CheckResult[]>
-  );
+  // Group checks by category (only when authenticated)
+  const checksByCategory = report
+    ? report.checks.reduce(
+        (acc, check) => {
+          if (!acc[check.category]) {
+            acc[check.category] = [];
+          }
+          acc[check.category].push(check);
+          return acc;
+        },
+        {} as Record<string, CheckResult[]>
+      )
+    : {};
 
   const categoryOrder = [
     'V1 Architecture',
@@ -197,7 +205,7 @@
             {/if}
           </button>
 
-          {#if scopeExpanded && report.scope}
+          {#if scopeExpanded && report?.scope}
             <div class="mt-4 grid gap-4 md:grid-cols-2">
               <div>
                 <h4 class="mb-2 text-sm font-semibold text-amber-800 dark:text-amber-200">
@@ -273,10 +281,10 @@
       </div>
 
       <!-- ASVS Coverage Visualization -->
-      {#if report.summary.coverage}
-        {@const l1Coverage = report.summary.coverage.L1}
-        {@const l2Coverage = report.summary.coverage.L2 || { checked: 0, total: 150, percentage: 0 }}
-        {@const totalControls = report.scope?.totalAsvsControls?.L3 || 286}
+      {#if summary.coverage}
+        {@const l1Coverage = summary.coverage.L1}
+        {@const l2Coverage = summary.coverage.L2 || { checked: 0, total: 150, percentage: 0 }}
+        {@const totalControls = report?.scope?.totalAsvsControls?.L3 || 286}
         {@const remainingL1 = 50 - l1Coverage.checked}
         {@const remainingL2L3 = totalControls - 50}
         {@const l1BarWidth = (l1Coverage.checked / totalControls) * 100}
@@ -343,7 +351,7 @@
           <div>
             <h4 class="mb-2 text-sm font-semibold text-zinc-800 dark:text-zinc-200">What The Pass Rate Means</h4>
             <p class="text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
-              The {score}% pass rate shown above means {report.summary.passed} of our {applicableChecks} automated checks passed. This is NOT {score}% ASVS compliant. Full compliance requires manual review and penetration testing.
+              The {score}% pass rate shown above means {summary.passed} of our {applicableChecks} automated checks passed. This is NOT {score}% ASVS compliant. Full compliance requires manual review and penetration testing.
             </p>
           </div>
         </div>
@@ -367,34 +375,34 @@
       </div>
 
       <!-- L1 Coverage Card -->
-      {#if report.summary.coverage}
+      {#if summary.coverage}
         <div class="rounded-xl bg-white p-5 text-center shadow-lg dark:bg-zinc-800">
           <div class="mb-1 text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">L1 Coverage</div>
-          <div class="mb-1 text-3xl font-bold text-green-600">{report.summary.coverage.L1.percentage}%</div>
-          <div class="text-xs text-zinc-400 dark:text-zinc-500">{report.summary.coverage.L1.checked}/{report.summary.coverage.L1.total}</div>
+          <div class="mb-1 text-3xl font-bold text-green-600">{summary.coverage.L1.percentage}%</div>
+          <div class="text-xs text-zinc-400 dark:text-zinc-500">{summary.coverage.L1.checked}/{summary.coverage.L1.total}</div>
         </div>
       {/if}
 
       <!-- L2 Coverage Card -->
-      {#if report.summary.coverage?.L2}
+      {#if summary.coverage?.L2}
         <div class="rounded-xl bg-white p-5 text-center shadow-lg dark:bg-zinc-800">
           <div class="mb-1 text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">L2 Coverage</div>
-          <div class="mb-1 text-3xl font-bold text-blue-600">{report.summary.coverage.L2.percentage}%</div>
-          <div class="text-xs text-zinc-400 dark:text-zinc-500">{report.summary.coverage.L2.checked}/{report.summary.coverage.L2.total}</div>
+          <div class="mb-1 text-3xl font-bold text-blue-600">{summary.coverage.L2.percentage}%</div>
+          <div class="text-xs text-zinc-400 dark:text-zinc-500">{summary.coverage.L2.checked}/{summary.coverage.L2.total}</div>
         </div>
       {/if}
 
       <!-- Passed Card -->
       <div class="rounded-xl bg-white p-5 text-center shadow-lg dark:bg-zinc-800">
         <div class="mb-1 text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Passed</div>
-        <div class="mb-1 text-3xl font-bold text-green-600">{report.summary.passed}</div>
+        <div class="mb-1 text-3xl font-bold text-green-600">{summary.passed}</div>
         <div class="text-xs text-zinc-400 dark:text-zinc-500">checks</div>
       </div>
 
       <!-- Failed Card -->
       <div class="rounded-xl bg-white p-5 text-center shadow-lg dark:bg-zinc-800">
         <div class="mb-1 text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Failed</div>
-        <div class="mb-1 text-3xl font-bold text-red-600">{report.summary.failed}</div>
+        <div class="mb-1 text-3xl font-bold text-red-600">{summary.failed}</div>
         <div class="text-xs text-zinc-400 dark:text-zinc-500">checks</div>
       </div>
 
@@ -406,23 +414,24 @@
         </div>
         <div class="mb-2 flex items-center gap-2 text-zinc-600 dark:text-zinc-400">
           <Tag size={14} class="text-zinc-400" />
-          <span class="text-xs">v{report.version}</span>
+          <span class="text-xs">v{summary.version}</span>
         </div>
         <div class="flex items-center gap-2 text-zinc-600 dark:text-zinc-400">
           <ListChecks size={14} class="text-zinc-400" />
-          <span class="text-xs">{report.summary.total} checks</span>
+          <span class="text-xs">{summary.total} checks</span>
         </div>
       </div>
     </div>
 
-    <!-- Results Section -->
-    <h2
-      class="mb-4 mt-8 border-b-2 border-zinc-200 pb-2 text-xl font-semibold text-zinc-900 dark:border-zinc-700 dark:text-white"
-    >
-      Verification Results
-    </h2>
+    <!-- Results Section (Authenticated Only) -->
+    {#if isAuthenticated && report}
+      <h2
+        class="mb-4 mt-8 border-b-2 border-zinc-200 pb-2 text-xl font-semibold text-zinc-900 dark:border-zinc-700 dark:text-white"
+      >
+        Verification Results
+      </h2>
 
-    {#each categoryOrder as category}
+      {#each categoryOrder as category}
       {#if checksByCategory[category]}
         <div class="mb-6">
           <h3
@@ -546,7 +555,33 @@
           </div>
         </div>
       {/if}
-    {/each}
+      {/each}
+    {:else}
+      <!-- Public Login Prompt -->
+      <div class="mt-8 rounded-xl bg-white p-8 text-center shadow-lg dark:bg-zinc-800">
+        <div class="mb-4 flex justify-center">
+          <div class="rounded-full bg-rose-100 p-3 dark:bg-rose-900/30">
+            <Lock size={32} class="text-rose-600 dark:text-rose-400" />
+          </div>
+        </div>
+        <h3 class="mb-2 text-lg font-semibold text-zinc-900 dark:text-white">
+          Detailed Report Available
+        </h3>
+        <p class="mx-auto mb-4 max-w-md text-zinc-600 dark:text-zinc-400">
+          The full ASVS assessment report with individual check results, code locations, and remediation guidance is available to authenticated clients.
+        </p>
+        <p class="mb-6 text-sm text-zinc-500 dark:text-zinc-400">
+          Sign in to view the complete security assessment.
+        </p>
+        <a
+          href="/auth/login"
+          class="inline-flex items-center gap-2 rounded-lg bg-rose-500 px-6 py-3 font-medium text-white transition-colors hover:bg-rose-600"
+        >
+          <SignIn size={20} />
+          Sign In
+        </a>
+      </div>
+    {/if}
 
     <!-- Footer -->
     <div
