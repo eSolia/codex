@@ -349,8 +349,13 @@ export async function updateFragment(
 }
 
 // Generate unique IDs
+// InfoSec (ASVS V2.2.1): Using crypto.getRandomValues for secure random IDs
 export function generateId(prefix: string = ''): string {
   const timestamp = Date.now().toString(36);
-  const random = Math.random().toString(36).substring(2, 8);
+  const bytes = crypto.getRandomValues(new Uint8Array(6));
+  const random = Array.from(bytes)
+    .map((b) => b.toString(36).padStart(2, '0'))
+    .join('')
+    .substring(0, 8);
   return prefix ? `${prefix}_${timestamp}${random}` : `${timestamp}${random}`;
 }
