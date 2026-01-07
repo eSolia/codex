@@ -1,0 +1,76 @@
+# Billing Terms Fragment
+# Time and materials billing structure
+
+id: billing-terms
+title:
+  en: "Billing Model"
+  ja: "請求モデル"
+type: terms-conditions
+category: terms
+tags: ["terms", "billing", "pricing", "rates"]
+versions:
+  current: "2025-01"
+
+content:
+  en: |
+    ## Billing Model
+
+    ### Time and Materials
+
+    Our agreements are time-and-materials based with transparent pricing:
+
+    | Item | Description |
+    |------|-------------|
+    | **Minimum billing** | 1 hour minimum per engagement |
+    | **Increments** | 15-minute increments beyond minimum |
+    | **Administration fee** | Monthly fixed fee for account management |
+    | **Travel fees** | Per-visit fee for onsite work (varies by location) |
+
+    ### Rate Options
+
+    Greater commitment means better rates:
+
+    - **Reserved Hours** — Regular monthly commitment at preferred rates
+    - **Pool Blocks** — Pre-paid time blocks (12-month validity)
+    - **Multi-year Term** — Reduced rates for longer commitment periods
+
+    ### Payment Terms
+
+    - Invoices issued monthly
+    - Payment due within 30 days
+    - Consumption reports provided monthly
+
+  ja: |
+    ## 請求モデル
+
+    ### タイム＆マテリアル
+
+    タイム＆マテリアル方式で透明性のある価格設定：
+
+    | 項目 | 説明 |
+    |------|------|
+    | **最低請求** | エンゲージメントごとに1時間最低 |
+    | **増分** | 最低時間を超えた分は15分単位 |
+    | **管理費** | アカウント管理のための月額固定料金 |
+    | **出張費** | オンサイト作業の訪問ごとの料金（場所により異なる） |
+
+    ### レートオプション
+
+    より大きなコミットメントでより良いレート：
+
+    - **予約時間** — 優遇レートでの月次の定期的なコミットメント
+    - **プールブロック** — 前払い時間ブロック（12ヶ月有効）
+    - **複数年契約** — 長期コミットメントで割引レート
+
+    ### 支払い条件
+
+    - 月次で請求書発行
+    - 30日以内にお支払い
+    - 月次で消費レポートを提供
+
+metadata:
+  last_updated: "2025-01-08"
+  author: "eSolia Technical Team"
+  usage_notes: |
+    Standard billing terms section.
+    Specific rates to be included in client offer.

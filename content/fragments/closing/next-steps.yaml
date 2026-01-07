@@ -1,0 +1,58 @@
+# Next Steps Fragment
+# Standard engagement workflow
+
+id: next-steps
+title:
+  en: "Next Steps"
+  ja: "次のステップ"
+type: closing
+category: closing
+tags: ["closing", "next-steps", "workflow", "onboarding"]
+versions:
+  current: "2025-01"
+
+content:
+  en: |
+    ## Next Steps
+
+    1. **Review** — Review this proposal and let us know any questions
+    2. **Discussion** — Schedule a call to discuss details and adjustments
+    3. **Agreement** — We prepare the MSA and SoW documents
+    4. **Signatures** — Both parties sign via DocuSign or similar
+    5. **Kickoff** — Begin onboarding and service delivery
+
+    We are flexible and can adjust scope and terms based on your feedback.
+
+    ### Timeline
+
+    | Phase | Duration |
+    |-------|----------|
+    | Review & Discussion | 1-2 weeks |
+    | Contract Preparation | 3-5 days |
+    | Kickoff | Upon signature |
+
+  ja: |
+    ## 次のステップ
+
+    1. **レビュー** — 本提案をご確認、ご質問をお知らせください
+    2. **ディスカッション** — 詳細と調整を話し合う電話を設定
+    3. **契約書** — MSAとSoW文書を準備
+    4. **署名** — DocuSign等で両者署名
+    5. **キックオフ** — オンボーディングとサービス提供開始
+
+    スコープと条件はフィードバックに基づいて柔軟に調整可能です。
+
+    ### タイムライン
+
+    | フェーズ | 期間 |
+    |---------|------|
+    | レビュー＆ディスカッション | 1〜2週間 |
+    | 契約書準備 | 3〜5日 |
+    | キックオフ | 署名後 |
+
+metadata:
+  last_updated: "2025-01-08"
+  author: "eSolia Technical Team"
+  usage_notes: |
+    Standard next steps section for all proposals.
+    Customize timeline based on engagement complexity.

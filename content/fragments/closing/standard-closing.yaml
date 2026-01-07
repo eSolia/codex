@@ -1,0 +1,50 @@
+# Standard Closing Fragment
+# Thank you and contact information
+
+id: standard-closing
+title:
+  en: "In Closing"
+  ja: "最後に"
+type: closing
+category: closing
+tags: ["closing", "thank-you", "contact"]
+versions:
+  current: "2025-01"
+
+content:
+  en: |
+    ## In Closing
+
+    Thank you for considering our services. We look forward to supporting your needs and building a successful partnership.
+
+    Please contact us anytime with questions or to discuss next steps.
+
+    ---
+
+    **Contact Information**
+
+    Tel: 03-4577-3380
+    Email: info@esolia.co.jp
+    Web: https://esolia.co.jp/en
+
+  ja: |
+    ## 最後に
+
+    当社サービスをご検討いただきありがとうございます。お客様のニーズをサポートし、成功するパートナーシップを築けることを楽しみにしております。
+
+    ご質問や次のステップについては、いつでもお気軽にお問い合わせください。
+
+    ---
+
+    **お問い合わせ**
+
+    Tel: 03-4577-3380
+    Email: info@esolia.co.jp
+    Web: https://esolia.co.jp
+
+metadata:
+  last_updated: "2025-01-08"
+  author: "eSolia Technical Team"
+  usage_notes: |
+    Standard closing for all proposals.
+    Always include contact information.

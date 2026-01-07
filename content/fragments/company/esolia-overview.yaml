@@ -1,0 +1,80 @@
+# eSolia Company Overview Fragment
+# Brief company introduction
+
+id: esolia-overview
+title:
+  en: "About eSolia"
+  ja: "イソリアについて"
+type: company-info
+category: company
+tags: ["company", "about", "esolia", "overview"]
+versions:
+  current: "2025-01"
+
+content:
+  en: |
+    ## About eSolia
+
+    **eSolia Inc.** is a Tokyo-based IT management and consulting firm founded in 1999. We serve as the "virtual IT department" for foreign-affiliated companies operating in Japan.
+
+    ### At a Glance
+
+    | | |
+    |---|---|
+    | **Founded** | 1999 |
+    | **Location** | Shiodome, Tokyo |
+    | **Team** | Bilingual professionals |
+    | **Clients** | 50+ active accounts |
+    | **Focus** | Foreign-affiliated companies in Japan |
+
+    ### What We Do
+
+    - IT infrastructure management
+    - Help desk and user support
+    - Cloud and SaaS implementation
+    - Security and compliance
+    - Project management
+
+    ### Why Choose Us
+
+    - **Bilingual** — All staff are fluent in Japanese and English
+    - **Local expertise** — Deep knowledge of doing IT in Japan
+    - **Vendor neutral** — We recommend what's best, not what pays us most
+    - **Responsive** — Fast response times with clear communication
+
+  ja: |
+    ## イソリアについて
+
+    **株式会社イソリア**は、1999年設立の東京を拠点とするIT管理・コンサルティング企業です。日本で事業を展開する外資系企業の「バーチャルIT部門」として機能しています。
+
+    ### 会社概要
+
+    | | |
+    |---|---|
+    | **設立** | 1999年 |
+    | **所在地** | 東京・汐留 |
+    | **チーム** | バイリンガル専門家 |
+    | **クライアント** | 50社以上のアクティブアカウント |
+    | **対象** | 日本の外資系企業 |
+
+    ### 事業内容
+
+    - ITインフラ管理
+    - ヘルプデスクとユーザーサポート
+    - クラウド・SaaS導入
+    - セキュリティとコンプライアンス
+    - プロジェクト管理
+
+    ### 選ばれる理由
+
+    - **バイリンガル** — 全スタッフが日本語と英語に堪能
+    - **現地の専門知識** — 日本でのIT運用に関する深い知識
+    - **ベンダー中立** — 最も報酬の高いものではなく、最適なものを推奨
+    - **迅速な対応** — 明確なコミュニケーションと素早い対応
+
+metadata:
+  last_updated: "2025-01-08"
+  author: "eSolia Technical Team"
+  usage_notes: |
+    Standard company overview.
+    Use in proposals and introductory materials.

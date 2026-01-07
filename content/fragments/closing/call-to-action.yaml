@@ -1,0 +1,54 @@
+# Call to Action Fragment
+# Specific request for engagement
+
+id: call-to-action
+title:
+  en: "Ready to Start"
+  ja: "始める準備"
+type: closing
+category: closing
+tags: ["closing", "cta", "engagement"]
+versions:
+  current: "2025-01"
+
+content:
+  en: |
+    ## Ready to Start?
+
+    Let's discuss how we can help your organization:
+
+    - **Schedule a call** — 30-minute introduction call
+    - **Request a demo** — See our tools and processes in action
+    - **Get a quote** — Customized pricing for your needs
+
+    Contact us today:
+
+    - Email: **sales@esolia.co.jp**
+    - Phone: **03-4577-3380**
+    - Web: [Book a meeting](https://esolia.co.jp/en/contact)
+
+    We respond to all inquiries within one business day.
+
+  ja: |
+    ## 始める準備はできていますか？
+
+    貴社の組織をどのようにサポートできるか、ぜひご相談ください：
+
+    - **電話のスケジュール** — 30分の紹介電話
+    - **デモのリクエスト** — ツールとプロセスを実際にご覧ください
+    - **見積もりを取得** — ニーズに合わせたカスタマイズ価格
+
+    今すぐお問い合わせ：
+
+    - メール: **sales@esolia.co.jp**
+    - 電話: **03-4577-3380**
+    - Web: [ミーティングを予約](https://esolia.co.jp/contact)
+
+    すべてのお問い合わせに1営業日以内に回答いたします。
+
+metadata:
+  last_updated: "2025-01-08"
+  author: "eSolia Technical Team"
+  usage_notes: |
+    Strong call-to-action for proposals.
+    Use when you want to encourage immediate engagement.

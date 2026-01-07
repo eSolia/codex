@@ -1,0 +1,74 @@
+# Confidentiality Terms Fragment
+# NDA and data protection provisions
+
+id: confidentiality
+title:
+  en: "Confidentiality & Data Protection"
+  ja: "機密保持とデータ保護"
+type: terms-conditions
+category: terms
+tags: ["terms", "confidentiality", "nda", "privacy", "security"]
+versions:
+  current: "2025-01"
+
+content:
+  en: |
+    ## Confidentiality & Data Protection
+
+    ### Mutual NDA
+
+    Both parties agree to protect confidential information:
+
+    - **Definition** — All non-public business, technical, and financial information
+    - **Obligations** — Use only for engagement purposes, protect as own
+    - **Exceptions** — Public knowledge, independently developed, legally required
+    - **Duration** — Survives termination for 3 years
+
+    ### Data Handling
+
+    | Aspect | Commitment |
+    |--------|------------|
+    | **Access** | Need-to-know basis only |
+    | **Storage** | Encrypted at rest and in transit |
+    | **Retention** | Only for duration required |
+    | **Disposal** | Secure deletion on request |
+
+    ### Compliance
+
+    - Japan Act on Protection of Personal Information (APPI)
+    - GDPR where applicable
+    - Industry-specific regulations as required
+
+  ja: |
+    ## 機密保持とデータ保護
+
+    ### 相互NDA
+
+    両当事者が機密情報を保護することに同意：
+
+    - **定義** — すべての非公開のビジネス、技術、財務情報
+    - **義務** — エンゲージメント目的にのみ使用、自社同様に保護
+    - **例外** — 公知の情報、独自に開発、法的に要求
+    - **期間** — 終了後3年間継続
+
+    ### データ取り扱い
+
+    | 側面 | コミットメント |
+    |------|--------------|
+    | **アクセス** | 必要に応じてのみ |
+    | **保存** | 保存時および転送時に暗号化 |
+    | **保持** | 必要な期間のみ |
+    | **廃棄** | 要求に応じて安全に削除 |
+
+    ### コンプライアンス
+
+    - 個人情報保護法（APPI）
+    - 該当する場合GDPR
+    - 必要に応じて業界固有の規制
+
+metadata:
+  last_updated: "2025-01-08"
+  author: "eSolia Technical Team"
+  usage_notes: |
+    Standard confidentiality and data protection section.
+    May need customization for specific industries.
