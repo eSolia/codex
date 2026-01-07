@@ -5,8 +5,10 @@
   import RocketLaunch from 'phosphor-svelte/lib/RocketLaunch';
   import ShieldCheck from 'phosphor-svelte/lib/ShieldCheck';
   import Lock from 'phosphor-svelte/lib/Lock';
+  import SignOut from 'phosphor-svelte/lib/SignOut';
+  import User from 'phosphor-svelte/lib/User';
 
-  let { children } = $props();
+  let { children, data } = $props();
 
   let commandPaletteOpen = $state(false);
   let shortcutsOpen = $state(false);
@@ -87,7 +89,25 @@
             <span class="hidden sm:inline">Search</span>
             <kbd class="hidden sm:inline px-1.5 py-0.5 text-xs bg-white/10 rounded">⌘K</kbd>
           </button>
-          <span class="text-sm text-gray-300">eSolia Admin</span>
+
+          {#if data.user}
+            <div class="flex items-center gap-3">
+              <span class="hidden sm:flex items-center gap-1.5 text-sm text-gray-200">
+                <User size={16} weight="duotone" />
+                {data.user.name}
+              </span>
+              <a
+                href="/auth/logout"
+                class="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-300 bg-white/10 rounded-lg hover:bg-white/20 transition-colors"
+                title="Sign out"
+              >
+                <SignOut size={16} weight="duotone" />
+                <span class="hidden sm:inline">Sign Out</span>
+              </a>
+            </div>
+          {:else}
+            <span class="text-sm text-gray-300">eSolia Admin</span>
+          {/if}
         </div>
       </div>
     </div>
