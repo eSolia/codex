@@ -6,45 +6,105 @@
 import type { PageServerLoad, Actions } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
 
-// Default fragments in presentation order
-const DEFAULT_FRAGMENTS = [
-  { id: 'esolia-introduction', order: 1, enabled: true },
-  { id: 'esolia-profile', order: 2, enabled: true },
-  { id: 'esolia-background', order: 3, enabled: true },
-  { id: 'esolia-project-types', order: 4, enabled: true },
-  { id: 'esolia-support-types', order: 5, enabled: true },
-  { id: 'esolia-service-mechanics', order: 6, enabled: true },
-  { id: 'esolia-agreement-characteristics', order: 7, enabled: true },
-  { id: 'esolia-closing', order: 8, enabled: true },
+interface Template {
+  id: string;
+  name: string;
+  name_ja: string | null;
+  description: string | null;
+  description_ja: string | null;
+  document_type: string;
+  default_fragments: string;
+  is_default: boolean;
+}
+
+interface Fragment {
+  id: string;
+  name: string;
+  slug: string;
+  category: string;
+}
+
+// Fallback if templates table doesn't exist yet
+const FALLBACK_FRAGMENTS = [
+  { id: 'esolia-introduction', order: 1, enabled: true, required: true },
+  { id: 'esolia-background', order: 2, enabled: true, required: false },
+  { id: 'esolia-closing', order: 3, enabled: true, required: true },
 ];
 
-export const load: PageServerLoad = async ({ platform }) => {
+export const load: PageServerLoad = async ({ platform, url }) => {
   if (!platform?.env?.DB) {
-    return { fragments: [] };
+    return { templates: [], availableFragments: [], selectedTemplate: null };
   }
 
   const db = platform.env.DB;
+  const templateId = url.searchParams.get('template');
 
   try {
-    // InfoSec: Parameterized query (OWASP A03)
-    const result = await db
+    // Load templates
+    let templates: Template[] = [];
+    try {
+      const templatesResult = await db
+        .prepare(
+          `SELECT id, name, name_ja, description, description_ja, document_type, default_fragments, is_default
+           FROM templates
+           WHERE is_active = TRUE AND document_type = 'proposal'
+           ORDER BY is_default DESC, name ASC`
+        )
+        .all<Template>();
+      templates = templatesResult.results ?? [];
+    } catch {
+      // Templates table might not exist yet
+      console.log('Templates table not available, using fallback');
+    }
+
+    // Load available fragments from all relevant categories
+    const fragmentsResult = await db
       .prepare(
         `SELECT id, name, slug, category
          FROM fragments
-         WHERE category = 'proposals'
-         ORDER BY name`
+         WHERE category IN ('proposals', 'capabilities', 'services', 'terms', 'closing', 'company')
+         ORDER BY category, name`
       )
-      .all();
+      .all<Fragment>();
+
+    // Find selected template
+    let selectedTemplate: Template | null = null;
+    let defaultFragments = FALLBACK_FRAGMENTS;
+
+    if (templateId && templates.length > 0) {
+      selectedTemplate = templates.find((t) => t.id === templateId) || null;
+      if (selectedTemplate) {
+        try {
+          defaultFragments = JSON.parse(selectedTemplate.default_fragments);
+        } catch {
+          defaultFragments = FALLBACK_FRAGMENTS;
+        }
+      }
+    } else if (templates.length > 0) {
+      // Use default template if no template specified
+      selectedTemplate = templates.find((t) => t.is_default) || templates[0];
+      if (selectedTemplate) {
+        try {
+          defaultFragments = JSON.parse(selectedTemplate.default_fragments);
+        } catch {
+          defaultFragments = FALLBACK_FRAGMENTS;
+        }
+      }
+    }
 
     return {
-      availableFragments: result.results ?? [],
-      defaultFragments: DEFAULT_FRAGMENTS,
+      templates,
+      availableFragments: fragmentsResult.results ?? [],
+      selectedTemplate,
+      defaultFragments,
     };
   } catch (error) {
-    console.error('Failed to load fragments:', error);
+    console.error('Failed to load data:', error);
     return {
+      templates: [],
       availableFragments: [],
-      defaultFragments: DEFAULT_FRAGMENTS,
+      selectedTemplate: null,
+      defaultFragments: FALLBACK_FRAGMENTS,
     };
   }
 };
@@ -59,6 +119,7 @@ export const actions: Actions = {
     const formData = await request.formData();
 
     // InfoSec: Extract and validate form fields (OWASP A03)
+    const templateId = formData.get('template_id')?.toString() || null;
     const clientCode = formData.get('client_code')?.toString().trim();
     const clientName = formData.get('client_name')?.toString().trim() || null;
     const clientNameJa = formData.get('client_name_ja')?.toString().trim() || null;
@@ -83,7 +144,7 @@ export const actions: Actions = {
     }
 
     // Generate unique ID
-    const id = `prop_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+    const id = `doc_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
 
     try {
       // InfoSec: Parameterized insert (OWASP A03)
@@ -91,8 +152,8 @@ export const actions: Actions = {
         .prepare(
           `INSERT INTO proposals (
             id, client_code, client_name, client_name_ja,
-            title, title_ja, scope, language, fragments, status
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'draft')`
+            title, title_ja, scope, language, template_id, fragments, status
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'draft')`
         )
         .bind(
           id,
@@ -103,12 +164,13 @@ export const actions: Actions = {
           titleJa,
           scope,
           language,
+          templateId,
           fragmentsJson
         )
         .run();
 
       // Redirect to the document editor
-      throw redirect(303, `/documents/${id}`);
+      redirect(303, `/documents/${id}`);
     } catch (error) {
       // Re-throw redirects
       if (error instanceof Response || (error as { status?: number })?.status === 303) {

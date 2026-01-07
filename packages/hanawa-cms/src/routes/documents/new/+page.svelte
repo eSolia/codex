@@ -1,16 +1,38 @@
 <script lang="ts">
   import type { PageData } from './$types';
   import { enhance } from '$app/forms';
+  import { goto } from '$app/navigation';
   import FileText from 'phosphor-svelte/lib/FileText';
   import DotsSixVertical from 'phosphor-svelte/lib/DotsSixVertical';
   import Check from 'phosphor-svelte/lib/Check';
   import X from 'phosphor-svelte/lib/X';
   import ArrowLeft from 'phosphor-svelte/lib/ArrowLeft';
+  import Star from 'phosphor-svelte/lib/Star';
+  import Files from 'phosphor-svelte/lib/Files';
 
-  interface Fragment {
+  interface Template {
+    id: string;
+    name: string;
+    name_ja: string | null;
+    description: string | null;
+    description_ja: string | null;
+    document_type: string;
+    default_fragments: string;
+    is_default: boolean;
+  }
+
+  interface FragmentConfig {
     id: string;
     order: number;
     enabled: boolean;
+    required?: boolean;
+  }
+
+  interface AvailableFragment {
+    id: string;
+    name: string;
+    slug: string;
+    category: string;
   }
 
   interface FormResult {
@@ -21,18 +43,22 @@
 
   let { data, form }: { data: PageData; form: FormResult | null } = $props();
 
-  // Initialize fragments from defaults
-  let fragments = $state<Fragment[]>(
-    (data.defaultFragments as Fragment[]) || [
-      { id: 'esolia-introduction', order: 1, enabled: true },
-      { id: 'esolia-profile', order: 2, enabled: true },
-      { id: 'esolia-background', order: 3, enabled: true },
-      { id: 'esolia-project-types', order: 4, enabled: true },
-      { id: 'esolia-support-types', order: 5, enabled: true },
-      { id: 'esolia-service-mechanics', order: 6, enabled: true },
-      { id: 'esolia-agreement-characteristics', order: 7, enabled: true },
-      { id: 'esolia-closing', order: 8, enabled: true },
-    ]
+  // Template data
+  const templates = $derived((data.templates as Template[]) || []);
+  const availableFragments = $derived((data.availableFragments as AvailableFragment[]) || []);
+  let selectedTemplateId = $state<string | null>(
+    (data.selectedTemplate as Template | null)?.id || null
+  );
+
+  // Initialize fragments from selected template or defaults
+  const defaultFragmentConfig: FragmentConfig[] = [
+    { id: 'esolia-introduction', order: 1, enabled: true, required: true },
+    { id: 'esolia-background', order: 2, enabled: true, required: false },
+    { id: 'esolia-closing', order: 3, enabled: true, required: true },
+  ];
+
+  let fragments = $state<FragmentConfig[]>(
+    (data.defaultFragments as FragmentConfig[]) || defaultFragmentConfig
   );
 
   let language = $state('en');
@@ -40,7 +66,35 @@
 
   const fragmentsJson = $derived(JSON.stringify(fragments));
 
+  // Get selected template object
+  const selectedTemplate = $derived(templates.find((t) => t.id === selectedTemplateId) || null);
+
+  // Build fragment lookup map from available fragments
+  const fragmentMap = $derived(
+    new Map(availableFragments.map((f) => [f.id, f]))
+  );
+
+  function selectTemplate(templateId: string) {
+    selectedTemplateId = templateId;
+    const template = templates.find((t) => t.id === templateId);
+    if (template) {
+      try {
+        const templateFragments = JSON.parse(template.default_fragments) as FragmentConfig[];
+        fragments = templateFragments;
+      } catch {
+        fragments = [...defaultFragmentConfig];
+      }
+    }
+  }
+
   function getFragmentTitle(id: string): string {
+    // Check if we have it in available fragments
+    const frag = fragmentMap.get(id);
+    if (frag) {
+      return frag.name;
+    }
+
+    // Fallback titles for core fragments
     const titles: Record<string, string> = {
       'esolia-introduction': 'Introduction & Mission',
       'esolia-profile': 'Company Profile',
@@ -50,11 +104,25 @@
       'esolia-service-mechanics': 'Service Mechanics',
       'esolia-agreement-characteristics': 'Agreement Terms',
       'esolia-closing': 'Next Steps & Closing',
+      'secure-hosting': 'Secure Hosting',
+      'modern-web-development': 'Modern Web Development',
+      'continuous-monitoring': 'Continuous Monitoring',
+      'infrastructure-management': 'Infrastructure Management',
+      'dns-email-reliability': 'DNS & Email Reliability',
+      'ongoing-support': 'Ongoing Support',
+      'website-development': 'Website Development',
     };
-    return titles[id] || id;
+    return titles[id] || id.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+  }
+
+  function getFragmentCategory(id: string): string | null {
+    const frag = fragmentMap.get(id);
+    return frag?.category || null;
   }
 
   function toggleFragment(index: number) {
+    // Don't allow disabling required fragments
+    if (fragments[index].required) return;
     fragments[index].enabled = !fragments[index].enabled;
   }
 
@@ -84,6 +152,44 @@
   function handleDragEnd() {
     draggedIndex = null;
   }
+
+  // Add a fragment from available list
+  function addFragment(fragmentId: string) {
+    if (fragments.some((f) => f.id === fragmentId)) return; // Already added
+    fragments = [
+      ...fragments,
+      {
+        id: fragmentId,
+        order: fragments.length + 1,
+        enabled: true,
+        required: false,
+      },
+    ];
+  }
+
+  // Remove a fragment (only non-required)
+  function removeFragment(index: number) {
+    if (fragments[index].required) return;
+    const newFragments = fragments.filter((_, i) => i !== index);
+    newFragments.forEach((f, i) => (f.order = i + 1));
+    fragments = newFragments;
+  }
+
+  // Group available fragments by category
+  const fragmentsByCategory = $derived(() => {
+    const grouped = new Map<string, AvailableFragment[]>();
+    for (const frag of availableFragments) {
+      const existing = grouped.get(frag.category) || [];
+      existing.push(frag);
+      grouped.set(frag.category, existing);
+    }
+    return grouped;
+  });
+
+  // Fragments not yet added
+  const unusedFragments = $derived(
+    availableFragments.filter((af) => !fragments.some((f) => f.id === af.id))
+  );
 </script>
 
 <svelte:head>
@@ -101,7 +207,7 @@
     </a>
     <div>
       <h1 class="text-3xl font-bold text-esolia-navy">New Document</h1>
-      <p class="mt-1 text-gray-600">Create a document from a template</p>
+      <p class="mt-1 text-gray-600">Select a template and customize for your client</p>
     </div>
   </div>
 
@@ -112,9 +218,51 @@
     </div>
   {/if}
 
+  <!-- Template Selection -->
+  {#if templates.length > 0}
+    <div class="bg-white rounded-lg shadow p-6">
+      <h2 class="text-lg font-semibold text-gray-900 flex items-center gap-2 mb-4">
+        <Files size={20} weight="duotone" class="text-esolia-navy" />
+        Choose a Template
+      </h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+        {#each templates as template (template.id)}
+          <button
+            type="button"
+            onclick={() => selectTemplate(template.id)}
+            class="relative text-left p-4 rounded-lg border-2 transition-all hover:shadow-md
+                   {selectedTemplateId === template.id
+              ? 'border-esolia-navy bg-esolia-navy/5 ring-2 ring-esolia-navy ring-offset-2'
+              : 'border-gray-200 hover:border-gray-300'}"
+          >
+            {#if template.is_default}
+              <Star
+                size={16}
+                weight="fill"
+                class="absolute top-2 right-2 text-yellow-500"
+              />
+            {/if}
+            <div class="flex items-center gap-2 mb-2">
+              <FileText
+                size={20}
+                weight="duotone"
+                class={selectedTemplateId === template.id ? 'text-esolia-navy' : 'text-gray-400'}
+              />
+              <span class="font-medium text-sm text-gray-900 line-clamp-1">{template.name}</span>
+            </div>
+            {#if template.description}
+              <p class="text-xs text-gray-500 line-clamp-2">{template.description}</p>
+            {/if}
+          </button>
+        {/each}
+      </div>
+    </div>
+  {/if}
+
   <form method="POST" use:enhance class="space-y-6">
-    <!-- Hidden fragments JSON -->
+    <!-- Hidden fields -->
     <input type="hidden" name="fragments" value={fragmentsJson} />
+    <input type="hidden" name="template_id" value={selectedTemplateId || ''} />
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <!-- Left Column: Document Details -->
@@ -229,13 +377,21 @@
 
       <!-- Right Column: Fragment Selection -->
       <div class="bg-white rounded-lg shadow p-6 space-y-4">
-        <h2 class="text-lg font-semibold text-gray-900">Fragment Selection</h2>
+        <div class="flex items-center justify-between">
+          <h2 class="text-lg font-semibold text-gray-900">Fragment Selection</h2>
+          {#if selectedTemplate}
+            <span class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+              {selectedTemplate.name}
+            </span>
+          {/if}
+        </div>
         <p class="text-sm text-gray-600">
-          Drag to reorder. Click the checkmark to include/exclude sections.
+          Drag to reorder. Click the checkmark to include/exclude sections. Required sections cannot
+          be disabled.
         </p>
 
         <div class="space-y-2">
-          {#each fragments as fragment, index (fragment.id)}
+          {#each fragments as fragment, index (fragment.id + '-' + index)}
             <div
               draggable="true"
               ondragstart={(e) => handleDragStart(e, index)}
@@ -251,26 +407,39 @@
               <!-- Order Number -->
               <span
                 class="w-6 h-6 flex items-center justify-center rounded-full text-xs font-medium
-                       {fragment.enabled
-                  ? 'bg-esolia-navy text-white'
-                  : 'bg-gray-200 text-gray-500'}"
+                       {fragment.enabled ? 'bg-esolia-navy text-white' : 'bg-gray-200 text-gray-500'}"
               >
                 {fragment.order}
               </span>
 
-              <!-- Fragment Title -->
-              <span class="flex-1 text-sm {fragment.enabled ? 'text-gray-900' : 'text-gray-400'}">
-                {getFragmentTitle(fragment.id)}
-              </span>
+              <!-- Fragment Info -->
+              <div class="flex-1 min-w-0">
+                <span class="text-sm {fragment.enabled ? 'text-gray-900' : 'text-gray-400'}">
+                  {getFragmentTitle(fragment.id)}
+                </span>
+                {#if fragment.required}
+                  <span class="ml-2 text-xs text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded">
+                    Required
+                  </span>
+                {/if}
+                {#if getFragmentCategory(fragment.id)}
+                  <span class="ml-1 text-xs text-gray-400">
+                    ({getFragmentCategory(fragment.id)})
+                  </span>
+                {/if}
+              </div>
 
-              <!-- Toggle Button -->
+              <!-- Toggle/Remove Buttons -->
               <button
                 type="button"
                 onclick={() => toggleFragment(index)}
+                disabled={fragment.required}
                 class="p-1.5 rounded-md transition-colors
-                       {fragment.enabled
-                  ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                  : 'bg-gray-200 text-gray-500 hover:bg-gray-300'}"
+                       {fragment.required
+                  ? 'bg-gray-100 text-gray-300 cursor-not-allowed'
+                  : fragment.enabled
+                    ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                    : 'bg-gray-200 text-gray-500 hover:bg-gray-300'}"
               >
                 {#if fragment.enabled}
                   <Check size={16} weight="bold" />
@@ -278,9 +447,43 @@
                   <X size={16} weight="bold" />
                 {/if}
               </button>
+
+              {#if !fragment.required}
+                <button
+                  type="button"
+                  onclick={() => removeFragment(index)}
+                  class="p-1.5 rounded-md text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                  title="Remove fragment"
+                >
+                  <X size={16} />
+                </button>
+              {/if}
             </div>
           {/each}
         </div>
+
+        <!-- Add More Fragments -->
+        {#if unusedFragments.length > 0}
+          <div class="pt-4 border-t border-gray-100">
+            <p class="text-sm font-medium text-gray-700 mb-2">Add more fragments:</p>
+            <div class="flex flex-wrap gap-2">
+              {#each unusedFragments.slice(0, 10) as frag (frag.id)}
+                <button
+                  type="button"
+                  onclick={() => addFragment(frag.id)}
+                  class="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded hover:bg-esolia-navy/10 hover:text-esolia-navy transition-colors"
+                >
+                  + {frag.name}
+                </button>
+              {/each}
+              {#if unusedFragments.length > 10}
+                <span class="text-xs text-gray-400 py-1">
+                  +{unusedFragments.length - 10} more
+                </span>
+              {/if}
+            </div>
+          </div>
+        {/if}
 
         <p class="text-xs text-gray-500 pt-2">
           Custom sections can be added after creation in the document editor.

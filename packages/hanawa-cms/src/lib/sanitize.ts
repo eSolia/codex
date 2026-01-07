@@ -111,6 +111,10 @@ const ALLOWED_ATTRS = new Set([
   'data-evidence-id',
   'data-evidence-type',
   'data-mask-type',
+  // Mermaid diagram attributes
+  'data-source',
+  'data-caption',
+  'data-caption-ja',
 ]);
 
 // Dangerous attributes that should never be allowed

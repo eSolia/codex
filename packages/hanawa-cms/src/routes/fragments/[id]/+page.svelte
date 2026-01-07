@@ -5,7 +5,7 @@
   import HanawaEditor from '$lib/components/editor/HanawaEditor.svelte';
   import { browser } from '$app/environment';
   import { marked } from 'marked';
-  import { onMount } from 'svelte';
+  import { onMount, tick } from 'svelte';
   import mermaid from 'mermaid';
   import { sanitizeHtml } from '$lib/sanitize';
 
@@ -30,8 +30,6 @@
       theme: 'default',
       securityLevel: 'loose',
     });
-    // Render diagrams after mount
-    setTimeout(renderMermaidDiagrams, 300);
   });
 
   // Parse markdown to HTML
@@ -95,11 +93,30 @@
     }
   }
 
-  // Re-render mermaid when exiting edit mode or switching tabs
+  // Track content for triggering re-renders
+  let contentRendered = $state(false);
+
+  // Re-render mermaid when exiting edit mode
   $effect(() => {
     if (!isEditing && browser) {
       console.log('[Mermaid] Effect - exiting edit mode, re-rendering');
       setTimeout(renderMermaidDiagrams, 300);
+    }
+  });
+
+  // Render mermaid when content changes (including initial load)
+  $effect(() => {
+    // Track the content to trigger re-render when it changes
+    const _contentEn = data.fragment.content_en;
+    const _contentJa = data.fragment.content_ja;
+
+    if (browser && !isEditing) {
+      console.log('[Mermaid] Effect - content changed, scheduling render');
+      // Use requestAnimationFrame to ensure DOM has updated
+      requestAnimationFrame(() => {
+        setTimeout(renderMermaidDiagrams, 100);
+        contentRendered = true;
+      });
     }
   });
 
@@ -112,7 +129,10 @@
     const _tab = activeTab;
     if (browser && !isEditing) {
       console.log('[Mermaid] Effect - tab changed to', _tab);
-      setTimeout(renderMermaidDiagrams, 100);
+      // Wait for DOM to update after tab switch
+      tick().then(() => {
+        setTimeout(renderMermaidDiagrams, 100);
+      });
     }
   });
 
