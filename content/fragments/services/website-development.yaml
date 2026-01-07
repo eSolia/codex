@@ -1,0 +1,97 @@
+id: website-development
+category: services
+version: "2025-01"
+title:
+  en: "Website Development Services"
+  ja: "ウェブサイト開発サービス"
+type: service-description
+status: production
+tags:
+  - website
+  - development
+  - project
+created: "2025-01-08"
+author: rick.cogley@esolia.co.jp
+sensitivity: normal
+content:
+  en: |
+    ## eSolia Website Development
+
+    Professional website development with a focus on performance, security, and maintainability:
+
+    **Discovery & Planning**
+    - Requirements gathering and analysis
+    - Information architecture design
+    - Content strategy and planning
+    - Technical approach recommendation
+    - Project timeline and milestones
+
+    **Design & Development**
+    - Modern, responsive design
+    - Bilingual content support (EN/JA)
+    - Content management system setup
+    - Integration with existing systems
+    - Search engine optimization
+
+    **Quality Assurance**
+    - Cross-browser and device testing
+    - Performance optimization
+    - Security review
+    - Accessibility compliance
+    - Content review and proofreading
+
+    **Launch & Support**
+    - Staging environment for review
+    - Zero-downtime deployment
+    - Post-launch monitoring
+    - Training for content editors
+    - Ongoing maintenance options
+
+    **What's Included**
+    - Source code ownership
+    - Documentation
+    - 30-day warranty period
+    - Knowledge transfer session
+
+    All websites are built on secure, globally distributed infrastructure with enterprise-grade reliability.
+
+  ja: |
+    ## eSOLIA ウェブサイト開発
+
+    パフォーマンス、セキュリティ、保守性を重視したプロフェッショナルなウェブサイト開発：
+
+    **ディスカバリー＆プランニング**
+    - 要件収集と分析
+    - 情報アーキテクチャ設計
+    - コンテンツ戦略と計画
+    - 技術的アプローチの提案
+    - プロジェクトタイムラインとマイルストーン
+
+    **デザイン＆開発**
+    - モダンでレスポンシブなデザイン
+    - バイリンガルコンテンツサポート（EN/JA）
+    - コンテンツ管理システムのセットアップ
+    - 既存システムとの統合
+    - 検索エンジン最適化
+
+    **品質保証**
+    - クロスブラウザおよびデバイステスト
+    - パフォーマンス最適化
+    - セキュリティレビュー
+    - アクセシビリティ準拠
+    - コンテンツレビューと校正
+
+    **ローンチ＆サポート**
+    - レビュー用ステージング環境
+    - ゼロダウンタイムデプロイメント
+    - ローンチ後の監視
+    - コンテンツ編集者向けトレーニング
+    - 継続的なメンテナンスオプション
+
+    **含まれるもの**
+    - ソースコードの所有権
+    - ドキュメント
+    - 30日間の保証期間
+    - ナレッジ移転セッション
+
+    すべてのウェブサイトは、エンタープライズグレードの信頼性を備えた安全でグローバルに分散されたインフラストラクチャ上に構築されます。

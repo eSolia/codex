@@ -87,21 +87,21 @@
 </script>
 
 <svelte:head>
-  <title>New Proposal | Hanawa CMS</title>
+  <title>New Document | Hanawa CMS</title>
 </svelte:head>
 
 <div class="space-y-6">
   <!-- Header -->
   <div class="flex items-center gap-4">
     <a
-      href="/proposals"
+      href="/documents"
       class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
     >
       <ArrowLeft size={20} />
     </a>
     <div>
-      <h1 class="text-3xl font-bold text-esolia-navy">New Proposal</h1>
-      <p class="mt-1 text-gray-600">Create a proposal from the standard template</p>
+      <h1 class="text-3xl font-bold text-esolia-navy">New Document</h1>
+      <p class="mt-1 text-gray-600">Create a document from a template</p>
     </div>
   </div>
 
@@ -117,11 +117,11 @@
     <input type="hidden" name="fragments" value={fragmentsJson} />
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <!-- Left Column: Proposal Details -->
+      <!-- Left Column: Document Details -->
       <div class="bg-white rounded-lg shadow p-6 space-y-6">
         <h2 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
           <FileText size={20} weight="duotone" class="text-esolia-navy" />
-          Proposal Details
+          Document Details
         </h2>
 
         <!-- Client Code -->
@@ -169,10 +169,10 @@
           </div>
         </div>
 
-        <!-- Proposal Titles -->
+        <!-- Document Titles -->
         <div>
           <label for="title" class="block text-sm font-medium text-gray-700">
-            Proposal Title <span class="text-red-500">*</span>
+            Document Title <span class="text-red-500">*</span>
           </label>
           <input
             type="text"
@@ -187,7 +187,7 @@
 
         <div>
           <label for="title_ja" class="block text-sm font-medium text-gray-700">
-            Proposal Title (JA)
+            Document Title (JA)
           </label>
           <input
             type="text"
@@ -283,7 +283,7 @@
         </div>
 
         <p class="text-xs text-gray-500 pt-2">
-          Custom sections can be added after creation in the proposal editor.
+          Custom sections can be added after creation in the document editor.
         </p>
       </div>
     </div>
@@ -291,7 +291,7 @@
     <!-- Submit -->
     <div class="flex justify-end gap-4">
       <a
-        href="/proposals"
+        href="/documents"
         class="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
       >
         Cancel
@@ -300,7 +300,7 @@
         type="submit"
         class="px-6 py-2 bg-esolia-navy text-white rounded-lg hover:bg-esolia-navy/90 transition-colors font-medium"
       >
-        Create Proposal
+        Create Document
       </button>
     </div>
   </form>

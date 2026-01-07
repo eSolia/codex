@@ -1,0 +1,71 @@
+id: secure-hosting
+category: capabilities
+version: "2025-01"
+title:
+  en: "Enterprise-Grade Secure Hosting"
+  ja: "エンタープライズグレードのセキュアホスティング"
+type: capability-description
+status: production
+tags:
+  - hosting
+  - security
+  - infrastructure
+created: "2025-01-08"
+author: rick.cogley@esolia.co.jp
+sensitivity: normal
+content:
+  en: |
+    ## Secure, Globally Distributed Hosting
+
+    Your application runs on enterprise-grade infrastructure designed for security, performance, and reliability:
+
+    **Global Edge Network**
+    - Content delivered from data centers worldwide
+    - Automatic routing to the nearest location
+    - Sub-100ms response times for most users
+
+    **Security by Default**
+    - DDoS protection at network and application layers
+    - Web Application Firewall (WAF) with managed rulesets
+    - Automatic SSL/TLS certificate provisioning and renewal
+    - Zero Trust security architecture
+
+    **Reliability Guarantees**
+    - 99.99% uptime Service Level Agreement
+    - Automatic failover and redundancy
+    - Real-time monitoring and alerting
+
+    **Compliance Ready**
+    - SOC 2 Type II certified infrastructure
+    - GDPR-compliant data handling
+    - Regular security audits and penetration testing
+
+    All infrastructure is fully managed by eSolia, with 24/7 monitoring and incident response.
+
+  ja: |
+    ## セキュアでグローバルに分散されたホスティング
+
+    お客様のアプリケーションは、セキュリティ、パフォーマンス、信頼性を重視したエンタープライズグレードのインフラストラクチャで稼働します：
+
+    **グローバルエッジネットワーク**
+    - 世界中のデータセンターからコンテンツを配信
+    - 最寄りのロケーションへの自動ルーティング
+    - ほとんどのユーザーに対して100ミリ秒未満の応答時間
+
+    **デフォルトでセキュア**
+    - ネットワーク層およびアプリケーション層でのDDoS保護
+    - マネージドルールセットを備えたWebアプリケーションファイアウォール（WAF）
+    - SSL/TLS証明書の自動プロビジョニングと更新
+    - ゼロトラストセキュリティアーキテクチャ
+
+    **信頼性の保証**
+    - 99.99%稼働率のサービスレベル契約
+    - 自動フェイルオーバーと冗長性
+    - リアルタイム監視とアラート
+
+    **コンプライアンス対応**
+    - SOC 2 Type II認証インフラストラクチャ
+    - GDPR準拠のデータ取り扱い
+    - 定期的なセキュリティ監査とペネトレーションテスト
+
+    すべてのインフラストラクチャはeSOLIAが完全に管理し、24時間365日の監視とインシデント対応を提供します。

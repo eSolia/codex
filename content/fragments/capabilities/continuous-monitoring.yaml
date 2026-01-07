@@ -1,0 +1,89 @@
+id: continuous-monitoring
+category: capabilities
+version: "2025-01"
+title:
+  en: "Continuous Security Monitoring"
+  ja: "継続的セキュリティ監視"
+type: capability-description
+status: production
+tags:
+  - security
+  - monitoring
+  - compliance
+created: "2025-01-08"
+author: rick.cogley@esolia.co.jp
+sensitivity: normal
+content:
+  en: |
+    ## Proactive Security Monitoring
+
+    Stay ahead of threats with continuous monitoring that detects issues before they become incidents:
+
+    **Real-time Threat Detection**
+    - 24/7 monitoring of your infrastructure
+    - Automated anomaly detection
+    - Correlation of events across systems
+    - Immediate alerting on suspicious activity
+
+    **Vulnerability Management**
+    - Regular security scans
+    - Prioritized remediation recommendations
+    - Tracking of patch status
+    - Third-party component monitoring
+
+    **Compliance Tracking**
+    - Continuous control assessment
+    - Evidence collection for audits
+    - Gap analysis and remediation planning
+    - Regular compliance reporting
+
+    **Security Dashboards**
+    - Executive-level security posture overview
+    - Trend analysis and historical data
+    - Risk scoring and prioritization
+    - Exportable reports for stakeholders
+
+    **Incident Response**
+    - Defined escalation procedures
+    - Rapid containment capabilities
+    - Post-incident analysis and reporting
+    - Lessons learned integration
+
+    All monitoring is managed by eSolia's security team, with regular reviews and recommendations for improvement.
+
+  ja: |
+    ## プロアクティブなセキュリティ監視
+
+    インシデントになる前に問題を検出する継続的な監視で脅威に先手を打ちます：
+
+    **リアルタイム脅威検出**
+    - インフラストラクチャの24時間365日監視
+    - 自動異常検出
+    - システム間でのイベント相関分析
+    - 疑わしい活動の即時アラート
+
+    **脆弱性管理**
+    - 定期的なセキュリティスキャン
+    - 優先順位付けされた修正推奨事項
+    - パッチ状況の追跡
+    - サードパーティコンポーネントの監視
+
+    **コンプライアンス追跡**
+    - 継続的なコントロール評価
+    - 監査のための証拠収集
+    - ギャップ分析と修正計画
+    - 定期的なコンプライアンスレポート
+
+    **セキュリティダッシュボード**
+    - エグゼクティブレベルのセキュリティ態勢概要
+    - トレンド分析と履歴データ
+    - リスクスコアリングと優先順位付け
+    - ステークホルダー向けのエクスポート可能なレポート
+
+    **インシデント対応**
+    - 定義されたエスカレーション手順
+    - 迅速な封じ込め能力
+    - インシデント後の分析とレポート
+    - 教訓のフィードバック統合
+
+    すべての監視はeSOLIAのセキュリティチームが管理し、定期的なレビューと改善提案を提供します。

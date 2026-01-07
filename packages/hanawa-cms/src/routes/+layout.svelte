@@ -52,10 +52,10 @@
             Content
           </a>
           <a
-            href="/proposals"
+            href="/documents"
             class="px-3 py-2 rounded-md text-sm font-medium hover:bg-white/10 transition-colors"
           >
-            Proposals
+            Documents
           </a>
           <a
             href="/fragments"

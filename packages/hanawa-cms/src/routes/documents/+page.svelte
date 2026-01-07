@@ -3,7 +3,7 @@
   import FileText from 'phosphor-svelte/lib/FileText';
   import Share from 'phosphor-svelte/lib/Share';
 
-  interface Proposal {
+  interface Document {
     id: string;
     client_code: string;
     client_name: string | null;
@@ -19,7 +19,7 @@
 
   let { data }: { data: PageData } = $props();
 
-  const proposals = $derived(data.proposals as unknown as Proposal[]);
+  const documents = $derived(data.proposals as unknown as Document[]);
 
   function getStatusClass(status: string): string {
     switch (status) {
@@ -40,24 +40,24 @@
 </script>
 
 <svelte:head>
-  <title>Proposals | Hanawa CMS</title>
+  <title>Documents | Hanawa CMS</title>
 </svelte:head>
 
 <div class="space-y-6">
   <!-- Header -->
   <div class="flex items-center justify-between">
     <div>
-      <h1 class="text-3xl font-bold text-esolia-navy">Proposals</h1>
-      <p class="mt-1 text-gray-600">Create and share client proposals</p>
+      <h1 class="text-3xl font-bold text-esolia-navy">Documents</h1>
+      <p class="mt-1 text-gray-600">Create and share client documents</p>
     </div>
     <a
-      href="/proposals/new"
+      href="/documents/new"
       class="inline-flex items-center px-4 py-2 bg-esolia-navy text-white rounded-lg hover:bg-esolia-navy/90 transition-colors font-medium"
     >
       <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
       </svg>
-      New Proposal
+      New Document
     </a>
   </div>
 
@@ -84,8 +84,8 @@
     </form>
   </div>
 
-  <!-- Proposals List -->
-  {#if proposals && proposals.length > 0}
+  <!-- Documents List -->
+  {#if documents && documents.length > 0}
     <div class="bg-white rounded-lg shadow overflow-hidden">
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
@@ -93,7 +93,7 @@
             <th
               class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
             >
-              Proposal
+              Document
             </th>
             <th
               class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
@@ -118,47 +118,47 @@
           </tr>
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
-          {#each proposals as proposal}
+          {#each documents as doc}
             <tr class="hover:bg-gray-50">
               <td class="px-6 py-4">
                 <a
-                  href="/proposals/{proposal.id}"
+                  href="/documents/{doc.id}"
                   class="text-esolia-navy hover:underline font-medium flex items-center gap-2"
                 >
                   <FileText size={18} weight="duotone" class="text-gray-400" />
-                  {proposal.title}
+                  {doc.title}
                 </a>
-                {#if proposal.scope}
-                  <div class="text-sm text-gray-500">{proposal.scope}</div>
+                {#if doc.scope}
+                  <div class="text-sm text-gray-500">{doc.scope}</div>
                 {/if}
               </td>
               <td class="px-6 py-4">
-                <div class="text-sm font-medium text-gray-900">{proposal.client_code}</div>
-                {#if proposal.client_name}
-                  <div class="text-sm text-gray-500">{proposal.client_name}</div>
+                <div class="text-sm font-medium text-gray-900">{doc.client_code}</div>
+                {#if doc.client_name}
+                  <div class="text-sm text-gray-500">{doc.client_name}</div>
                 {/if}
               </td>
               <td class="px-6 py-4">
                 <span
                   class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {getStatusClass(
-                    proposal.status
+                    doc.status
                   )}"
                 >
-                  {proposal.status}
+                  {doc.status}
                 </span>
               </td>
               <td class="px-6 py-4">
-                {#if proposal.share_id}
+                {#if doc.share_id}
                   <span class="inline-flex items-center gap-1 text-sm text-green-600">
                     <Share size={14} weight="duotone" />
-                    {new Date(proposal.shared_at ?? '').toLocaleDateString()}
+                    {new Date(doc.shared_at ?? '').toLocaleDateString()}
                   </span>
                 {:else}
                   <span class="text-sm text-gray-400">—</span>
                 {/if}
               </td>
               <td class="px-6 py-4 text-sm text-gray-500">
-                {new Date(proposal.updated_at).toLocaleDateString()}
+                {new Date(doc.updated_at).toLocaleDateString()}
               </td>
             </tr>
           {/each}
@@ -168,13 +168,13 @@
   {:else}
     <div class="bg-white rounded-lg shadow p-12 text-center">
       <FileText size={48} weight="duotone" class="mx-auto text-gray-400" />
-      <h3 class="mt-4 text-lg font-medium text-gray-900">No proposals yet</h3>
-      <p class="mt-2 text-gray-500">Create your first proposal from a template.</p>
+      <h3 class="mt-4 text-lg font-medium text-gray-900">No documents yet</h3>
+      <p class="mt-2 text-gray-500">Create your first document to get started.</p>
       <a
-        href="/proposals/new"
+        href="/documents/new"
         class="mt-4 inline-flex items-center px-4 py-2 bg-esolia-navy text-white rounded-lg hover:bg-esolia-navy/90 transition-colors font-medium"
       >
-        New Proposal
+        New Document
       </a>
     </div>
   {/if}

@@ -1,0 +1,89 @@
+id: ongoing-support
+category: services
+version: "2025-01"
+title:
+  en: "Ongoing IT Support Services"
+  ja: "継続的ITサポートサービス"
+type: service-description
+status: production
+tags:
+  - support
+  - helpdesk
+  - managed-services
+created: "2025-01-08"
+author: rick.cogley@esolia.co.jp
+sensitivity: normal
+content:
+  en: |
+    ## eSolia IT Support Services
+
+    Reliable, professional IT support tailored to your organization's needs:
+
+    **TotalSupport** — Comprehensive Managed IT
+
+    Your virtual IT department. We handle all aspects of your IT operations:
+    - Help desk for end-user support
+    - System administration and maintenance
+    - Vendor management and coordination
+    - Project planning and execution
+    - Strategic IT consulting
+    - Regular reporting and reviews
+
+    Ideal for organizations that want to outsource IT operations entirely.
+
+    **Co-Support** — Collaborative Partnership
+
+    Work alongside your existing IT team:
+    - Augment your team's capabilities
+    - Provide specialized expertise
+    - Handle overflow and after-hours support
+    - Knowledge transfer and training
+    - Backup for vacations and absences
+
+    Ideal for organizations with internal IT that need additional capacity or expertise.
+
+    **Support Delivery**
+    - Bilingual support (English and Japanese)
+    - Business hours and after-hours options available
+    - Remote and on-site support
+    - Ticketing system with full history
+    - SLA-backed response times
+
+    eSolia's support team brings decades of combined experience supporting businesses in Japan, with deep knowledge of both local and international IT environments.
+
+  ja: |
+    ## eSOLIA ITサポートサービス
+
+    お客様の組織のニーズに合わせた信頼性の高いプロフェッショナルなITサポート：
+
+    **TotalSupport** — 包括的マネージドIT
+
+    お客様のバーチャルIT部門として、IT運用のすべての側面を担当します：
+    - エンドユーザーサポートのヘルプデスク
+    - システム管理とメンテナンス
+    - ベンダー管理と調整
+    - プロジェクト計画と実行
+    - 戦略的ITコンサルティング
+    - 定期的なレポートとレビュー
+
+    IT運用を完全にアウトソーシングしたい組織に最適です。
+
+    **Co-Support** — コラボレーティブパートナーシップ
+
+    既存のITチームと協力して：
+    - チームの能力を強化
+    - 専門的な知識を提供
+    - オーバーフローと時間外サポートを処理
+    - ナレッジ移転とトレーニング
+    - 休暇や不在時のバックアップ
+
+    追加のキャパシティや専門知識が必要な社内ITを持つ組織に最適です。
+
+    **サポート提供方法**
+    - バイリンガルサポート（英語と日本語）
+    - 営業時間および時間外オプションあり
+    - リモートおよびオンサイトサポート
+    - 完全な履歴を持つチケットシステム
+    - SLAに基づく応答時間
+
+    eSOLIAのサポートチームは、日本でのビジネスサポートにおける数十年の経験を持ち、国内外のIT環境に関する深い知識を持っています。

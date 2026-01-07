@@ -1,0 +1,89 @@
+id: infrastructure-management
+category: capabilities
+version: "2025-01"
+title:
+  en: "Managed IT Infrastructure"
+  ja: "マネージドITインフラストラクチャ"
+type: capability-description
+status: production
+tags:
+  - infrastructure
+  - management
+  - cloud
+created: "2025-01-08"
+author: rick.cogley@esolia.co.jp
+sensitivity: normal
+content:
+  en: |
+    ## Fully Managed Infrastructure
+
+    Focus on your business while we handle the complexity of modern IT infrastructure:
+
+    **Cloud Management**
+    - Multi-cloud expertise and optimization
+    - Cost monitoring and right-sizing
+    - Resource provisioning and scaling
+    - Backup and disaster recovery
+
+    **Identity & Access Management**
+    - Single sign-on implementation
+    - Multi-factor authentication
+    - Role-based access control
+    - Regular access reviews
+
+    **Network Security**
+    - Firewall management
+    - VPN configuration and support
+    - Network segmentation
+    - Traffic monitoring and analysis
+
+    **Endpoint Management**
+    - Device enrollment and configuration
+    - Security policy enforcement
+    - Patch management
+    - Remote wipe capabilities
+
+    **Documentation & Knowledge**
+    - Complete infrastructure documentation
+    - Runbooks for common procedures
+    - Change management tracking
+    - Knowledge transfer to your team
+
+    eSolia provides transparent reporting on all managed infrastructure, with regular reviews to ensure alignment with your business needs.
+
+  ja: |
+    ## 完全マネージドインフラストラクチャ
+
+    モダンITインフラストラクチャの複雑さを私たちが処理する間、ビジネスに集中してください：
+
+    **クラウド管理**
+    - マルチクラウドの専門知識と最適化
+    - コスト監視と適正化
+    - リソースのプロビジョニングとスケーリング
+    - バックアップと災害復旧
+
+    **アイデンティティ＆アクセス管理**
+    - シングルサインオンの実装
+    - 多要素認証
+    - ロールベースのアクセス制御
+    - 定期的なアクセスレビュー
+
+    **ネットワークセキュリティ**
+    - ファイアウォール管理
+    - VPN設定とサポート
+    - ネットワークセグメンテーション
+    - トラフィック監視と分析
+
+    **エンドポイント管理**
+    - デバイス登録と設定
+    - セキュリティポリシーの適用
+    - パッチ管理
+    - リモートワイプ機能
+
+    **ドキュメンテーション＆ナレッジ**
+    - 完全なインフラストラクチャドキュメント
+    - 一般的な手順のランブック
+    - 変更管理の追跡
+    - チームへのナレッジ移転
+
+    eSOLIAはすべてのマネージドインフラストラクチャについて透明性のあるレポートを提供し、ビジネスニーズとの整合性を確保するための定期的なレビューを実施します。

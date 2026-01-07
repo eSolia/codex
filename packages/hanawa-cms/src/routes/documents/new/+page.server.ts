@@ -1,5 +1,5 @@
 /**
- * New Proposal Page Server
+ * New Document Page Server
  * InfoSec: Input validation with Zod (OWASP A03)
  */
 
@@ -74,7 +74,7 @@ export const actions: Actions = {
     }
 
     if (!title) {
-      return fail(400, { error: 'Proposal title is required', clientCode, title });
+      return fail(400, { error: 'Document title is required', clientCode, title });
     }
 
     // InfoSec: Validate language enum (OWASP A03)
@@ -107,17 +107,17 @@ export const actions: Actions = {
         )
         .run();
 
-      // Redirect to the proposal editor
-      throw redirect(303, `/proposals/${id}`);
+      // Redirect to the document editor
+      throw redirect(303, `/documents/${id}`);
     } catch (error) {
       // Re-throw redirects
       if (error instanceof Response || (error as { status?: number })?.status === 303) {
         throw error;
       }
 
-      console.error('Failed to create proposal:', error);
+      console.error('Failed to create document:', error);
       return fail(500, {
-        error: 'Failed to create proposal',
+        error: 'Failed to create document',
         clientCode,
         title,
       });

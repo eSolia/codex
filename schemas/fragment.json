@@ -13,7 +13,7 @@
     },
     "category": {
       "type": "string",
-      "enum": ["products", "services", "comparisons", "diagrams", "boilerplate", "pricing"],
+      "enum": ["products", "services", "comparisons", "diagrams", "boilerplate", "pricing", "capabilities", "company", "terms", "closing"],
       "description": "Fragment category (must match parent directory)"
     },
     "version": {
@@ -43,6 +43,9 @@
       "enum": [
         "product-overview",
         "service-description",
+        "capability-description",
+        "company-info",
+        "terms-conditions",
         "comparison",
         "diagram",
         "boilerplate",

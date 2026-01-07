@@ -1,0 +1,89 @@
+id: modern-web-development
+category: capabilities
+version: "2025-01"
+title:
+  en: "Modern Web Development"
+  ja: "モダンWeb開発"
+type: capability-description
+status: production
+tags:
+  - web
+  - development
+  - frontend
+created: "2025-01-08"
+author: rick.cogley@esolia.co.jp
+sensitivity: normal
+content:
+  en: |
+    ## Modern, Performant Web Applications
+
+    We build websites and web applications using current best practices that prioritize speed, security, and maintainability:
+
+    **Performance First**
+    - Server-side rendering for instant initial page loads
+    - Optimized asset delivery and caching
+    - Core Web Vitals scores in the "Good" range
+    - Progressive loading for large content
+
+    **Search Engine Optimization**
+    - Semantic HTML structure
+    - Proper meta tags and structured data
+    - Fast load times (a key ranking factor)
+    - Mobile-first responsive design
+
+    **Accessibility**
+    - WCAG 2.1 AA compliance
+    - Keyboard navigation support
+    - Screen reader compatibility
+    - High contrast and readable typography
+
+    **Content Management**
+    - Easy-to-use editing interface for your team
+    - Real-time preview of changes
+    - Version history and rollback capability
+    - Multi-language content support
+
+    **Long-term Maintainability**
+    - Clean, documented codebase
+    - Automated testing and deployment
+    - Regular security updates
+    - No vendor lock-in
+
+    All development follows security best practices, with code review and testing as standard parts of our process.
+
+  ja: |
+    ## モダンで高性能なWebアプリケーション
+
+    私たちは、スピード、セキュリティ、保守性を優先した現在のベストプラクティスを使用してウェブサイトとウェブアプリケーションを構築します：
+
+    **パフォーマンス重視**
+    - 瞬時の初期ページ読み込みのためのサーバーサイドレンダリング
+    - 最適化されたアセット配信とキャッシング
+    - 「良好」範囲のCore Web Vitalsスコア
+    - 大容量コンテンツの段階的読み込み
+
+    **検索エンジン最適化**
+    - セマンティックなHTML構造
+    - 適切なメタタグと構造化データ
+    - 高速な読み込み時間（重要なランキング要素）
+    - モバイルファーストのレスポンシブデザイン
+
+    **アクセシビリティ**
+    - WCAG 2.1 AA準拠
+    - キーボードナビゲーションサポート
+    - スクリーンリーダー互換性
+    - 高コントラストで読みやすいタイポグラフィ
+
+    **コンテンツ管理**
+    - チーム向けの使いやすい編集インターフェース
+    - 変更のリアルタイムプレビュー
+    - バージョン履歴とロールバック機能
+    - 多言語コンテンツサポート
+
+    **長期的な保守性**
+    - クリーンでドキュメント化されたコードベース
+    - 自動テストとデプロイメント
+    - 定期的なセキュリティアップデート
+    - ベンダーロックインなし
+
+    すべての開発はセキュリティのベストプラクティスに従い、コードレビューとテストをプロセスの標準部分として実施します。

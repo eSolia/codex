@@ -1,5 +1,5 @@
 /**
- * Proposal Detail/Edit Page Server
+ * Document Detail/Edit Page Server
  * InfoSec: Input validation, parameterized queries (OWASP A03)
  */
 
@@ -68,7 +68,7 @@ export const load: PageServerLoad = async ({ params, platform }) => {
       .first<Proposal>();
 
     if (!result) {
-      throw error(404, 'Proposal not found');
+      throw error(404, 'Document not found');
     }
 
     // Parse fragments JSON
@@ -107,8 +107,8 @@ export const load: PageServerLoad = async ({ params, platform }) => {
     if ((err as { status?: number })?.status === 404) {
       throw err;
     }
-    console.error('Failed to load proposal:', err);
-    throw error(500, 'Failed to load proposal');
+    console.error('Failed to load document:', err);
+    throw error(500, 'Failed to load document');
   }
 };
 
@@ -483,7 +483,7 @@ export const actions: Actions = {
     try {
       await db.prepare('DELETE FROM proposals WHERE id = ?').bind(params.id).run();
 
-      return { success: true, redirect: '/proposals' };
+      return { success: true, redirect: '/documents' };
     } catch (err) {
       console.error('Delete failed:', err);
       return fail(500, { error: 'Failed to delete proposal' });
