@@ -46,6 +46,23 @@
   // Template data
   const templates = $derived((data.templates as Template[]) || []);
   const availableFragments = $derived((data.availableFragments as AvailableFragment[]) || []);
+
+  // Document type filter
+  let typeFilter = $state<string>('');
+
+  const documentTypes = [
+    { value: '', label: 'All Types' },
+    { value: 'proposal', label: 'Proposals' },
+    { value: 'report', label: 'Reports' },
+    { value: 'quote', label: 'Quotes' },
+    { value: 'sow', label: 'Statements of Work' },
+    { value: 'assessment', label: 'Assessments' },
+  ];
+
+  // Filter templates by type
+  const filteredTemplates = $derived(
+    typeFilter ? templates.filter((t) => t.document_type === typeFilter) : templates
+  );
   let selectedTemplateId = $state<string | null>(
     (data.selectedTemplate as Template | null)?.id || null
   );
@@ -221,41 +238,76 @@
   <!-- Template Selection -->
   {#if templates.length > 0}
     <div class="bg-white rounded-lg shadow p-6">
-      <h2 class="text-lg font-semibold text-gray-900 flex items-center gap-2 mb-4">
-        <Files size={20} weight="duotone" class="text-esolia-navy" />
-        Choose a Template
-      </h2>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-        {#each templates as template (template.id)}
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+          <Files size={20} weight="duotone" class="text-esolia-navy" />
+          Choose a Template
+        </h2>
+        <span class="text-sm text-gray-500">
+          {filteredTemplates.length} of {templates.length} templates
+        </span>
+      </div>
+
+      <!-- Type Filter -->
+      <div class="flex flex-wrap gap-2 mb-4">
+        {#each documentTypes as dt (dt.value)}
           <button
             type="button"
-            onclick={() => selectTemplate(template.id)}
-            class="relative text-left p-4 rounded-lg border-2 transition-all hover:shadow-md
-                   {selectedTemplateId === template.id
-              ? 'border-esolia-navy bg-esolia-navy/5 ring-2 ring-esolia-navy ring-offset-2'
-              : 'border-gray-200 hover:border-gray-300'}"
+            onclick={() => (typeFilter = dt.value)}
+            class="px-3 py-1.5 text-sm rounded-full transition-colors
+                   {typeFilter === dt.value
+              ? 'bg-esolia-navy text-white'
+              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}"
           >
-            {#if template.is_default}
-              <Star
-                size={16}
-                weight="fill"
-                class="absolute top-2 right-2 text-yellow-500"
-              />
-            {/if}
-            <div class="flex items-center gap-2 mb-2">
-              <FileText
-                size={20}
-                weight="duotone"
-                class={selectedTemplateId === template.id ? 'text-esolia-navy' : 'text-gray-400'}
-              />
-              <span class="font-medium text-sm text-gray-900 line-clamp-1">{template.name}</span>
-            </div>
-            {#if template.description}
-              <p class="text-xs text-gray-500 line-clamp-2">{template.description}</p>
-            {/if}
+            {dt.label}
           </button>
         {/each}
       </div>
+
+      {#if filteredTemplates.length > 0}
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+          {#each filteredTemplates as template (template.id)}
+            <button
+              type="button"
+              onclick={() => selectTemplate(template.id)}
+              class="relative text-left p-4 rounded-lg border-2 transition-all hover:shadow-md
+                     {selectedTemplateId === template.id
+                ? 'border-esolia-navy bg-esolia-navy/5 ring-2 ring-esolia-navy ring-offset-2'
+                : 'border-gray-200 hover:border-gray-300'}"
+            >
+              {#if template.is_default}
+                <Star
+                  size={16}
+                  weight="fill"
+                  class="absolute top-2 right-2 text-yellow-500"
+                />
+              {/if}
+              <div class="flex items-center gap-2 mb-2">
+                <FileText
+                  size={20}
+                  weight="duotone"
+                  class={selectedTemplateId === template.id ? 'text-esolia-navy' : 'text-gray-400'}
+                />
+                <span class="font-medium text-sm text-gray-900 line-clamp-1">{template.name}</span>
+              </div>
+              {#if template.description}
+                <p class="text-xs text-gray-500 line-clamp-2">{template.description}</p>
+              {/if}
+            </button>
+          {/each}
+        </div>
+      {:else}
+        <p class="text-center text-gray-500 py-8">
+          No templates found for this type.
+          <button
+            type="button"
+            onclick={() => (typeFilter = '')}
+            class="text-esolia-navy hover:underline"
+          >
+            Show all templates
+          </button>
+        </p>
+      {/if}
     </div>
   {/if}
 
