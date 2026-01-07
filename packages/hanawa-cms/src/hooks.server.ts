@@ -84,15 +84,30 @@ export const handle: Handle = async ({ event, resolve }) => {
 
   // Extract actor from Cloudflare Access headers (or use defaults for dev)
   // InfoSec: CF Access JWT assertion contains authenticated user identity
-  const cfAccessEmail = event.request.headers.get('cf-access-authenticated-user-email');
-  const cfAccessId = event.request.headers.get('cf-access-jwt-assertion');
+  const cfAccessJwt = event.request.headers.get('cf-access-jwt-assertion');
+  let cfAccessEmail = event.request.headers.get('cf-access-authenticated-user-email');
+
+  // If email header not present, decode it from JWT payload
+  // InfoSec: JWT signature should be verified in production, but CF Access
+  // already validates before forwarding, so we trust the payload here
+  if (!cfAccessEmail && cfAccessJwt) {
+    try {
+      const parts = cfAccessJwt.split('.');
+      if (parts.length === 3) {
+        const payload = JSON.parse(atob(parts[1]));
+        cfAccessEmail = payload.email || null;
+      }
+    } catch {
+      // Invalid JWT format, ignore
+    }
+  }
 
   // Set up user in locals if authenticated via CF Access
   // InfoSec: This enables route-level auth checks (OWASP A01)
   if (cfAccessEmail) {
     const emailName = cfAccessEmail.split('@')[0];
     event.locals.user = {
-      id: cfAccessId || cfAccessEmail,
+      id: cfAccessJwt || cfAccessEmail,
       email: cfAccessEmail,
       name: emailName,
       // Default to admin for CF Access authenticated users
@@ -103,7 +118,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 
   // Set up audit context
   const actorEmail = cfAccessEmail || 'dev@hanawa.local';
-  const actorId = cfAccessId || actorEmail;
+  const actorId = cfAccessJwt || actorEmail;
 
   const auditContext: AuditContext = {
     actorId,
