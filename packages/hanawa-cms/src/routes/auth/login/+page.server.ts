@@ -1,8 +1,8 @@
 /**
  * Auth Login Route
  *
- * Redirects to the protected page, which triggers Cloudflare Access login.
- * CF Access will intercept the request and show the login page if not authenticated.
+ * Redirects to Cloudflare Access login endpoint.
+ * After authentication, CF Access redirects back to the return URL.
  *
  * InfoSec: OWASP A07 - Identification and Authentication Failures
  */
@@ -17,8 +17,12 @@ export const load: PageServerLoad = async ({ url }) => {
   // InfoSec: Validate return URL to prevent open redirect (OWASP A01)
   const safeReturnTo = returnTo.startsWith('/') && !returnTo.startsWith('//') ? returnTo : '/';
 
-  // Always redirect to the return URL
-  // If it's protected by CF Access, the login page will appear
-  // If user is already authenticated, they'll see the page
-  redirect(302, safeReturnTo);
+  // Build full return URL for CF Access
+  const fullReturnUrl = `${url.origin}${safeReturnTo}`;
+
+  // Redirect to CF Access login endpoint with return URL
+  // CF Access will authenticate and redirect back
+  const cfAccessLogin = `/cdn-cgi/access/login?redirect_url=${encodeURIComponent(fullReturnUrl)}`;
+
+  redirect(302, cfAccessLogin);
 };
