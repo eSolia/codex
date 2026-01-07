@@ -83,8 +83,23 @@ export const handle: Handle = async ({ event, resolve }) => {
   event.locals.requestId = requestId;
 
   // Extract actor from Cloudflare Access headers (or use defaults for dev)
+  // InfoSec: CF Access JWT assertion contains authenticated user identity
   const cfAccessEmail = event.request.headers.get('cf-access-authenticated-user-email');
   const cfAccessId = event.request.headers.get('cf-access-jwt-assertion');
+
+  // Set up user in locals if authenticated via CF Access
+  // InfoSec: This enables route-level auth checks (OWASP A01)
+  if (cfAccessEmail) {
+    const emailName = cfAccessEmail.split('@')[0];
+    event.locals.user = {
+      id: cfAccessId || cfAccessEmail,
+      email: cfAccessEmail,
+      name: emailName,
+      // Default to admin for CF Access authenticated users
+      // TODO: Implement role lookup from D1 users table
+      role: 'admin'
+    };
+  }
 
   // Set up audit context
   const actorEmail = cfAccessEmail || 'dev@hanawa.local';

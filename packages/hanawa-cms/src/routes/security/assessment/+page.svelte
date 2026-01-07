@@ -574,7 +574,7 @@
           Sign in to view the complete security assessment.
         </p>
         <a
-          href="/auth/login"
+          href="/auth/login?return=/security/assessment"
           class="inline-flex items-center gap-2 rounded-lg bg-rose-500 px-6 py-3 font-medium text-white transition-colors hover:bg-rose-600"
         >
           <SignIn size={20} />
