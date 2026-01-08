@@ -71,8 +71,11 @@ export function createAIService(
   // Use type assertion for model since types may not include all available models
   const MODEL = '@cf/meta/llama-3.1-70b-instruct' as Parameters<typeof ai.run>[0];
 
-  // InfoSec: Anthropic client for high-quality translation
-  const anthropic = anthropicApiKey ? new Anthropic({ apiKey: anthropicApiKey }) : null;
+  // InfoSec: Anthropic client created lazily for high-quality translation
+  function getAnthropicClient(): Anthropic | null {
+    if (!anthropicApiKey) return null;
+    return new Anthropic({ apiKey: anthropicApiKey });
+  }
 
   /**
    * Build system prompt based on request type
@@ -264,6 +267,7 @@ export function createAIService(
       const sourceLanguage = sourceLocale === 'ja' ? 'Japanese' : 'English';
 
       // Use Anthropic if available, fallback to Workers AI
+      const anthropic = getAnthropicClient();
       if (anthropic) {
         try {
           const response = await anthropic.messages.create({
