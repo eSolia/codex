@@ -67,4 +67,5 @@
   // - SESSION_SECRET
   // - CLOUDFLARE_ACCESS_CLIENT_ID (if using Access)
   // - CLOUDFLARE_ACCESS_CLIENT_SECRET
+  // - ANTHROPIC_API_KEY (for AI-powered translations)
 }

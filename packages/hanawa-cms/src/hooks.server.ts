@@ -165,8 +165,10 @@ export const handle: Handle = async ({ event, resolve }) => {
     }
 
     // Initialize AI and Codex services if AI binding is available
+    // InfoSec: ANTHROPIC_API_KEY used for high-quality translations
     if (aiBinding) {
-      const ai = createAIService(db, aiBinding, audit);
+      const anthropicApiKey = event.platform.env.ANTHROPIC_API_KEY;
+      const ai = createAIService(db, aiBinding, audit, anthropicApiKey);
       const codex = createCodexService(db, vectorize, aiBinding, audit);
 
       event.locals.ai = ai;

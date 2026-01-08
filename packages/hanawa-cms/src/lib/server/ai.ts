@@ -3,6 +3,7 @@
  * InfoSec: Claude-powered content assistance with usage tracking
  */
 
+import Anthropic from '@anthropic-ai/sdk';
 import type { AuditService } from './audit';
 
 type AIAction =
@@ -61,9 +62,17 @@ interface UsageRecord {
  * Create AI Service
  * InfoSec: All AI interactions are logged for audit and billing
  */
-export function createAIService(db: D1Database, ai: Ai, audit?: AuditService) {
+export function createAIService(
+  db: D1Database,
+  ai: Ai,
+  audit?: AuditService,
+  anthropicApiKey?: string
+) {
   // Use type assertion for model since types may not include all available models
   const MODEL = '@cf/meta/llama-3.1-70b-instruct' as Parameters<typeof ai.run>[0];
+
+  // InfoSec: Anthropic client for high-quality translation
+  const anthropic = anthropicApiKey ? new Anthropic({ apiKey: anthropicApiKey }) : null;
 
   /**
    * Build system prompt based on request type
@@ -88,8 +97,10 @@ export function createAIService(db: D1Database, ai: Ai, audit?: AuditService) {
         request.sourceLocale === 'en' ? 'English to Japanese' : 'Japanese to English';
       prompt =
         `You are a professional translator specializing in ${direction} translation. ` +
-        'Maintain the original formatting and structure. ' +
-        'Use natural, fluent language appropriate for business communication.';
+        'Maintain the original formatting (HTML tags, paragraphs) and structure. ' +
+        'Use natural, fluent language appropriate for business communication. ' +
+        'CRITICAL: Output ONLY the translated text. No preamble, no "Here is the translation", ' +
+        'no explanation, no commentary. Just the translation itself.';
     }
 
     return prompt;
@@ -117,7 +128,8 @@ export function createAIService(db: D1Database, ai: Ai, audit?: AuditService) {
       case 'improve':
         return (
           `Improve the following text for clarity and professionalism. ` +
-          `Fix any issues while preserving the meaning:\n\n"${text}"`
+          `Fix any issues while preserving the meaning. ` +
+          `Output only the improved text, no explanation:\n\n${text}`
         );
 
       case 'simplify':
@@ -133,7 +145,7 @@ export function createAIService(db: D1Database, ai: Ai, audit?: AuditService) {
         );
 
       case 'translate':
-        return `Translate the following to ${request.targetLocale === 'ja' ? 'Japanese' : 'English'}:\n\n"${text}"`;
+        return `Translate the following to ${request.targetLocale === 'ja' ? 'Japanese' : 'English'}. Output only the translation, nothing else:\n\n${text}`;
 
       case 'suggest_tags':
         return (
@@ -236,8 +248,8 @@ export function createAIService(db: D1Database, ai: Ai, audit?: AuditService) {
     },
 
     /**
-     * Translate text between EN and JA
-     * InfoSec: Uses terminology for consistency
+     * Translate text between EN and JA using Claude
+     * InfoSec: Uses Anthropic API for high-quality translations
      */
     async translate(
       text: string,
@@ -245,6 +257,60 @@ export function createAIService(db: D1Database, ai: Ai, audit?: AuditService) {
       targetLocale: 'en' | 'ja',
       userEmail: string
     ): Promise<string> {
+      if (!text.trim()) return '';
+
+      const startTime = Date.now();
+      const targetLanguage = targetLocale === 'ja' ? 'Japanese' : 'English';
+      const sourceLanguage = sourceLocale === 'ja' ? 'Japanese' : 'English';
+
+      // Use Anthropic if available, fallback to Workers AI
+      if (anthropic) {
+        try {
+          const response = await anthropic.messages.create({
+            model: 'claude-sonnet-4-20250514',
+            max_tokens: 2048,
+            messages: [
+              {
+                role: 'user',
+                content: `Translate the following ${sourceLanguage} text to ${targetLanguage}.
+Return ONLY the translation, no explanations or quotes. Preserve HTML formatting.
+
+Text to translate:
+${text}`,
+              },
+            ],
+          });
+
+          const content = response.content[0];
+          const translatedText = content.type === 'text' ? content.text.trim() : '';
+
+          // Record usage
+          await recordUsage(
+            userEmail,
+            { action: 'translate', selection: text, sourceLocale, targetLocale },
+            {
+              inputTokens: response.usage?.input_tokens || 0,
+              outputTokens: response.usage?.output_tokens || 0,
+            },
+            startTime,
+            true
+          );
+
+          return translatedText;
+        } catch (error) {
+          await recordUsage(
+            userEmail,
+            { action: 'translate', selection: text, sourceLocale, targetLocale },
+            { inputTokens: 0, outputTokens: 0 },
+            startTime,
+            false,
+            error instanceof Error ? error.message : 'Anthropic API error'
+          );
+          throw error;
+        }
+      }
+
+      // Fallback to Workers AI if Anthropic not configured
       const response = await this.generate(
         {
           action: 'translate',
@@ -255,7 +321,7 @@ export function createAIService(db: D1Database, ai: Ai, audit?: AuditService) {
         userEmail
       );
 
-      return response.content;
+      return response.content.trim();
     },
 
     /**
