@@ -533,7 +533,7 @@ export const actions: Actions = {
 
   <!-- Jump link to second language -->
   <div class="jump-link">
-    <a href="#section-${secondLang}">${secondLang === 'ja' ? '日本語版は次ページ →' : '← English version on next page'}</a>
+    <a href="#section-${secondLang}">${secondLang === 'ja' ? '日本語版は下記へ →' : 'English Version Below →'}</a>
   </div>
 
   <!-- First language section -->
@@ -549,7 +549,7 @@ export const actions: Actions = {
 
   <!-- Jump link back -->
   <div class="jump-link">
-    <a href="#section-${firstLang}">${firstLang === 'ja' ? '← 日本語版は前ページ' : '← English version above'}</a>
+    <a href="#section-${firstLang}">${firstLang === 'ja' ? '← 日本語版は上記へ' : '← English Version Above'}</a>
   </div>
 
   <!-- Second language header -->
