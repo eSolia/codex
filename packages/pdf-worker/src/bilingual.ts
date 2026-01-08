@@ -203,7 +203,7 @@ async function drawTocPage(page: PDFPage, opts: TocDrawOptions): Promise<void> {
   y -= 60;
 
   // Table of Contents header
-  page.drawText("Table of Contents / 目次", {
+  page.drawText("Table of Contents", {
     x: margin,
     y,
     size: 16,
