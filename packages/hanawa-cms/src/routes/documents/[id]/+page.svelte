@@ -15,6 +15,7 @@
   import Copy from 'phosphor-svelte/lib/Copy';
   import Clock from 'phosphor-svelte/lib/Clock';
   import Plus from 'phosphor-svelte/lib/Plus';
+  import CoverLetterEditor from '$lib/components/editor/CoverLetterEditor.svelte';
 
   interface Fragment {
     id: string;
@@ -43,11 +44,22 @@
   let isSharing = $state(false);
   let showAddFragment = $state(false);
 
+  // Cover letter state
+  let coverLetterEn = $state(data.proposal.cover_letter_en || '');
+  let coverLetterJa = $state(data.proposal.cover_letter_ja || '');
+  let languageMode = $state(data.proposal.language_mode || 'en');
+
   // Derived
   const fragmentsJson = $derived(JSON.stringify(fragments));
   const proposal = $derived(data.proposal);
   const fragmentContents = $derived(data.fragmentContents as FragmentContent[]);
   const availableFragments = $derived((data.availableFragments as FragmentContent[]) || []);
+  const boilerplates = $derived((data.boilerplates as FragmentContent[]) || []);
+
+  // Language mode helpers
+  const showEnglish = $derived(languageMode === 'en' || languageMode.startsWith('both_'));
+  const showJapanese = $derived(languageMode === 'ja' || languageMode.startsWith('both_'));
+  const isBilingual = $derived(languageMode.startsWith('both_'));
 
   // Fragments not yet in the proposal
   const unusedFragments = $derived(
@@ -283,14 +295,17 @@
               />
             </div>
             <div>
-              <label for="language" class="block text-sm font-medium text-gray-700">Language</label>
+              <label for="language_mode" class="block text-sm font-medium text-gray-700">Language Mode</label>
               <select
-                id="language"
-                name="language"
+                id="language_mode"
+                name="language_mode"
+                bind:value={languageMode}
                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-esolia-navy focus:ring-esolia-navy"
               >
-                <option value="en" selected={proposal.language === 'en'}>English</option>
-                <option value="ja" selected={proposal.language === 'ja'}>Japanese</option>
+                <option value="en">English only</option>
+                <option value="ja">Japanese only</option>
+                <option value="both_en_first">Bilingual (English first)</option>
+                <option value="both_ja_first">Bilingual (Japanese first)</option>
               </select>
             </div>
           </div>
@@ -322,19 +337,40 @@
             </div>
           </div>
 
-          <div>
-            <label for="contact_name" class="block text-sm font-medium text-gray-700">
-              Contact Name
-            </label>
-            <p class="text-xs text-gray-500 mb-1">Recipient's name for "Prepared for: Name, Company"</p>
-            <input
-              type="text"
-              id="contact_name"
-              name="contact_name"
-              value={proposal.contact_name || ''}
-              placeholder="Taro Tanaka"
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-esolia-navy focus:ring-esolia-navy"
-            />
+          <!-- Contact Name fields (conditional on language mode) -->
+          <div class="grid grid-cols-2 gap-4">
+            {#if showEnglish}
+              <div>
+                <label for="contact_name" class="block text-sm font-medium text-gray-700">
+                  Contact Name (EN)
+                </label>
+                <p class="text-xs text-gray-500 mb-1">Recipient's name for "Prepared for:"</p>
+                <input
+                  type="text"
+                  id="contact_name"
+                  name="contact_name"
+                  value={proposal.contact_name || ''}
+                  placeholder="Taro Tanaka"
+                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-esolia-navy focus:ring-esolia-navy"
+                />
+              </div>
+            {/if}
+            {#if showJapanese}
+              <div>
+                <label for="contact_name_ja" class="block text-sm font-medium text-gray-700">
+                  Contact Name (JA)
+                </label>
+                <p class="text-xs text-gray-500 mb-1">「宛先」のお名前</p>
+                <input
+                  type="text"
+                  id="contact_name_ja"
+                  name="contact_name_ja"
+                  value={proposal.contact_name_ja || ''}
+                  placeholder="田中太郎 様"
+                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-esolia-navy focus:ring-esolia-navy"
+                />
+              </div>
+            {/if}
           </div>
 
           <div>
@@ -371,22 +407,50 @@
             >
           </div>
 
-          <div>
-            <label for="custom_sections" class="block text-sm font-medium text-gray-700">
-              Introduction / Cover Letter (Markdown)
-            </label>
-            <p class="text-xs text-gray-500 mb-1">
-              Client-specific content that appears before the standard fragments
-            </p>
-            <textarea
-              id="custom_sections"
-              name="custom_sections"
-              rows="8"
-              placeholder="Dear [Client Name],&#10;&#10;Thank you for the opportunity to discuss your IT requirements..."
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-esolia-navy focus:ring-esolia-navy font-mono text-sm"
-              >{proposal.custom_sections || ''}</textarea
-            >
-          </div>
+          <!-- Cover Letter Editors (conditional on language mode) -->
+          <!-- Hidden inputs for form submission -->
+          <input type="hidden" name="cover_letter_en" value={coverLetterEn} />
+          <input type="hidden" name="cover_letter_ja" value={coverLetterJa} />
+
+          {#if showEnglish}
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Cover Letter (English)
+              </label>
+              <p class="text-xs text-gray-500 mb-2">
+                Client-specific introduction that appears before the standard fragments
+              </p>
+              <CoverLetterEditor
+                bind:content={coverLetterEn}
+                language="en"
+                placeholder="Dear [Client Name], Thank you for the opportunity to discuss your IT requirements..."
+                {boilerplates}
+                onTranslate={(translated) => {
+                  coverLetterJa = translated;
+                }}
+              />
+            </div>
+          {/if}
+
+          {#if showJapanese}
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Cover Letter (Japanese)
+              </label>
+              <p class="text-xs text-gray-500 mb-2">
+                標準フラグメントの前に表示されるクライアント固有の紹介文
+              </p>
+              <CoverLetterEditor
+                bind:content={coverLetterJa}
+                language="ja"
+                placeholder="[会社名] 御中、この度はIT要件についてご相談いただきありがとうございます..."
+                {boilerplates}
+                onTranslate={(translated) => {
+                  coverLetterEn = translated;
+                }}
+              />
+            </div>
+          {/if}
 
           <div class="flex justify-end">
             <button
@@ -407,8 +471,15 @@
               <dd class="font-medium">{proposal.client_code}</dd>
             </div>
             <div>
-              <dt class="text-gray-500">Language</dt>
-              <dd class="font-medium">{proposal.language === 'ja' ? 'Japanese' : 'English'}</dd>
+              <dt class="text-gray-500">Language Mode</dt>
+              <dd class="font-medium">
+                {#if proposal.language_mode === 'en'}English only
+                {:else if proposal.language_mode === 'ja'}Japanese only
+                {:else if proposal.language_mode === 'both_en_first'}Bilingual (EN first)
+                {:else if proposal.language_mode === 'both_ja_first'}Bilingual (JA first)
+                {:else}English only
+                {/if}
+              </dd>
             </div>
             <div>
               <dt class="text-gray-500">Created</dt>
@@ -427,10 +498,21 @@
             </div>
           {/if}
 
-          {#if proposal.custom_sections}
+          {#if proposal.cover_letter_en}
             <div>
-              <h3 class="text-sm font-medium text-gray-500">Introduction / Cover Letter</h3>
-              <pre class="mt-1 text-sm bg-gray-50 p-3 rounded whitespace-pre-wrap font-mono">{proposal.custom_sections}</pre>
+              <h3 class="text-sm font-medium text-gray-500">Cover Letter (EN)</h3>
+              <div class="mt-1 text-sm bg-gray-50 p-3 rounded prose prose-sm max-w-none">
+                {@html proposal.cover_letter_en}
+              </div>
+            </div>
+          {/if}
+
+          {#if proposal.cover_letter_ja}
+            <div>
+              <h3 class="text-sm font-medium text-gray-500">Cover Letter (JA)</h3>
+              <div class="mt-1 text-sm bg-gray-50 p-3 rounded prose prose-sm max-w-none">
+                {@html proposal.cover_letter_ja}
+              </div>
             </div>
           {/if}
         </div>

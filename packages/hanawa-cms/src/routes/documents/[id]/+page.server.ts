@@ -111,13 +111,17 @@ interface Proposal {
   client_name: string | null;
   client_name_ja: string | null;
   contact_name: string | null;
+  contact_name_ja: string | null;
   title: string;
   title_ja: string | null;
   scope: string | null;
   language: string;
+  language_mode: string;
   template_id: string | null;
   fragments: string;
   custom_sections: string | null;
+  cover_letter_en: string | null;
+  cover_letter_ja: string | null;
   status: string;
   reviewed_by: string | null;
   reviewed_at: string | null;
@@ -203,11 +207,24 @@ export const load: PageServerLoad = async ({ params, platform }) => {
 
     const availableFragments = allFragmentsResult.results ?? [];
 
+    // Load cover letter boilerplate templates
+    const boilerplateResult = await db
+      .prepare(
+        `SELECT id, name, slug, category, content_en, content_ja
+         FROM fragments
+         WHERE category = 'cover-letter'
+         ORDER BY name`
+      )
+      .all<FragmentContent>();
+
+    const boilerplates = boilerplateResult.results ?? [];
+
     return {
       proposal: result,
       fragments,
       fragmentContents,
       availableFragments,
+      boilerplates,
     };
   } catch (err) {
     if ((err as { status?: number })?.status === 404) {
@@ -232,15 +249,23 @@ export const actions: Actions = {
     const clientName = formData.get('client_name')?.toString().trim() || null;
     const clientNameJa = formData.get('client_name_ja')?.toString().trim() || null;
     const contactName = formData.get('contact_name')?.toString().trim() || null;
+    const contactNameJa = formData.get('contact_name_ja')?.toString().trim() || null;
     const title = formData.get('title')?.toString().trim();
     const titleJa = formData.get('title_ja')?.toString().trim() || null;
     const scope = formData.get('scope')?.toString().trim() || null;
-    const language = formData.get('language')?.toString() || 'en';
+    const languageMode = formData.get('language_mode')?.toString() || 'en';
     const fragmentsJson = formData.get('fragments')?.toString() || '[]';
-    const customSections = formData.get('custom_sections')?.toString() || null;
+    const coverLetterEn = formData.get('cover_letter_en')?.toString() || null;
+    const coverLetterJa = formData.get('cover_letter_ja')?.toString() || null;
 
     if (!clientCode || !title) {
       return fail(400, { error: 'Client code and title are required' });
+    }
+
+    // InfoSec: Validate language_mode enum (OWASP A03)
+    const validModes = ['en', 'ja', 'both_en_first', 'both_ja_first'];
+    if (!validModes.includes(languageMode)) {
+      return fail(400, { error: 'Invalid language mode' });
     }
 
     try {
@@ -248,9 +273,10 @@ export const actions: Actions = {
       await db
         .prepare(
           `UPDATE proposals SET
-            client_code = ?, client_name = ?, client_name_ja = ?, contact_name = ?,
-            title = ?, title_ja = ?, scope = ?, language = ?,
-            fragments = ?, custom_sections = ?,
+            client_code = ?, client_name = ?, client_name_ja = ?,
+            contact_name = ?, contact_name_ja = ?,
+            title = ?, title_ja = ?, scope = ?, language_mode = ?,
+            fragments = ?, cover_letter_en = ?, cover_letter_ja = ?,
             updated_at = datetime('now')
            WHERE id = ?`
         )
@@ -259,12 +285,14 @@ export const actions: Actions = {
           clientName,
           clientNameJa,
           contactName,
+          contactNameJa,
           title,
           titleJa,
           scope,
-          language,
+          languageMode,
           fragmentsJson,
-          customSections,
+          coverLetterEn,
+          coverLetterJa,
           params.id
         )
         .run();
@@ -378,12 +406,24 @@ export const actions: Actions = {
 
       // Build content map for ordering
       const contentMap = new Map(fragmentContents.map((f) => [f.id, f]));
-      const lang = proposal.language || 'en';
+
+      // Determine language mode and primary language
+      const langMode = proposal.language_mode || 'en';
+      const isBilingual = langMode.startsWith('both_');
+      const firstLang = langMode === 'both_ja_first' ? 'ja' : 'en';
+      const secondLang = firstLang === 'en' ? 'ja' : 'en';
+      const primaryLang = isBilingual ? firstLang : langMode === 'ja' ? 'ja' : 'en';
 
       // Get JST date (UTC+9)
       const now = new Date();
       const jstDate = new Date(now.getTime() + 9 * 60 * 60 * 1000);
-      const dateFormatted = jstDate.toLocaleDateString(lang === 'ja' ? 'ja-JP' : 'en-US', {
+      const dateFormattedEn = jstDate.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        timeZone: 'Asia/Tokyo',
+      });
+      const dateFormattedJa = jstDate.toLocaleDateString('ja-JP', {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
@@ -391,30 +431,41 @@ export const actions: Actions = {
       });
       const dateStr = jstDate.toISOString().slice(0, 10).replace(/-/g, '');
 
-      // Assemble markdown content (title is in HTML header, don't duplicate)
-      let markdown = '';
+      // Helper: Build content section for a language
+      // Note: proposal is guaranteed non-null here (checked above)
+      const proposalData = proposal;
+      function buildSection(lang: 'en' | 'ja'): string {
+        let section = '';
 
-      // Custom sections (cover letter) come FIRST, before everything else
-      if (proposal.custom_sections) {
-        markdown += proposal.custom_sections + '\n\n---\n\n';
-      }
+        // Cover letter (use new bilingual fields, fall back to custom_sections)
+        const coverLetter =
+          lang === 'ja' ? proposalData.cover_letter_ja : proposalData.cover_letter_en;
+        if (coverLetter) {
+          // Cover letters are HTML from Tiptap, already formatted
+          section += `<div class="cover-letter">${coverLetter}</div>\n<hr>\n`;
+        } else if (!isBilingual && proposalData.custom_sections) {
+          // Fall back to custom_sections for single-language proposals
+          section += markdownToHtml(proposalData.custom_sections) + '\n<hr>\n';
+        }
 
-      // Then Scope
-      if (proposal.scope) {
-        markdown += `## ${lang === 'ja' ? 'スコープ' : 'Scope'}\n\n${proposal.scope}\n\n`;
-      }
+        // Scope
+        if (proposalData.scope) {
+          section += `<h2>${lang === 'ja' ? 'スコープ' : 'Scope'}</h2>\n<p>${proposalData.scope}</p>\n`;
+        }
 
-      // Add fragments in order
-      for (const fragId of enabledFragmentIds) {
-        const content = contentMap.get(fragId);
-        if (content) {
-          const fragContent =
-            lang === 'ja' && content.content_ja ? content.content_ja : content.content_en;
-
-          if (fragContent) {
-            markdown += fragContent + '\n\n';
+        // Fragments in order
+        for (const fragId of enabledFragmentIds) {
+          const content = contentMap.get(fragId);
+          if (content) {
+            const fragContent =
+              lang === 'ja' && content.content_ja ? content.content_ja : content.content_en;
+            if (fragContent) {
+              section += markdownToHtml(fragContent) + '\n';
+            }
           }
         }
+
+        return section;
       }
 
       // Build provenance metadata
@@ -425,7 +476,7 @@ export const actions: Actions = {
         created: proposal.created_at,
         modified: new Date().toISOString(),
         author: 'eSolia Inc.',
-        language: lang,
+        language: isBilingual ? 'bilingual' : primaryLang,
         license: 'Proprietary - eSolia Inc.',
         client_code: proposal.client_code,
         fragments_used: enabledFragmentIds,
@@ -450,10 +501,74 @@ export const actions: Actions = {
         </g>
       </svg>`;
 
-      // Convert markdown to HTML for PDF worker
-      // Basic conversion - PDF worker expects HTML
+      // Build HTML content based on language mode
+      // InfoSec: HTML content is server-generated, cover letters are from Tiptap (sanitized)
+      let bodyContent = '';
+
+      if (isBilingual) {
+        // Bilingual: Header with both titles, then first language section, page break, second language section
+        const firstContactName = firstLang === 'ja' ? proposal.contact_name_ja : proposal.contact_name;
+        const firstClientName = firstLang === 'ja' ? proposal.client_name_ja : proposal.client_name;
+        const secondContactName = secondLang === 'ja' ? proposal.contact_name_ja : proposal.contact_name;
+        const secondClientName = secondLang === 'ja' ? proposal.client_name_ja : proposal.client_name;
+
+        bodyContent = `
+  <div class="header">
+    <h1>${proposal.title}</h1>
+    ${proposal.title_ja ? `<h1 class="title-ja">${proposal.title_ja}</h1>` : ''}
+    ${firstContactName || firstClientName ? `<p class="client-name">${firstLang === 'ja' ? '宛先' : 'Prepared for'}: <strong>${[firstContactName, firstClientName].filter(Boolean).join(', ')}</strong></p>` : ''}
+    <p class="client-name">${firstLang === 'ja' ? '日付' : 'Date'}: ${firstLang === 'ja' ? dateFormattedJa : dateFormattedEn}</p>
+  </div>
+
+  <!-- Jump link to second language -->
+  <div class="jump-link">
+    <a href="#section-${secondLang}">${secondLang === 'ja' ? '日本語版は次ページ →' : '← English version on next page'}</a>
+  </div>
+
+  <!-- First language section -->
+  <section id="section-${firstLang}">
+    ${buildSection(firstLang as 'en' | 'ja')}
+  </section>
+
+  <!-- Page break -->
+  <div class="page-break"></div>
+
+  <!-- Jump link back -->
+  <div class="jump-link">
+    <a href="#section-${firstLang}">${firstLang === 'ja' ? '← 日本語版は前ページ' : '← English version above'}</a>
+  </div>
+
+  <!-- Second language header -->
+  <div class="section-header">
+    <h2>${secondLang === 'ja' ? '日本語版' : 'English Version'}</h2>
+    ${secondContactName || secondClientName ? `<p class="client-name">${secondLang === 'ja' ? '宛先' : 'Prepared for'}: <strong>${[secondContactName, secondClientName].filter(Boolean).join(', ')}</strong></p>` : ''}
+    <p class="client-name">${secondLang === 'ja' ? '日付' : 'Date'}: ${secondLang === 'ja' ? dateFormattedJa : dateFormattedEn}</p>
+  </div>
+
+  <!-- Second language section -->
+  <section id="section-${secondLang}">
+    ${buildSection(secondLang as 'en' | 'ja')}
+  </section>`;
+      } else {
+        // Single language mode
+        const contactName = primaryLang === 'ja' ? (proposal.contact_name_ja || proposal.contact_name) : proposal.contact_name;
+        const clientName = primaryLang === 'ja' ? (proposal.client_name_ja || proposal.client_name) : proposal.client_name;
+
+        bodyContent = `
+  <div class="header">
+    <h1>${primaryLang === 'ja' && proposal.title_ja ? proposal.title_ja : proposal.title}</h1>
+    ${contactName || clientName ? `<p class="client-name">${primaryLang === 'ja' ? '宛先' : 'Prepared for'}: <strong>${[contactName, clientName].filter(Boolean).join(', ')}</strong></p>` : ''}
+    <p class="client-name">${primaryLang === 'ja' ? '日付' : 'Date'}: ${primaryLang === 'ja' ? dateFormattedJa : dateFormattedEn}</p>
+  </div>
+
+  <section>
+    ${buildSection(primaryLang as 'en' | 'ja')}
+  </section>`;
+      }
+
+      // Build the full HTML document
       const html = `<!DOCTYPE html>
-<html lang="${lang}">
+<html lang="${isBilingual ? 'en' : primaryLang}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -469,6 +584,7 @@ export const actions: Actions = {
       padding: 40px;
     }
     h1 { color: #2D2F63; border-bottom: 2px solid #FFBC68; padding-bottom: 10px; margin-top: 0; }
+    h1.title-ja { border-bottom: none; padding-bottom: 0; margin-top: 5px; font-size: 1.5em; }
     h2 { color: #2D2F63; margin-top: 30px; }
     h3 { color: #4a4c7a; }
     table { border-collapse: collapse; width: 100%; margin: 20px 0; }
@@ -478,9 +594,15 @@ export const actions: Actions = {
     li { margin: 5px 0; }
     strong { color: #2D2F63; }
     hr { border: none; border-top: 1px solid #ddd; margin: 30px 0; }
+    a { color: #2D2F63; }
     .logo { margin-bottom: 30px; }
     .header { margin-bottom: 40px; }
     .client-name { font-size: 1.1em; color: #666; margin-top: 10px; }
+    .cover-letter { margin-bottom: 20px; }
+    .cover-letter p { margin: 10px 0; }
+    .jump-link { padding: 15px; background: #f8f9fa; border-radius: 8px; margin: 20px 0; text-align: center; }
+    .jump-link a { color: #2D2F63; text-decoration: none; font-weight: 500; }
+    .section-header { margin-top: 20px; margin-bottom: 30px; padding-bottom: 10px; border-bottom: 2px solid #FFBC68; }
     .footer { margin-top: 60px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 0.9em; color: #666; display: flex; justify-content: space-between; align-items: center; }
     .footer-logo { opacity: 0.7; }
     /* Page break controls */
@@ -493,6 +615,7 @@ export const actions: Actions = {
     @media print {
       body { padding: 0; }
       .logo { margin-bottom: 20px; }
+      .jump-link { display: none; }
     }
   </style>
 </head>
@@ -500,14 +623,9 @@ export const actions: Actions = {
   <div class="logo">
     ${esoliaLogoSvg}
   </div>
-  <div class="header">
-    <h1>${lang === 'ja' && proposal.title_ja ? proposal.title_ja : proposal.title}</h1>
-    ${proposal.client_name || proposal.contact_name ? `<p class="client-name">${lang === 'ja' ? 'クライアント' : 'Prepared for'}: <strong>${[proposal.contact_name, proposal.client_name].filter(Boolean).join(', ')}</strong></p>` : ''}
-    <p class="client-name">${lang === 'ja' ? '日付' : 'Date'}: ${dateFormatted}</p>
-  </div>
-  ${markdownToHtml(markdown)}
+  ${bodyContent}
   <div class="footer">
-    <span>© ${new Date().getFullYear()} eSolia Inc. | ${lang === 'ja' ? '機密' : 'Confidential'}</span>
+    <span>© ${new Date().getFullYear()} eSolia Inc. | ${isBilingual ? 'Confidential / 機密' : primaryLang === 'ja' ? '機密' : 'Confidential'}</span>
   </div>
 </body>
 </html>`;
@@ -516,7 +634,7 @@ export const actions: Actions = {
       // Note: These use Puppeteer's special CSS classes for page numbers
       const footerTemplate = `
         <div style="width: 100%; font-size: 9px; font-family: 'IBM Plex Sans', sans-serif; color: #666; padding: 0 20mm; display: flex; justify-content: space-between; align-items: center;">
-          <span>eSolia Inc. — ${lang === 'ja' ? '機密' : 'CONFIDENTIAL'} — ${dateStr}</span>
+          <span>eSolia Inc. — ${isBilingual ? 'CONFIDENTIAL / 機密' : primaryLang === 'ja' ? '機密' : 'CONFIDENTIAL'} — ${dateStr}</span>
           <span><span class="pageNumber"></span> / <span class="totalPages"></span></span>
         </div>
       `;
@@ -702,6 +820,68 @@ export const actions: Actions = {
     } catch (err) {
       console.error('Delete failed:', err);
       return fail(500, { error: 'Failed to delete proposal' });
+    }
+  },
+
+  // AI Translate cover letter
+  aiTranslate: async ({ request, locals }) => {
+    if (!locals.ai) {
+      return fail(500, { error: 'AI service not available' });
+    }
+
+    const formData = await request.formData();
+    const text = formData.get('text')?.toString() || '';
+    const sourceLocale = formData.get('source_locale')?.toString() as 'en' | 'ja';
+
+    if (!text || !sourceLocale) {
+      return fail(400, { error: 'Text and source locale are required' });
+    }
+
+    // InfoSec: Validate locale enum
+    if (!['en', 'ja'].includes(sourceLocale)) {
+      return fail(400, { error: 'Invalid source locale' });
+    }
+
+    const targetLocale = sourceLocale === 'en' ? 'ja' : 'en';
+    const userEmail = locals.user?.email || 'anonymous';
+
+    try {
+      const translated = await locals.ai.translate(text, sourceLocale, targetLocale, userEmail);
+      return { success: true, translated, targetLocale };
+    } catch (err) {
+      console.error('Translation failed:', err);
+      return fail(500, { error: 'Translation failed' });
+    }
+  },
+
+  // AI Polish/improve cover letter
+  aiPolish: async ({ request, locals }) => {
+    if (!locals.ai) {
+      return fail(500, { error: 'AI service not available' });
+    }
+
+    const formData = await request.formData();
+    const text = formData.get('text')?.toString() || '';
+
+    if (!text) {
+      return fail(400, { error: 'Text is required' });
+    }
+
+    const userEmail = locals.user?.email || 'anonymous';
+
+    try {
+      const result = await locals.ai.generate(
+        {
+          action: 'improve',
+          selection: text,
+          documentType: 'proposal',
+        },
+        userEmail
+      );
+      return { success: true, polished: result.content };
+    } catch (err) {
+      console.error('Polish failed:', err);
+      return fail(500, { error: 'Polish failed' });
     }
   },
 };
