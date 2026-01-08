@@ -842,18 +842,31 @@ export const actions: Actions = {
     const db = platform.env.DB;
     const formData = await request.formData();
 
-    const recipientEmail = formData.get('recipient_email')?.toString().trim();
-    const recipientName = formData.get('recipient_name')?.toString().trim() || null;
-    const expiresInDays = parseInt(formData.get('expires_in_days')?.toString() || '7', 10);
-
-    if (!recipientEmail) {
-      return fail(400, { error: 'Recipient email is required' });
+    // Get selected PDFs (checkboxes with name="share_pdfs")
+    const sharePdfs = formData.getAll('share_pdfs').map(v => v.toString());
+    if (sharePdfs.length === 0) {
+      return fail(400, { error: 'Select at least one PDF to share' });
     }
 
-    // InfoSec: Basic email validation (OWASP A03)
+    // Get recipient emails (textarea, one per line or comma-separated)
+    const recipientEmailsRaw = formData.get('recipient_emails')?.toString().trim() || '';
+    const expiresInDays = parseInt(formData.get('expires_in_days')?.toString() || '7', 10);
+
+    // Parse emails: split by newlines and commas, trim whitespace, filter empty
+    const recipientEmails = recipientEmailsRaw
+      .split(/[\n,]+/)
+      .map(e => e.trim())
+      .filter(e => e.length > 0);
+
+    if (recipientEmails.length === 0) {
+      return fail(400, { error: 'At least one recipient email is required' });
+    }
+
+    // InfoSec: Validate all email addresses (OWASP A03)
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(recipientEmail)) {
-      return fail(400, { error: 'Invalid email address' });
+    const invalidEmails = recipientEmails.filter(e => !emailRegex.test(e));
+    if (invalidEmails.length > 0) {
+      return fail(400, { error: `Invalid email address(es): ${invalidEmails.join(', ')}` });
     }
 
     try {
@@ -871,24 +884,45 @@ export const actions: Actions = {
         return fail(400, { error: 'Generate PDF before sharing' });
       }
 
-      // Generate share PIN (6 digits)
-      const pin = Math.floor(100000 + Math.random() * 900000).toString();
+      // Build list of R2 keys for selected PDFs
+      const pdfKeys: { type: string; key: string }[] = [];
+      if (sharePdfs.includes('combined') && proposal.pdf_r2_key) {
+        pdfKeys.push({ type: 'combined', key: proposal.pdf_r2_key });
+      }
+      if (sharePdfs.includes('english') && proposal.pdf_r2_key_en) {
+        pdfKeys.push({ type: 'english', key: proposal.pdf_r2_key_en });
+      }
+      if (sharePdfs.includes('japanese') && proposal.pdf_r2_key_ja) {
+        pdfKeys.push({ type: 'japanese', key: proposal.pdf_r2_key_ja });
+      }
+
+      if (pdfKeys.length === 0) {
+        return fail(400, { error: 'Selected PDFs are not available' });
+      }
+
+      // InfoSec: Generate secure PIN using crypto.getRandomValues (OWASP A02)
+      const array = new Uint32Array(1);
+      crypto.getRandomValues(array);
+      const pin = String(100000 + (array[0] % 900000));
 
       // Calculate expiry
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + expiresInDays);
 
-      // Generate share ID
-      const shareId = `share_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+      // Generate share ID using crypto
+      const idArray = new Uint8Array(8);
+      crypto.getRandomValues(idArray);
+      const shareId = `share_${Date.now()}_${Array.from(idArray).map(b => b.toString(16).padStart(2, '0')).join('').substring(0, 8)}`;
 
       // Build share URL (Courier format)
       const shareUrl = `https://courier.esolia.co.jp/s/${shareId}`;
 
-      // TODO: Call Courier API to create share
+      // TODO: Call Courier API to create share with multiple recipients and PDFs
       // For now, store the share info locally
       // In production, this would call the Nexus/Courier API
 
       // Update proposal with share info
+      // Store recipients as JSON array for multiple recipients
       await db
         .prepare(
           `UPDATE proposals SET
@@ -907,8 +941,8 @@ export const actions: Actions = {
           shareId,
           shareUrl,
           pin,
-          recipientEmail,
-          recipientName,
+          JSON.stringify(recipientEmails), // Store as JSON array
+          JSON.stringify(pdfKeys.map(p => p.type)), // Store selected PDF types
           expiresAt.toISOString(),
           params.id
         )
@@ -916,9 +950,11 @@ export const actions: Actions = {
 
       return {
         success: true,
-        message: 'Share link created',
+        message: `Share link created for ${recipientEmails.length} recipient(s)`,
         shareUrl,
         pin,
+        recipients: recipientEmails,
+        pdfs: pdfKeys.map(p => p.type),
         expiresAt: expiresAt.toISOString(),
       };
     } catch (err) {

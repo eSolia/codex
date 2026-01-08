@@ -960,33 +960,74 @@
                 isSharing = false;
               };
             }}
-            class="space-y-3"
+            class="space-y-4"
           >
+            <!-- PDF Selection -->
             <div>
-              <label for="recipient_email" class="block text-sm font-medium text-gray-700">
-                Recipient Email
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Select PDFs to Share
               </label>
-              <input
-                type="email"
-                id="recipient_email"
-                name="recipient_email"
-                required
-                placeholder="client@example.com"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-esolia-navy focus:ring-esolia-navy text-sm"
-              />
+              <div class="space-y-2">
+                {#if proposal.pdf_r2_key_en && proposal.pdf_r2_key_ja}
+                  <!-- Bilingual mode: show all 3 options -->
+                  <label class="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      name="share_pdfs"
+                      value="combined"
+                      checked
+                      class="rounded border-gray-300 text-esolia-navy focus:ring-esolia-navy"
+                    />
+                    <span>Combined (with TOC)</span>
+                  </label>
+                  <label class="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      name="share_pdfs"
+                      value="english"
+                      class="rounded border-gray-300 text-esolia-navy focus:ring-esolia-navy"
+                    />
+                    <span>English only</span>
+                  </label>
+                  <label class="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      name="share_pdfs"
+                      value="japanese"
+                      class="rounded border-gray-300 text-esolia-navy focus:ring-esolia-navy"
+                    />
+                    <span>Japanese only / 日本語のみ</span>
+                  </label>
+                {:else}
+                  <!-- Single language mode: just one PDF -->
+                  <label class="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      name="share_pdfs"
+                      value="combined"
+                      checked
+                      class="rounded border-gray-300 text-esolia-navy focus:ring-esolia-navy"
+                    />
+                    <span>PDF Document</span>
+                  </label>
+                {/if}
+              </div>
             </div>
 
+            <!-- Recipients -->
             <div>
-              <label for="recipient_name" class="block text-sm font-medium text-gray-700">
-                Recipient Name
+              <label for="recipient_emails" class="block text-sm font-medium text-gray-700">
+                Recipient Email(s)
               </label>
-              <input
-                type="text"
-                id="recipient_name"
-                name="recipient_name"
-                placeholder="John Smith"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-esolia-navy focus:ring-esolia-navy text-sm"
-              />
+              <p class="text-xs text-gray-500 mb-1">One email per line, or comma-separated</p>
+              <textarea
+                id="recipient_emails"
+                name="recipient_emails"
+                required
+                rows="3"
+                placeholder="client1@example.com&#10;client2@example.com"
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-esolia-navy focus:ring-esolia-navy text-sm font-mono"
+              ></textarea>
             </div>
 
             <div>
@@ -1016,15 +1057,43 @@
         {/if}
 
         {#if proposal.share_url}
+          {@const recipients = (() => {
+            try {
+              const parsed = JSON.parse(proposal.shared_to_email || '[]');
+              return Array.isArray(parsed) ? parsed : [proposal.shared_to_email];
+            } catch {
+              return [proposal.shared_to_email].filter(Boolean);
+            }
+          })()}
+          {@const sharedPdfs = (() => {
+            try {
+              const parsed = JSON.parse(proposal.shared_to_name || '[]');
+              return Array.isArray(parsed) ? parsed : [];
+            } catch {
+              return [];
+            }
+          })()}
           <div class="pt-3 border-t space-y-2">
             <div class="text-xs text-gray-500">Active share:</div>
             <code class="block text-xs bg-gray-50 p-2 rounded break-all">{proposal.share_url}</code>
-            <div class="flex items-center gap-4 text-xs">
-              <span>PIN: <code>{proposal.share_pin}</code></span>
-              {#if proposal.share_expires_at}
-                <span class="text-gray-500">
-                  Expires: {new Date(proposal.share_expires_at).toLocaleDateString()}
-                </span>
+            <div class="space-y-1 text-xs">
+              <div class="flex items-center gap-4">
+                <span>PIN: <code class="bg-gray-100 px-1 rounded">{proposal.share_pin}</code></span>
+                {#if proposal.share_expires_at}
+                  <span class="text-gray-500">
+                    Expires: {new Date(proposal.share_expires_at).toLocaleDateString()}
+                  </span>
+                {/if}
+              </div>
+              {#if recipients.length > 0}
+                <div class="text-gray-600">
+                  <span class="font-medium">Recipients:</span> {recipients.join(', ')}
+                </div>
+              {/if}
+              {#if sharedPdfs.length > 0}
+                <div class="text-gray-600">
+                  <span class="font-medium">PDFs:</span> {sharedPdfs.join(', ')}
+                </div>
               {/if}
             </div>
           </div>
