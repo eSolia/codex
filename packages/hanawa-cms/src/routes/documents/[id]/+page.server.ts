@@ -377,16 +377,28 @@ export const actions: Actions = {
       const contentMap = new Map(fragmentContents.map((f) => [f.id, f]));
       const lang = proposal.language || 'en';
 
-      // Assemble markdown content
-      let markdown = `# ${lang === 'ja' && proposal.title_ja ? proposal.title_ja : proposal.title}\n\n`;
+      // Get JST date (UTC+9)
+      const now = new Date();
+      const jstDate = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+      const dateFormatted = jstDate.toLocaleDateString(lang === 'ja' ? 'ja-JP' : 'en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        timeZone: 'Asia/Tokyo',
+      });
+      const dateStr = jstDate.toISOString().slice(0, 10).replace(/-/g, '');
 
-      if (proposal.scope) {
-        markdown += `## Scope\n\n${proposal.scope}\n\n`;
+      // Assemble markdown content (title is in HTML header, don't duplicate)
+      let markdown = '';
+
+      // Custom sections (cover letter) come FIRST, before everything else
+      if (proposal.custom_sections) {
+        markdown += proposal.custom_sections + '\n\n---\n\n';
       }
 
-      // Add custom sections (cover letter / introduction) near the top
-      if (proposal.custom_sections) {
-        markdown += proposal.custom_sections + '\n\n';
+      // Then Scope
+      if (proposal.scope) {
+        markdown += `## ${lang === 'ja' ? 'スコープ' : 'Scope'}\n\n${proposal.scope}\n\n`;
       }
 
       // Add fragments in order
@@ -488,7 +500,7 @@ export const actions: Actions = {
   <div class="header">
     <h1>${lang === 'ja' && proposal.title_ja ? proposal.title_ja : proposal.title}</h1>
     ${proposal.client_name ? `<p class="client-name">${lang === 'ja' ? 'クライアント' : 'Prepared for'}: <strong>${proposal.client_name}</strong></p>` : ''}
-    <p class="client-name">${lang === 'ja' ? '日付' : 'Date'}: ${new Date().toLocaleDateString(lang === 'ja' ? 'ja-JP' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+    <p class="client-name">${lang === 'ja' ? '日付' : 'Date'}: ${dateFormatted}</p>
   </div>
   ${markdownToHtml(markdown)}
   <div class="footer">
@@ -499,8 +511,6 @@ export const actions: Actions = {
 
       // PDF header/footer templates
       // Note: These use Puppeteer's special CSS classes for page numbers
-      const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-
       const footerTemplate = `
         <div style="width: 100%; font-size: 9px; font-family: 'IBM Plex Sans', sans-serif; color: #666; padding: 0 20mm; display: flex; justify-content: space-between; align-items: center;">
           <span>eSolia Inc. — ${lang === 'ja' ? '機密' : 'CONFIDENTIAL'} — ${dateStr}</span>
