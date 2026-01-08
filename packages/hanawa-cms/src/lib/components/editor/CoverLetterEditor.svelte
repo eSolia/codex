@@ -6,6 +6,7 @@
    * InfoSec: HTML sanitized before storage (OWASP A03)
    */
   import { onMount, onDestroy } from 'svelte';
+  import { deserialize } from '$app/forms';
   import { Editor } from '@tiptap/core';
   import StarterKit from '@tiptap/starter-kit';
   import Link from '@tiptap/extension-link';
@@ -122,16 +123,6 @@
     showBoilerplateMenu = false;
   }
 
-  // Response type for form actions
-  interface ActionResult {
-    type: 'success' | 'failure' | 'error';
-    data?: {
-      translated?: string;
-      polished?: string;
-      error?: string;
-    };
-  }
-
   async function handleTranslate() {
     if (!editor || isTranslating) return;
     isTranslating = true;
@@ -147,15 +138,18 @@
         body: formData,
       });
 
-      const result = (await response.json()) as ActionResult;
+      const result = deserialize(await response.text());
 
-      if (result.type === 'success' && result.data?.translated) {
-        // Emit translated text to parent for the other language field
-        if (onTranslate) {
-          onTranslate(result.data.translated);
+      if (result.type === 'success') {
+        const data = result.data as { translated?: string; error?: string };
+        if (data?.translated && onTranslate) {
+          onTranslate(data.translated);
+        } else if (data?.error) {
+          alert(data.error);
         }
-      } else if (result.data?.error) {
-        alert(result.data.error);
+      } else if (result.type === 'failure') {
+        const data = result.data as { error?: string };
+        alert(data?.error || (language === 'ja' ? '翻訳に失敗しました' : 'Translation failed'));
       }
     } catch (err) {
       console.error('Translation error:', err);
@@ -179,13 +173,18 @@
         body: formData,
       });
 
-      const result = (await response.json()) as ActionResult;
+      const result = deserialize(await response.text());
 
-      if (result.type === 'success' && result.data?.polished) {
-        // Replace editor content with polished version
-        editor.commands.setContent(result.data.polished);
-      } else if (result.data?.error) {
-        alert(result.data.error);
+      if (result.type === 'success') {
+        const data = result.data as { polished?: string; error?: string };
+        if (data?.polished) {
+          editor.commands.setContent(data.polished);
+        } else if (data?.error) {
+          alert(data.error);
+        }
+      } else if (result.type === 'failure') {
+        const data = result.data as { error?: string };
+        alert(data?.error || (language === 'ja' ? '改善に失敗しました' : 'Polish failed'));
       }
     } catch (err) {
       console.error('Polish error:', err);
