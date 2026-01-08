@@ -544,6 +544,9 @@ export const actions: Actions = {
   <!-- Page break -->
   <div class="page-break"></div>
 
+  <!-- Anchor for second language (placed before header for correct jump target) -->
+  <div id="section-${secondLang}"></div>
+
   <!-- Jump link back -->
   <div class="jump-link">
     <a href="#section-${firstLang}">${firstLang === 'ja' ? '← 日本語版は前ページ' : '← English version above'}</a>
@@ -557,7 +560,7 @@ export const actions: Actions = {
   </div>
 
   <!-- Second language section -->
-  <section id="section-${secondLang}">
+  <section>
     ${buildSection(secondLang as 'en' | 'ja')}
   </section>`;
       } else {
