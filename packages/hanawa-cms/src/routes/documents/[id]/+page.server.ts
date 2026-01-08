@@ -424,22 +424,22 @@ export const actions: Actions = {
       const secondLang = firstLang === 'en' ? 'ja' : 'en';
       const primaryLang = isBilingual ? firstLang : langMode === 'ja' ? 'ja' : 'en';
 
-      // Get JST date (UTC+9)
+      // Get current date formatted for JST
       const now = new Date();
-      const jstDate = new Date(now.getTime() + 9 * 60 * 60 * 1000);
-      const dateFormattedEn = jstDate.toLocaleDateString('en-US', {
+      const dateFormattedEn = now.toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
         timeZone: 'Asia/Tokyo',
       });
-      const dateFormattedJa = jstDate.toLocaleDateString('ja-JP', {
+      const dateFormattedJa = now.toLocaleDateString('ja-JP', {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
         timeZone: 'Asia/Tokyo',
       });
-      const dateStr = jstDate.toISOString().slice(0, 10).replace(/-/g, '');
+      // Date string for filename (JST)
+      const dateStr = now.toLocaleDateString('en-CA', { timeZone: 'Asia/Tokyo' }).replace(/-/g, '');
 
       // Helper: Build content section for a language
       // Note: proposal is guaranteed non-null here (checked above)
