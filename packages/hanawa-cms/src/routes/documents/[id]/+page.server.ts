@@ -110,6 +110,7 @@ interface Proposal {
   client_code: string;
   client_name: string | null;
   client_name_ja: string | null;
+  contact_name: string | null;
   title: string;
   title_ja: string | null;
   scope: string | null;
@@ -230,6 +231,7 @@ export const actions: Actions = {
     const clientCode = formData.get('client_code')?.toString().trim();
     const clientName = formData.get('client_name')?.toString().trim() || null;
     const clientNameJa = formData.get('client_name_ja')?.toString().trim() || null;
+    const contactName = formData.get('contact_name')?.toString().trim() || null;
     const title = formData.get('title')?.toString().trim();
     const titleJa = formData.get('title_ja')?.toString().trim() || null;
     const scope = formData.get('scope')?.toString().trim() || null;
@@ -246,7 +248,7 @@ export const actions: Actions = {
       await db
         .prepare(
           `UPDATE proposals SET
-            client_code = ?, client_name = ?, client_name_ja = ?,
+            client_code = ?, client_name = ?, client_name_ja = ?, contact_name = ?,
             title = ?, title_ja = ?, scope = ?, language = ?,
             fragments = ?, custom_sections = ?,
             updated_at = datetime('now')
@@ -256,6 +258,7 @@ export const actions: Actions = {
           clientCode,
           clientName,
           clientNameJa,
+          contactName,
           title,
           titleJa,
           scope,
@@ -499,7 +502,7 @@ export const actions: Actions = {
   </div>
   <div class="header">
     <h1>${lang === 'ja' && proposal.title_ja ? proposal.title_ja : proposal.title}</h1>
-    ${proposal.client_name ? `<p class="client-name">${lang === 'ja' ? 'クライアント' : 'Prepared for'}: <strong>${proposal.client_name}</strong></p>` : ''}
+    ${proposal.client_name || proposal.contact_name ? `<p class="client-name">${lang === 'ja' ? 'クライアント' : 'Prepared for'}: <strong>${[proposal.contact_name, proposal.client_name].filter(Boolean).join(', ')}</strong></p>` : ''}
     <p class="client-name">${lang === 'ja' ? '日付' : 'Date'}: ${dateFormatted}</p>
   </div>
   ${markdownToHtml(markdown)}

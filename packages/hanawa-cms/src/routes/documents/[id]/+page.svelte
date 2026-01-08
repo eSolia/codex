@@ -323,6 +323,21 @@
           </div>
 
           <div>
+            <label for="contact_name" class="block text-sm font-medium text-gray-700">
+              Contact Name
+            </label>
+            <p class="text-xs text-gray-500 mb-1">Recipient's name for "Prepared for: Name, Company"</p>
+            <input
+              type="text"
+              id="contact_name"
+              name="contact_name"
+              value={proposal.contact_name || ''}
+              placeholder="Taro Tanaka"
+              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-esolia-navy focus:ring-esolia-navy"
+            />
+          </div>
+
+          <div>
             <label for="title" class="block text-sm font-medium text-gray-700">Title</label>
             <input
               type="text"
