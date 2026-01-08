@@ -157,7 +157,7 @@ async function drawTocPage(page: PDFPage, opts: TocDrawOptions): Promise<void> {
   const margin = 60;
   let y = height - margin;
 
-  // Title
+  // Title (English only - pdf-lib StandardFonts don't support CJK)
   page.drawText(title, {
     x: margin,
     y,
@@ -167,17 +167,8 @@ async function drawTocPage(page: PDFPage, opts: TocDrawOptions): Promise<void> {
   });
   y -= 30;
 
-  // Japanese title (if provided)
-  if (titleJa) {
-    page.drawText(titleJa, {
-      x: margin,
-      y,
-      size: 18,
-      font: helvetica,
-      color: ESOLIA_NAVY,
-    });
-    y -= 25;
-  }
+  // Note: Japanese title omitted - StandardFonts cannot encode CJK characters
+  // The full bilingual content is in the merged PDFs with proper font support
 
   // Orange underline
   page.drawRectangle({
@@ -201,9 +192,8 @@ async function drawTocPage(page: PDFPage, opts: TocDrawOptions): Promise<void> {
     y -= 20;
   }
 
-  // Date
-  const dateText = dateJa ? `${date} / ${dateJa}` : date;
-  page.drawText(`Date: ${dateText}`, {
+  // Date (English format only)
+  page.drawText(`Date: ${date}`, {
     x: margin,
     y,
     size: 12,
@@ -222,20 +212,20 @@ async function drawTocPage(page: PDFPage, opts: TocDrawOptions): Promise<void> {
   });
   y -= 40;
 
-  // Draw TOC entries
+  // Draw TOC entries (English only - StandardFonts don't support CJK)
   const tocEntries = firstLanguage === "en"
     ? [
-        { label: "English Version", labelJa: "英語版", startPage: enStartPage, pageCount: enPageCount },
-        { label: "Japanese Version", labelJa: "日本語版", startPage: jaStartPage, pageCount: jaPageCount },
+        { label: "English Version", startPage: enStartPage, pageCount: enPageCount },
+        { label: "Japanese Version", startPage: jaStartPage, pageCount: jaPageCount },
       ]
     : [
-        { label: "Japanese Version", labelJa: "日本語版", startPage: jaStartPage, pageCount: jaPageCount },
-        { label: "English Version", labelJa: "英語版", startPage: enStartPage, pageCount: enPageCount },
+        { label: "Japanese Version", startPage: jaStartPage, pageCount: jaPageCount },
+        { label: "English Version", startPage: enStartPage, pageCount: enPageCount },
       ];
 
   for (const entry of tocEntries) {
     // Entry label
-    const labelText = `${entry.label} / ${entry.labelJa}`;
+    const labelText = entry.label;
     page.drawText(labelText, {
       x: margin + 20,
       y,
@@ -273,9 +263,9 @@ async function drawTocPage(page: PDFPage, opts: TocDrawOptions): Promise<void> {
     y -= 35;
   }
 
-  // Footer
+  // Footer (English only)
   const footerY = margin;
-  page.drawText(`© ${new Date().getFullYear()} eSolia Inc. — Confidential / 機密`, {
+  page.drawText(`© ${new Date().getFullYear()} eSolia Inc. — Confidential`, {
     x: margin,
     y: footerY,
     size: 9,

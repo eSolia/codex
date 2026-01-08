@@ -49,18 +49,22 @@
   let coverLetterEn = $state(data.proposal.cover_letter_en || '');
   let coverLetterJa = $state(data.proposal.cover_letter_ja || '');
 
-  // Format date to JST - computed once to avoid hydration mismatch
+  // Format date to JST - use Intl.DateTimeFormat for consistent server/client formatting
   function formatJstDate(dateStr: string | null): string {
     if (!dateStr) return '';
     try {
       const date = new Date(dateStr);
-      // Use explicit formatting to avoid locale differences between server/client
-      const year = date.toLocaleString('en-US', { year: 'numeric', timeZone: 'Asia/Tokyo' });
-      const month = date.toLocaleString('en-US', { month: '2-digit', timeZone: 'Asia/Tokyo' });
-      const day = date.toLocaleString('en-US', { day: '2-digit', timeZone: 'Asia/Tokyo' });
-      const hour = date.toLocaleString('en-US', { hour: '2-digit', hour12: false, timeZone: 'Asia/Tokyo' });
-      const minute = date.toLocaleString('en-US', { minute: '2-digit', timeZone: 'Asia/Tokyo' });
-      return `${year}/${month}/${day} ${hour}:${minute.padStart(2, '0')} JST`;
+      // Use Intl.DateTimeFormat for consistent formatting across environments
+      const formatter = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Asia/Tokyo',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      });
+      return formatter.format(date).replace(',', '') + ' JST';
     } catch {
       return dateStr;
     }
