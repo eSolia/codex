@@ -626,7 +626,6 @@ export const actions: Actions = {
     @media print {
       body { padding: 0; }
       .logo { margin-bottom: 20px; }
-      .jump-link { display: none; }
     }
   </style>
 </head>
