@@ -48,11 +48,12 @@ export const GET: RequestHandler = async ({ params, platform }) => {
   const filename = `${proposal.client_code}_${safeTitle}.pdf`;
 
   // Return PDF with appropriate headers
+  // InfoSec: no-store ensures fresh PDF after regeneration
   return new Response(object.body, {
     headers: {
       'Content-Type': 'application/pdf',
       'Content-Disposition': `inline; filename="${filename}"`,
-      'Cache-Control': 'private, max-age=300', // 5 min cache
+      'Cache-Control': 'no-store, must-revalidate',
     },
   });
 };

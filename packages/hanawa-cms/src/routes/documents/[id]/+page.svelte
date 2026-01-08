@@ -858,10 +858,10 @@
         {#if proposal.pdf_generated_at && proposal.pdf_r2_key}
           <div class="flex items-center justify-between">
             <div class="text-xs text-gray-500">
-              Last generated: {new Date(proposal.pdf_generated_at).toLocaleString()}
+              Last generated: {new Date(proposal.pdf_generated_at).toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' })}
             </div>
             <a
-              href="/api/documents/{proposal.id}/pdf"
+              href="/api/documents/{proposal.id}/pdf?v={new Date(proposal.pdf_generated_at).getTime()}"
               target="_blank"
               rel="noopener noreferrer"
               class="inline-flex items-center gap-2 px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
@@ -872,7 +872,7 @@
           </div>
         {:else if proposal.pdf_generated_at}
           <div class="text-xs text-gray-500">
-            Last generated: {new Date(proposal.pdf_generated_at).toLocaleString()}
+            Last generated: {new Date(proposal.pdf_generated_at).toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' })}
           </div>
         {/if}
       </div>
