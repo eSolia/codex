@@ -48,6 +48,10 @@ export async function generatePdf(
       body: JSON.stringify({
         html,
         viewport,
+        // Wait for fonts and all network requests to complete before rendering
+        gotoOptions: {
+          waitUntil: "networkidle0",
+        },
         pdfOptions: {
           landscape,
           printBackground,

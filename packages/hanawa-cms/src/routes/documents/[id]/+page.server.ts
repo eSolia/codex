@@ -426,6 +426,9 @@ export const actions: Actions = {
       const secondLang = firstLang === 'en' ? 'ja' : 'en';
       const primaryLang = isBilingual ? firstLang : langMode === 'ja' ? 'ja' : 'en';
 
+      // DEBUG: Return debug info so we can see what's happening
+      console.log(`PDF Generation: langMode="${langMode}", isBilingual=${isBilingual}, raw="${proposal.language_mode}"`);
+
       // Get current date formatted for JST
       const now = new Date();
       const dateFormattedEn = now.toLocaleDateString('en-US', {
@@ -514,9 +517,14 @@ export const actions: Actions = {
         </g>
       </svg>`;
 
+      // Google Fonts link tags (loaded in <head> before CSS for better font loading)
+      const fontLinks = `
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+JP:wght@400;500;600;700&display=block" rel="stylesheet">`;
+
       // Shared CSS styles for all PDFs
       const pdfStyles = `
-    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+JP:wght@400;500;600;700&display=swap');
     body {
       font-family: 'IBM Plex Sans', 'IBM Plex Sans JP', sans-serif;
       line-height: 1.6;
@@ -562,6 +570,7 @@ export const actions: Actions = {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${title}</title>
+  ${fontLinks}
   <style>${pdfStyles}</style>
 </head>
 <body>
@@ -729,6 +738,7 @@ export const actions: Actions = {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${proposal.title}</title>
+  ${fontLinks}
   <style>${pdfStyles}</style>
 </head>
 <body>

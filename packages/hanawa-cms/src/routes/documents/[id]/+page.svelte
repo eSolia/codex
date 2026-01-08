@@ -50,10 +50,13 @@
   let coverLetterJa = $state(data.proposal.cover_letter_ja || '');
 
   // Format date to JST - use Intl.DateTimeFormat for consistent server/client formatting
+  // SQLite datetime('now') stores UTC but without timezone indicator, so we append 'Z'
   function formatJstDate(dateStr: string | null): string {
     if (!dateStr) return '';
     try {
-      const date = new Date(dateStr);
+      // SQLite stores UTC without 'Z' suffix - add it to parse correctly
+      const utcDateStr = dateStr.endsWith('Z') ? dateStr : dateStr.replace(' ', 'T') + 'Z';
+      const date = new Date(utcDateStr);
       // Use Intl.DateTimeFormat for consistent formatting across environments
       const formatter = new Intl.DateTimeFormat('en-CA', {
         timeZone: 'Asia/Tokyo',
@@ -932,7 +935,7 @@
           </div>
         {:else if proposal.pdf_generated_at}
           <div class="text-xs text-gray-500">
-            Last generated: {new Date(proposal.pdf_generated_at).toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' })}
+            Last generated: {formatJstDate(proposal.pdf_generated_at)}
           </div>
         {/if}
       </div>

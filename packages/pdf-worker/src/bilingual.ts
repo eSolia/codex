@@ -3,7 +3,7 @@
  * Uses pdf-lib to merge PDFs and create a table of contents with page links
  */
 
-import { PDFDocument, PDFPage, rgb, StandardFonts } from "pdf-lib";
+import { PDFDocument, PDFPage, PDFName, PDFArray, PDFDict, rgb, StandardFonts } from "pdf-lib";
 import type { Env, BilingualPdfRequest, BilingualPdfResponse, PdfOptions } from "./types";
 import { generatePdf } from "./rendering";
 
@@ -94,7 +94,16 @@ export async function generateBilingualPdf(
     enPages.forEach((page) => combinedPdf.addPage(page));
   }
 
-  // Note: Clickable TOC links deferred - page numbers are sufficient for navigation
+  // Add clickable links from TOC to language sections
+  addTocLinks(combinedPdf, {
+    tocPageIndex: 0,
+    firstLangPageIndex: tocPages, // 0-indexed: page after TOC
+    secondLangPageIndex: firstLanguage === "en" ? tocPages + enPageCount : tocPages + jaPageCount,
+    firstEntryY: height - 60 - 30 - 30 - 20 - 60 - 40, // Match drawTocPage layout
+    secondEntryY: height - 60 - 30 - 30 - 20 - 60 - 40 - 35,
+    width,
+    margin: 60,
+  });
 
   // Serialize PDFs
   const combinedBytes = await combinedPdf.save();
@@ -284,6 +293,79 @@ async function drawTocPage(page: PDFPage, opts: TocDrawOptions): Promise<void> {
   });
 }
 
-// Note: Clickable links in TOC are deferred - pdf-lib's annotation API
-// requires low-level PDF object manipulation. The page numbers in TOC
-// are sufficient for manual navigation.
+interface TocLinkOptions {
+  tocPageIndex: number;
+  firstLangPageIndex: number;
+  secondLangPageIndex: number;
+  firstEntryY: number;
+  secondEntryY: number;
+  width: number;
+  margin: number;
+}
+
+/**
+ * Add clickable link annotations to TOC page
+ */
+function addTocLinks(pdf: PDFDocument, opts: TocLinkOptions): void {
+  const {
+    tocPageIndex,
+    firstLangPageIndex,
+    secondLangPageIndex,
+    firstEntryY,
+    secondEntryY,
+    width,
+    margin,
+  } = opts;
+
+  const tocPage = pdf.getPage(tocPageIndex);
+  const context = pdf.context;
+
+  // Helper to create a link annotation to a specific page
+  function createLinkAnnotation(
+    y: number,
+    targetPageIndex: number
+  ): PDFDict {
+    const targetPage = pdf.getPage(targetPageIndex);
+
+    // Create destination array: [page, /XYZ, left, top, zoom]
+    const destArray = context.obj([
+      targetPage.ref,
+      PDFName.of("XYZ"),
+      null, // left (null = current)
+      null, // top (null = current, but we want top of page)
+      null, // zoom (null = current)
+    ]);
+
+    // Create link annotation dictionary
+    return context.obj({
+      Type: PDFName.of("Annot"),
+      Subtype: PDFName.of("Link"),
+      Rect: [margin, y - 10, width - margin, y + 20],
+      Border: [0, 0, 0],
+      Dest: destArray,
+    }) as PDFDict;
+  }
+
+  // Create annotations for both TOC entries
+  const firstLink = createLinkAnnotation(firstEntryY, firstLangPageIndex);
+  const secondLink = createLinkAnnotation(secondEntryY, secondLangPageIndex);
+
+  // Register annotations and get references
+  const firstLinkRef = context.register(firstLink);
+  const secondLinkRef = context.register(secondLink);
+
+  // Add annotations to page's Annots array
+  const existingAnnots = tocPage.node.lookup(PDFName.of("Annots"));
+  let annotsArray: PDFArray;
+
+  if (existingAnnots instanceof PDFArray) {
+    annotsArray = existingAnnots;
+  } else {
+    annotsArray = context.obj([]) as PDFArray;
+  }
+
+  annotsArray.push(firstLinkRef);
+  annotsArray.push(secondLinkRef);
+
+  tocPage.node.set(PDFName.of("Annots"), annotsArray);
+}
