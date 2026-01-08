@@ -531,9 +531,9 @@ export const actions: Actions = {
     <p class="client-name">${firstLang === 'ja' ? '日付' : 'Date'}: ${firstLang === 'ja' ? dateFormattedJa : dateFormattedEn}</p>
   </div>
 
-  <!-- Jump link to second language (with anchor ID for jump back target) -->
-  <div id="section-${firstLang}" class="jump-link">
-    <a href="#section-${secondLang}">${secondLang === 'ja' ? '日本語版は下記へ ↓' : 'English Version Below ↓'}</a>
+  <!-- Language indicator (non-clickable - PDF anchor links are unreliable) -->
+  <div class="language-indicator">
+    <span>${secondLang === 'ja' ? '日本語版は下記 ↓' : 'English Version Below ↓'}</span>
   </div>
 
   <!-- First language section -->
@@ -544,13 +544,13 @@ export const actions: Actions = {
   <!-- Page break -->
   <div class="page-break"></div>
 
-  <!-- Jump link back -->
-  <div class="jump-link">
-    <a href="#section-${firstLang}">${firstLang === 'ja' ? '日本語版は上記へ ↑' : 'English Version Above ↑'}</a>
+  <!-- Language indicator (non-clickable) -->
+  <div class="language-indicator">
+    <span>${firstLang === 'ja' ? '日本語版は上記 ↑' : 'English Version Above ↑'}</span>
   </div>
 
-  <!-- Second language header (with anchor ID for jump target) -->
-  <div id="section-${secondLang}" class="section-header">
+  <!-- Second language header -->
+  <div class="section-header">
     <h2>${secondLang === 'ja' ? '日本語版' : 'English Version'}</h2>
     ${secondContactName || secondClientName ? `<p class="client-name">${secondLang === 'ja' ? '宛先' : 'Prepared for'}: <strong>${[secondContactName, secondClientName].filter(Boolean).join(', ')}</strong></p>` : ''}
     <p class="client-name">${secondLang === 'ja' ? '日付' : 'Date'}: ${secondLang === 'ja' ? dateFormattedJa : dateFormattedEn}</p>
@@ -611,8 +611,7 @@ export const actions: Actions = {
     .client-name { font-size: 1.1em; color: #666; margin-top: 10px; }
     .cover-letter { margin-bottom: 20px; }
     .cover-letter p { margin: 10px 0; }
-    .jump-link { padding: 15px; background: #f8f9fa; border-radius: 8px; margin: 20px 0; text-align: center; }
-    .jump-link a { color: #2D2F63; text-decoration: none; font-weight: 500; }
+    .language-indicator { padding: 15px; background: #f8f9fa; border-radius: 8px; margin: 20px 0; text-align: center; font-weight: 500; color: #2D2F63; }
     .section-header { margin-top: 20px; margin-bottom: 30px; padding-bottom: 10px; border-bottom: 2px solid #FFBC68; }
     .footer { margin-top: 60px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 0.9em; color: #666; display: flex; justify-content: space-between; align-items: center; }
     .footer-logo { opacity: 0.7; }
