@@ -136,6 +136,8 @@ interface Proposal {
   review_notes: string | null;
   pdf_generated_at: string | null;
   pdf_r2_key: string | null;
+  pdf_r2_key_en: string | null;
+  pdf_r2_key_ja: string | null;
   share_id: string | null;
   share_url: string | null;
   share_pin: string | null;
@@ -512,54 +514,197 @@ export const actions: Actions = {
         </g>
       </svg>`;
 
+      // Shared CSS styles for all PDFs
+      const pdfStyles = `
+    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+JP:wght@400;500;600;700&display=swap');
+    body {
+      font-family: 'IBM Plex Sans', 'IBM Plex Sans JP', sans-serif;
+      line-height: 1.6;
+      color: #2D2F63;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 40px;
+    }
+    h1 { color: #2D2F63; border-bottom: 2px solid #FFBC68; padding-bottom: 10px; margin-top: 0; }
+    h2 { color: #2D2F63; margin-top: 30px; }
+    h3 { color: #4a4c7a; }
+    table { border-collapse: collapse; width: 100%; margin: 20px 0; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background-color: #f5f5f5; }
+    ul, ol { margin: 10px 0; padding-left: 20px; }
+    li { margin: 5px 0; }
+    strong { color: #2D2F63; }
+    hr { border: none; border-top: 1px solid #ddd; margin: 30px 0; }
+    a { color: #2D2F63; }
+    .logo { margin-bottom: 30px; }
+    .header { margin-bottom: 40px; }
+    .client-name { font-size: 1.1em; color: #666; margin-top: 10px; }
+    .cover-letter { margin-bottom: 20px; }
+    .cover-letter p { margin: 10px 0; }
+    .footer { margin-top: 60px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 0.9em; color: #666; display: flex; justify-content: space-between; align-items: center; }
+    h2 { page-break-before: auto; page-break-after: avoid; }
+    h3 { page-break-after: avoid; }
+    ul, ol, table { page-break-inside: avoid; }
+    @media print { body { padding: 0; } .logo { margin-bottom: 20px; } }
+      `.trim();
+
+      // Helper: Build complete single-language HTML document
+      function buildSingleLanguageHtml(lang: 'en' | 'ja'): string {
+        const contactName = lang === 'ja' ? (proposalData.contact_name_ja || proposalData.contact_name) : proposalData.contact_name;
+        const clientName = lang === 'ja' ? (proposalData.client_name_ja || proposalData.client_name) : proposalData.client_name;
+        const title = lang === 'ja' && proposalData.title_ja ? proposalData.title_ja : proposalData.title;
+        const dateFormatted = lang === 'ja' ? dateFormattedJa : dateFormattedEn;
+        const confidential = lang === 'ja' ? '機密' : 'Confidential';
+
+        return `<!DOCTYPE html>
+<html lang="${lang}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${title}</title>
+  <style>${pdfStyles}</style>
+</head>
+<body>
+  <div class="logo">${esoliaLogoSvg}</div>
+  <div class="header">
+    <h1>${title}</h1>
+    ${contactName || clientName ? `<p class="client-name">${lang === 'ja' ? '宛先' : 'Prepared for'}: <strong>${[contactName, clientName].filter(Boolean).join(', ')}</strong></p>` : ''}
+    <p class="client-name">${lang === 'ja' ? '日付' : 'Date'}: ${dateFormatted}</p>
+  </div>
+  <section>${buildSection(lang)}</section>
+  <div class="footer">
+    <span>© ${new Date().getFullYear()} eSolia Inc. | ${confidential}</span>
+  </div>
+</body>
+</html>`;
+      }
+
       // Build HTML content based on language mode
       // InfoSec: HTML content is server-generated, cover letters are from Tiptap (sanitized)
       let bodyContent = '';
 
+      // For bilingual proposals, use the new pdf-lib merge approach
       if (isBilingual) {
-        // Bilingual: Header with both titles, then first language section, page break, second language section
-        const firstContactName = firstLang === 'ja' ? proposal.contact_name_ja : proposal.contact_name;
-        const firstClientName = firstLang === 'ja' ? proposal.client_name_ja : proposal.client_name;
-        const secondContactName = secondLang === 'ja' ? proposal.contact_name_ja : proposal.contact_name;
-        const secondClientName = secondLang === 'ja' ? proposal.client_name_ja : proposal.client_name;
+        // Generate separate EN and JA HTML documents
+        const htmlEn = buildSingleLanguageHtml('en');
+        const htmlJa = buildSingleLanguageHtml('ja');
 
-        bodyContent = `
-  <div class="header">
-    <h1>${proposal.title}</h1>
-    ${proposal.title_ja ? `<h1 class="title-ja">${proposal.title_ja}</h1>` : ''}
-    ${firstContactName || firstClientName ? `<p class="client-name">${firstLang === 'ja' ? '宛先' : 'Prepared for'}: <strong>${[firstContactName, firstClientName].filter(Boolean).join(', ')}</strong></p>` : ''}
-    <p class="client-name">${firstLang === 'ja' ? '日付' : 'Date'}: ${firstLang === 'ja' ? dateFormattedJa : dateFormattedEn}</p>
-  </div>
+        // PDF footer template
+        const footerTemplate = `
+          <div style="width: 100%; font-size: 9px; font-family: 'IBM Plex Sans', sans-serif; color: #666; padding: 0 20mm; display: flex; justify-content: space-between; align-items: center;">
+            <span>eSolia Inc. — CONFIDENTIAL / 機密 — ${dateStr}</span>
+            <span><span class="pageNumber"></span> / <span class="totalPages"></span></span>
+          </div>
+        `;
 
-  <!-- Language indicator (non-clickable - PDF anchor links are unreliable) -->
-  <div class="language-indicator">
-    <span>${secondLang === 'ja' ? '日本語版は下記 ↓' : 'English Version Below ↓'}</span>
-  </div>
+        // Call bilingual PDF endpoint
+        const bilingualResponse = await pdfService.fetch('https://pdf-worker/pdf/bilingual', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            htmlEn,
+            htmlJa,
+            toc: {
+              title: proposal.title,
+              titleJa: proposal.title_ja,
+              clientName: [proposal.contact_name, proposal.client_name].filter(Boolean).join(', ') || undefined,
+              date: dateFormattedEn,
+              dateJa: dateFormattedJa,
+            },
+            options: {
+              displayHeaderFooter: true,
+              headerTemplate: '<div></div>',
+              footerTemplate,
+              margin: { top: '20mm', right: '20mm', bottom: '25mm', left: '20mm' },
+            },
+            firstLanguage: firstLang,
+          }),
+        });
 
-  <!-- First language section -->
-  <section>
-    ${buildSection(firstLang as 'en' | 'ja')}
-  </section>
+        if (!bilingualResponse.ok) {
+          const errorText = await bilingualResponse.text();
+          console.error('Bilingual PDF generation failed:', errorText);
+          return fail(500, { error: 'Bilingual PDF generation failed' });
+        }
 
-  <!-- Page break -->
-  <div class="page-break"></div>
+        // Parse response (base64 encoded PDFs)
+        const bilingualResult = await bilingualResponse.json() as {
+          combined: string;
+          english: string;
+          japanese: string;
+          pageInfo: { tocPages: number; englishPages: number; japanesePages: number; totalPages: number };
+        };
 
-  <!-- Language indicator (non-clickable) -->
-  <div class="language-indicator">
-    <span>${firstLang === 'ja' ? '日本語版は上記 ↑' : 'English Version Above ↑'}</span>
-  </div>
+        // Decode base64 to ArrayBuffer
+        function base64ToArrayBuffer(base64: string): ArrayBuffer {
+          const binary = atob(base64);
+          const bytes = new Uint8Array(binary.length);
+          for (let i = 0; i < binary.length; i++) {
+            bytes[i] = binary.charCodeAt(i);
+          }
+          return bytes.buffer;
+        }
 
-  <!-- Second language header -->
-  <div class="section-header">
-    <h2>${secondLang === 'ja' ? '日本語版' : 'English Version'}</h2>
-    ${secondContactName || secondClientName ? `<p class="client-name">${secondLang === 'ja' ? '宛先' : 'Prepared for'}: <strong>${[secondContactName, secondClientName].filter(Boolean).join(', ')}</strong></p>` : ''}
-    <p class="client-name">${secondLang === 'ja' ? '日付' : 'Date'}: ${secondLang === 'ja' ? dateFormattedJa : dateFormattedEn}</p>
-  </div>
+        const combinedPdf = base64ToArrayBuffer(bilingualResult.combined);
+        const englishPdf = base64ToArrayBuffer(bilingualResult.english);
+        const japanesePdf = base64ToArrayBuffer(bilingualResult.japanese);
 
-  <!-- Second language section -->
-  <section>
-    ${buildSection(secondLang as 'en' | 'ja')}
-  </section>`;
+        // Store all 3 PDFs in R2
+        let r2KeyCombined: string | null = null;
+        let r2KeyEn: string | null = null;
+        let r2KeyJa: string | null = null;
+
+        if (platform.env.R2) {
+          const basePath = `proposals/${proposal.client_code}/${proposal.id}`;
+          r2KeyCombined = `${basePath}.pdf`;
+          r2KeyEn = `${basePath}_en.pdf`;
+          r2KeyJa = `${basePath}_ja.pdf`;
+
+          const metadata = {
+            proposalId: proposal.id,
+            clientCode: proposal.client_code,
+            generatedAt: new Date().toISOString(),
+          };
+
+          await Promise.all([
+            platform.env.R2.put(r2KeyCombined, combinedPdf, {
+              httpMetadata: { contentType: 'application/pdf' },
+              customMetadata: { ...metadata, pdfType: 'combined' },
+            }),
+            platform.env.R2.put(r2KeyEn, englishPdf, {
+              httpMetadata: { contentType: 'application/pdf' },
+              customMetadata: { ...metadata, pdfType: 'english' },
+            }),
+            platform.env.R2.put(r2KeyJa, japanesePdf, {
+              httpMetadata: { contentType: 'application/pdf' },
+              customMetadata: { ...metadata, pdfType: 'japanese' },
+            }),
+          ]);
+        }
+
+        // Update proposal with all 3 PDF keys
+        await db
+          .prepare(
+            `UPDATE proposals SET
+              pdf_generated_at = datetime('now'),
+              pdf_r2_key = ?,
+              pdf_r2_key_en = ?,
+              pdf_r2_key_ja = ?,
+              provenance = ?,
+              updated_at = datetime('now')
+             WHERE id = ?`
+          )
+          .bind(r2KeyCombined, r2KeyEn, r2KeyJa, JSON.stringify(provenance), params.id)
+          .run();
+
+        return {
+          success: true,
+          message: 'Bilingual PDFs generated successfully',
+          pdfKey: r2KeyCombined,
+          pdfKeyEn: r2KeyEn,
+          pdfKeyJa: r2KeyJa,
+          pageInfo: bilingualResult.pageInfo,
+        };
       } else {
         // Single language mode
         const contactName = primaryLang === 'ja' ? (proposal.contact_name_ja || proposal.contact_name) : proposal.contact_name;
@@ -577,73 +722,28 @@ export const actions: Actions = {
   </section>`;
       }
 
-      // Build the full HTML document
+      // Build the full HTML document (single-language only - bilingual returned above)
       const html = `<!DOCTYPE html>
-<html lang="${isBilingual ? 'en' : primaryLang}">
+<html lang="${primaryLang}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${proposal.title}</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+JP:wght@400;500;600;700&display=swap');
-    body {
-      font-family: 'IBM Plex Sans', 'IBM Plex Sans JP', sans-serif;
-      line-height: 1.6;
-      color: #2D2F63;
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 40px;
-    }
-    h1 { color: #2D2F63; border-bottom: 2px solid #FFBC68; padding-bottom: 10px; margin-top: 0; }
-    h1.title-ja { border-bottom: none; padding-bottom: 0; margin-top: 5px; font-size: 1.5em; }
-    h2 { color: #2D2F63; margin-top: 30px; }
-    h3 { color: #4a4c7a; }
-    table { border-collapse: collapse; width: 100%; margin: 20px 0; }
-    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-    th { background-color: #f5f5f5; }
-    ul, ol { margin: 10px 0; padding-left: 20px; }
-    li { margin: 5px 0; }
-    strong { color: #2D2F63; }
-    hr { border: none; border-top: 1px solid #ddd; margin: 30px 0; }
-    a { color: #2D2F63; }
-    .logo { margin-bottom: 30px; }
-    .header { margin-bottom: 40px; }
-    .client-name { font-size: 1.1em; color: #666; margin-top: 10px; }
-    .cover-letter { margin-bottom: 20px; }
-    .cover-letter p { margin: 10px 0; }
-    .language-indicator { padding: 15px; background: #f8f9fa; border-radius: 8px; margin: 20px 0; text-align: center; font-weight: 500; color: #2D2F63; }
-    .section-header { margin-top: 20px; margin-bottom: 30px; padding-bottom: 10px; border-bottom: 2px solid #FFBC68; }
-    .footer { margin-top: 60px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 0.9em; color: #666; display: flex; justify-content: space-between; align-items: center; }
-    .footer-logo { opacity: 0.7; }
-    /* Page break controls */
-    .page-break { page-break-before: always; }
-    h2 { page-break-before: auto; page-break-after: avoid; }
-    h3 { page-break-after: avoid; }
-    /* Avoid breaking inside lists and tables */
-    ul, ol, table { page-break-inside: avoid; }
-    /* Print styles */
-    @media print {
-      body { padding: 0; }
-      .logo { margin-bottom: 20px; }
-    }
-  </style>
+  <style>${pdfStyles}</style>
 </head>
 <body>
-  <div class="logo">
-    ${esoliaLogoSvg}
-  </div>
+  <div class="logo">${esoliaLogoSvg}</div>
   ${bodyContent}
   <div class="footer">
-    <span>© ${new Date().getFullYear()} eSolia Inc. | ${isBilingual ? 'Confidential / 機密' : primaryLang === 'ja' ? '機密' : 'Confidential'}</span>
+    <span>© ${new Date().getFullYear()} eSolia Inc. | ${primaryLang === 'ja' ? '機密' : 'Confidential'}</span>
   </div>
 </body>
 </html>`;
 
       // PDF header/footer templates
-      // Note: These use Puppeteer's special CSS classes for page numbers
       const footerTemplate = `
         <div style="width: 100%; font-size: 9px; font-family: 'IBM Plex Sans', sans-serif; color: #666; padding: 0 20mm; display: flex; justify-content: space-between; align-items: center;">
-          <span>eSolia Inc. — ${isBilingual ? 'CONFIDENTIAL / 機密' : primaryLang === 'ja' ? '機密' : 'CONFIDENTIAL'} — ${dateStr}</span>
+          <span>eSolia Inc. — ${primaryLang === 'ja' ? '機密' : 'CONFIDENTIAL'} — ${dateStr}</span>
           <span><span class="pageNumber"></span> / <span class="totalPages"></span></span>
         </div>
       `;

@@ -114,3 +114,53 @@ export interface HealthResponse {
   version: string;
   environment: string;
 }
+
+/**
+ * Bilingual PDF generation request
+ */
+export interface BilingualPdfRequest {
+  /** English HTML content */
+  htmlEn: string;
+
+  /** Japanese HTML content */
+  htmlJa: string;
+
+  /** TOC configuration */
+  toc: {
+    /** Document title (shown on TOC page) */
+    title: string;
+    /** Japanese title */
+    titleJa?: string;
+    /** Client/company name */
+    clientName?: string;
+    /** Date string */
+    date: string;
+    /** Date string in Japanese format */
+    dateJa?: string;
+  };
+
+  /** PDF options for individual PDFs */
+  options?: PdfOptions;
+
+  /** Which language comes first in combined PDF */
+  firstLanguage?: "en" | "ja";
+}
+
+/**
+ * Bilingual PDF generation response
+ */
+export interface BilingualPdfResponse {
+  /** Combined PDF with TOC */
+  combined: ArrayBuffer;
+  /** English-only PDF */
+  english: ArrayBuffer;
+  /** Japanese-only PDF */
+  japanese: ArrayBuffer;
+  /** Page info */
+  pageInfo: {
+    tocPages: number;
+    englishPages: number;
+    japanesePages: number;
+    totalPages: number;
+  };
+}

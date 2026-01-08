@@ -48,6 +48,23 @@
   // Cover letter state
   let coverLetterEn = $state(data.proposal.cover_letter_en || '');
   let coverLetterJa = $state(data.proposal.cover_letter_ja || '');
+
+  // Format date to JST - computed once to avoid hydration mismatch
+  function formatJstDate(dateStr: string | null): string {
+    if (!dateStr) return '';
+    try {
+      const date = new Date(dateStr);
+      // Use explicit formatting to avoid locale differences between server/client
+      const year = date.toLocaleString('en-US', { year: 'numeric', timeZone: 'Asia/Tokyo' });
+      const month = date.toLocaleString('en-US', { month: '2-digit', timeZone: 'Asia/Tokyo' });
+      const day = date.toLocaleString('en-US', { day: '2-digit', timeZone: 'Asia/Tokyo' });
+      const hour = date.toLocaleString('en-US', { hour: '2-digit', hour12: false, timeZone: 'Asia/Tokyo' });
+      const minute = date.toLocaleString('en-US', { minute: '2-digit', timeZone: 'Asia/Tokyo' });
+      return `${year}/${month}/${day} ${hour}:${minute.padStart(2, '0')} JST`;
+    } catch {
+      return dateStr;
+    }
+  }
   let languageMode = $state(data.proposal.language_mode || 'en');
 
   // Scope state (for translation)
@@ -856,19 +873,58 @@
         </form>
 
         {#if proposal.pdf_generated_at && proposal.pdf_r2_key}
-          <div class="flex items-center justify-between">
+          <div class="space-y-2">
             <div class="text-xs text-gray-500">
-              Last generated: {new Date(proposal.pdf_generated_at).toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' })}
+              Last generated: {formatJstDate(proposal.pdf_generated_at)}
             </div>
-            <a
-              href="/api/documents/{proposal.id}/pdf?v={new Date(proposal.pdf_generated_at).getTime()}"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="inline-flex items-center gap-2 px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
-            >
-              <Eye size={16} />
-              View PDF
-            </a>
+
+            <!-- PDF Download Links -->
+            <div class="flex flex-wrap gap-2">
+              {#if proposal.pdf_r2_key_en && proposal.pdf_r2_key_ja}
+                <!-- Bilingual: Show all 3 PDFs -->
+                <a
+                  href="/api/documents/{proposal.id}/pdf?v={new Date(proposal.pdf_generated_at).getTime()}"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-esolia-navy text-white rounded-lg hover:bg-opacity-90 transition-colors"
+                  title="Combined PDF with Table of Contents"
+                >
+                  <Eye size={16} />
+                  Combined
+                </a>
+                <a
+                  href="/api/documents/{proposal.id}/pdf?lang=en&v={new Date(proposal.pdf_generated_at).getTime()}"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                  title="English only"
+                >
+                  <Eye size={16} />
+                  English
+                </a>
+                <a
+                  href="/api/documents/{proposal.id}/pdf?lang=ja&v={new Date(proposal.pdf_generated_at).getTime()}"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                  title="Japanese only"
+                >
+                  <Eye size={16} />
+                  日本語
+                </a>
+              {:else}
+                <!-- Single language: Just one PDF -->
+                <a
+                  href="/api/documents/{proposal.id}/pdf?v={new Date(proposal.pdf_generated_at).getTime()}"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex items-center gap-2 px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                  <Eye size={16} />
+                  View PDF
+                </a>
+              {/if}
+            </div>
           </div>
         {:else if proposal.pdf_generated_at}
           <div class="text-xs text-gray-500">

@@ -2,9 +2,10 @@
  * PDF Worker - Shared PDF generation service for eSolia apps
  *
  * Endpoints:
- *   POST /pdf        - Generate PDF from HTML
- *   POST /screenshot - Generate screenshot from HTML
- *   GET  /health     - Health check
+ *   POST /pdf           - Generate PDF from HTML
+ *   POST /pdf/bilingual - Generate bilingual PDF (EN+JA) with TOC
+ *   POST /screenshot    - Generate screenshot from HTML
+ *   GET  /health        - Health check
  *
  * Authentication:
  *   - Browser requests: Origin must be in whitelist
@@ -15,8 +16,9 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 
-import type { Env, PdfRequest, ScreenshotRequest, HealthResponse } from "./types";
+import type { Env, PdfRequest, ScreenshotRequest, HealthResponse, BilingualPdfRequest } from "./types";
 import { generatePdf, generateScreenshot } from "./rendering";
+import { generateBilingualPdf } from "./bilingual";
 import { authMiddleware, getCorsOrigin, validateConfig } from "./auth";
 
 // Version for health checks
@@ -61,6 +63,7 @@ app.get("/health", (c) => {
 
 // Auth middleware for protected endpoints
 app.use("/pdf", authMiddleware);
+app.use("/pdf/bilingual", authMiddleware);
 app.use("/screenshot", authMiddleware);
 
 // PDF generation
@@ -97,6 +100,56 @@ app.post("/pdf", async (c) => {
     return c.json({ error: "PDF generation failed", details: message }, 500);
   }
 });
+
+// Bilingual PDF generation (EN + JA with TOC)
+app.post("/pdf/bilingual", async (c) => {
+  try {
+    const body = await c.req.json<BilingualPdfRequest>();
+
+    if (!body.htmlEn || !body.htmlJa) {
+      return c.json({ error: "Missing required fields: htmlEn and htmlJa" }, 400);
+    }
+
+    if (!body.toc?.title || !body.toc?.date) {
+      return c.json({ error: "Missing required TOC fields: title and date" }, 400);
+    }
+
+    // Validate HTML sizes
+    if (body.htmlEn.length > 5_000_000 || body.htmlJa.length > 5_000_000) {
+      return c.json({ error: "HTML too large (max 5MB per language)" }, 413);
+    }
+
+    console.log(`Generating bilingual PDF: EN ${body.htmlEn.length} bytes, JA ${body.htmlJa.length} bytes`);
+
+    const result = await generateBilingualPdf(c.env, body);
+
+    console.log(`Bilingual PDF generated: ${result.pageInfo.totalPages} total pages`);
+
+    // Return as JSON with base64-encoded PDFs
+    // This allows the caller to get all three PDFs in one request
+    return c.json({
+      combined: arrayBufferToBase64(result.combined),
+      english: arrayBufferToBase64(result.english),
+      japanese: arrayBufferToBase64(result.japanese),
+      pageInfo: result.pageInfo,
+    });
+  } catch (error) {
+    console.error("Bilingual PDF generation error:", error);
+
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return c.json({ error: "Bilingual PDF generation failed", details: message }, 500);
+  }
+});
+
+// Helper to convert ArrayBuffer to base64
+function arrayBufferToBase64(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer);
+  let binary = "";
+  for (let i = 0; i < bytes.byteLength; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
 
 // Screenshot generation
 app.post("/screenshot", async (c) => {
@@ -148,6 +201,7 @@ app.notFound((c) => {
       error: "Not found",
       endpoints: {
         "POST /pdf": "Generate PDF from HTML",
+        "POST /pdf/bilingual": "Generate bilingual PDF (EN+JA) with TOC",
         "POST /screenshot": "Generate screenshot from HTML",
         "GET /health": "Health check",
       },
