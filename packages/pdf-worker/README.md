@@ -11,6 +11,7 @@ This Cloudflare Worker provides a centralized API for generating PDFs and screen
 | Endpoint | Method | Description |
 |----------|--------|-------------|
 | `/pdf` | POST | Generate PDF from HTML |
+| `/pdf/bilingual` | POST | Generate bilingual PDFs with TOC |
 | `/screenshot` | POST | Generate screenshot from HTML |
 | `/health` | GET | Health check |
 
@@ -109,6 +110,51 @@ Generate a screenshot from HTML.
 ```
 
 **Response:** Image binary with appropriate `Content-Type`
+
+### POST /pdf/bilingual
+
+Generate bilingual PDFs with a combined version featuring a Table of Contents page with clickable links.
+
+**Request Body:**
+
+```typescript
+{
+  htmlEn: string;              // Required: English HTML content
+  htmlJa: string;              // Required: Japanese HTML content
+  toc: {                       // Required: TOC page data
+    title: string;             // Document title
+    titleJa?: string;          // Japanese title
+    clientName?: string;       // Client name for "Prepared for" line
+    date: string;              // Date string
+    dateJa?: string;           // Japanese date string
+  };
+  firstLanguage?: "en" | "ja"; // Which language appears first (default: "en")
+  options?: PdfOptions;        // Same options as /pdf endpoint
+}
+```
+
+**Response:**
+
+```typescript
+{
+  combined: ArrayBuffer;       // Combined PDF with TOC + EN + JA sections
+  english: ArrayBuffer;        // English-only PDF
+  japanese: ArrayBuffer;       // Japanese-only PDF
+  pageInfo: {
+    tocPages: number;
+    englishPages: number;
+    japanesePages: number;
+    totalPages: number;
+  };
+}
+```
+
+**Features:**
+
+- **Table of Contents page**: Generated with IBM Plex Sans fonts (eSolia brand)
+- **Clickable links**: TOC entries link to respective language sections
+- **Language order**: Configurable via `firstLanguage` parameter
+- **Three outputs**: Combined bilingual PDF + separate EN and JA PDFs
 
 ## Authentication
 

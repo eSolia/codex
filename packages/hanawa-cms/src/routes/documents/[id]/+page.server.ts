@@ -457,16 +457,18 @@ export const actions: Actions = {
           lang === 'ja' ? proposalData.cover_letter_ja : proposalData.cover_letter_en;
         if (coverLetter) {
           // Cover letters are HTML from Tiptap, already formatted
-          section += `<div class="cover-letter">${coverLetter}</div>\n<hr>\n`;
+          // page-break-after: always ensures cover letter gets its own page
+          section += `<div class="cover-letter">${coverLetter}</div>\n`;
         } else if (!isBilingual && proposalData.custom_sections) {
           // Fall back to custom_sections for single-language proposals
-          section += markdownToHtml(proposalData.custom_sections) + '\n<hr>\n';
+          section += `<div class="cover-letter">${markdownToHtml(proposalData.custom_sections)}</div>\n`;
         }
 
         // Scope (use language-specific scope)
+        // Wrapped in scope-section class to ensure it starts on a new page
         const scopeContent = lang === 'ja' ? (proposalData.scope_ja || proposalData.scope) : proposalData.scope;
         if (scopeContent) {
-          section += `<h2>${lang === 'ja' ? 'スコープ' : 'Scope'}</h2>\n<p>${scopeContent}</p>\n`;
+          section += `<div class="scope-section">\n<h2>${lang === 'ja' ? 'スコープ' : 'Scope'}</h2>\n<p>${scopeContent}</p>\n</div>\n`;
         }
 
         // Fragments in order
@@ -547,8 +549,9 @@ export const actions: Actions = {
     .logo { margin-bottom: 30px; }
     .header { margin-bottom: 40px; }
     .client-name { font-size: 1.1em; color: #666; margin-top: 10px; }
-    .cover-letter { margin-bottom: 20px; }
+    .cover-letter { margin-bottom: 20px; page-break-after: always; }
     .cover-letter p { margin: 10px 0; }
+    .scope-section { margin-top: 0; }
     .footer { margin-top: 60px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 0.9em; color: #666; display: flex; justify-content: space-between; align-items: center; }
     h2 { page-break-before: auto; page-break-after: avoid; }
     h3 { page-break-after: avoid; }

@@ -73,21 +73,36 @@ export async function generateBilingualPdf(
     ? tocPageCount + enPageCount
     : tocPageCount + jaPageCount;
 
+  console.log(`Page layout: TOC=${tocPageCount} pages, EN=${enPageCount} pages, JA=${jaPageCount} pages`);
+  console.log(`firstLanguage=${firstLanguage}, firstLangPageIndex=${firstLangPageIndex}, secondLangPageIndex=${secondLangPageIndex}`);
+
   // Add clickable links from TOC to language sections
   // The TOC entries are positioned at specific Y coordinates in the HTML
+  // A4 height = 841.89 points. HTML layout from top:
+  // - 60px padding + 40px logo margin + 59px logo + 28px title + 8px gap + 20px title-ja
+  // - 20px gap + 3px divider + 30px gap + ~30px meta + 50px toc-header margin
+  // - 8px gap + 14px toc-header-ja + 30px gap = ~420px from top
+  // PDF coordinates are from bottom, so first entry Y ≈ 841 - 420 = ~420
   const tocPage = combinedPdf.getPage(0);
   const { height } = tocPage.getSize();
 
-  addTocLinks(combinedPdf, {
-    tocPageIndex: 0,
-    firstLangPageIndex,
-    secondLangPageIndex,
-    // These Y positions match the HTML layout (approximate)
-    firstEntryY: height - 340,
-    secondEntryY: height - 380,
-    width: 595.28, // A4 width
-    margin: 60,
-  });
+  // TOC entries are approximately 465px and 510px from the top
+  // (adjusted based on visual debugging - entries are lower than initially calculated)
+  console.log(`Adding TOC links: height=${height}, firstLangPageIndex=${firstLangPageIndex}, secondLangPageIndex=${secondLangPageIndex}`);
+  try {
+    addTocLinks(combinedPdf, {
+      tocPageIndex: 0,
+      firstLangPageIndex,
+      secondLangPageIndex,
+      firstEntryY: height - 465,  // ~465px from top (English Version)
+      secondEntryY: height - 510, // ~510px from top (Japanese Version)
+      width: 595.28, // A4 width
+      margin: 60,
+    });
+    console.log('TOC links added successfully');
+  } catch (err) {
+    console.error('Failed to add TOC links:', err);
+  }
 
   // Serialize combined PDF
   const combinedBytes = await combinedPdf.save();
@@ -287,52 +302,52 @@ function addTocLinks(pdf: PDFDocument, opts: TocLinkOptions): void {
   const tocPage = pdf.getPage(tocPageIndex);
   const context = pdf.context;
 
-  // Helper to create a link annotation to a specific page
+  // Helper to create a link annotation to a specific page using GoTo action
   function createLinkAnnotation(
     y: number,
     targetPageIndex: number
   ): PDFDict {
     const targetPage = pdf.getPage(targetPageIndex);
+    const pageRef = targetPage.ref;
 
-    // Create destination array: [page, /XYZ, left, top, zoom]
+    // Create destination array: [page, /Fit] - fit entire page in window
     const destArray = context.obj([
-      targetPage.ref,
-      PDFName.of("XYZ"),
-      null,
-      null,
-      null,
+      pageRef,
+      PDFName.of("Fit"),
     ]);
 
-    // Create link annotation dictionary
+    // Create GoTo action (more reliable than Dest)
+    const action = context.obj({
+      Type: PDFName.of("Action"),
+      S: PDFName.of("GoTo"),
+      D: destArray,
+    });
+
+    // Create link annotation dictionary with action
+    const rect = [margin, y - 15, width - margin, y + 25];
+
     return context.obj({
       Type: PDFName.of("Annot"),
       Subtype: PDFName.of("Link"),
-      Rect: [margin, y - 15, width - margin, y + 25],
-      Border: [0, 0, 0],
-      Dest: destArray,
+      Rect: rect,
+      Border: [0, 0, 0], // No visible border
+      A: action,
     }) as PDFDict;
   }
 
+  // Get TOC page ref for annotation P entry
+  const tocPageRef = tocPage.ref;
+
   // Create annotations for both TOC entries
   const firstLink = createLinkAnnotation(firstEntryY, firstLangPageIndex);
-  const secondLink = createLinkAnnotation(secondEntryY, secondLangPageIndex);
+  firstLink.set(PDFName.of("P"), tocPageRef);
 
-  // Register annotations and get references
+  const secondLink = createLinkAnnotation(secondEntryY, secondLangPageIndex);
+  secondLink.set(PDFName.of("P"), tocPageRef);
+
+  // Register annotations and add to page
   const firstLinkRef = context.register(firstLink);
   const secondLinkRef = context.register(secondLink);
-
-  // Add annotations to page's Annots array
-  const existingAnnots = tocPage.node.lookup(PDFName.of("Annots"));
-  let annotsArray: PDFArray;
-
-  if (existingAnnots instanceof PDFArray) {
-    annotsArray = existingAnnots;
-  } else {
-    annotsArray = context.obj([]) as PDFArray;
-  }
-
-  annotsArray.push(firstLinkRef);
-  annotsArray.push(secondLinkRef);
-
+  const annotsArray = context.obj([firstLinkRef, secondLinkRef]) as PDFArray;
   tocPage.node.set(PDFName.of("Annots"), annotsArray);
 }
