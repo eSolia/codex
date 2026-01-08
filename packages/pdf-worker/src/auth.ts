@@ -70,8 +70,9 @@ export function getCorsOrigin(origin: string | undefined): string | null {
 /**
  * Authentication middleware
  * Validates either:
- * 1. Origin header (for browser requests from allowed domains)
- * 2. X-API-Key header (for server-to-server requests)
+ * 1. Service binding requests (no origin, internal CF network)
+ * 2. Origin header (for browser requests from allowed domains)
+ * 3. X-API-Key header (for server-to-server requests)
  */
 export async function authMiddleware(
   c: Context<{ Bindings: Env }>,
@@ -79,6 +80,16 @@ export async function authMiddleware(
 ): Promise<Response | void> {
   const origin = c.req.header("Origin");
   const apiKey = c.req.header("X-API-Key");
+  const cfConnectingIp = c.req.header("CF-Connecting-IP");
+
+  // Allow service binding requests (internal worker-to-worker)
+  // Service bindings don't have Origin header and may not have CF-Connecting-IP
+  // InfoSec: Service bindings are trusted internal Cloudflare network calls
+  if (!origin && !cfConnectingIp) {
+    console.log("Auth: Service binding request (internal)");
+    await next();
+    return;
+  }
 
   // Allow if origin is in whitelist (browser requests)
   if (origin && isOriginAllowed(origin)) {
@@ -93,7 +104,7 @@ export async function authMiddleware(
   }
 
   // Reject
-  console.warn(`Auth rejected: origin=${origin}, hasApiKey=${!!apiKey}`);
+  console.warn(`Auth rejected: origin=${origin}, hasApiKey=${!!apiKey}, hasCfIp=${!!cfConnectingIp}`);
   return c.json({ error: "Unauthorized" }, 401);
 }
 

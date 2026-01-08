@@ -625,6 +625,7 @@ const [content, fragments] = await db.batch([
 - `docs/concepts/miko-ai-search.md` - AI Search integration & Miko widget
 - `docs/concepts/ai-powered-docs-summary.md` - Content-as-code RAG approach
 - `docs/concepts/cloudflare-innovations-summary.md` - CF platform capabilities
+- `docs/concepts/cloudflare-service-bindings.md` - Worker-to-worker communication & security
 
 ### Workflows & Content
 - `docs/concepts/proposal-workflow.md` - Proposal assembly

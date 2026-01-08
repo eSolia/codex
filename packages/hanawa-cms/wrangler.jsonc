@@ -38,6 +38,14 @@
     "binding": "AI"
   },
 
+  // Service binding to PDF Worker (bypasses WAF, no API key needed)
+  "services": [
+    {
+      "binding": "PDF_SERVICE",
+      "service": "pdf-worker"
+    }
+  ],
+
   // Vectorize for semantic search (create with: wrangler vectorize create codex-index --dimensions=768 --metric=cosine)
   "vectorize": [
     {

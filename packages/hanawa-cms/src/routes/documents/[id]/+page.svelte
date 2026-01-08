@@ -14,6 +14,7 @@
   import DotsSixVertical from 'phosphor-svelte/lib/DotsSixVertical';
   import Copy from 'phosphor-svelte/lib/Copy';
   import Clock from 'phosphor-svelte/lib/Clock';
+  import Plus from 'phosphor-svelte/lib/Plus';
 
   interface Fragment {
     id: string;
@@ -40,14 +41,38 @@
   let draggedIndex = $state<number | null>(null);
   let isGeneratingPdf = $state(false);
   let isSharing = $state(false);
+  let showAddFragment = $state(false);
 
   // Derived
   const fragmentsJson = $derived(JSON.stringify(fragments));
   const proposal = $derived(data.proposal);
   const fragmentContents = $derived(data.fragmentContents as FragmentContent[]);
+  const availableFragments = $derived((data.availableFragments as FragmentContent[]) || []);
 
-  // Content map for preview
-  const contentMap = $derived(new Map(fragmentContents.map((f: FragmentContent) => [f.id, f])));
+  // Fragments not yet in the proposal
+  const unusedFragments = $derived(
+    availableFragments.filter((af) => !fragments.some((f) => f.id === af.id))
+  );
+
+  // Content map for preview (use all available fragments for display)
+  const contentMap = $derived(new Map(availableFragments.map((f: FragmentContent) => [f.id, f])));
+
+  // Add fragment function
+  function addFragment(fragmentId: string) {
+    const maxOrder = Math.max(0, ...fragments.map((f) => f.order));
+    fragments = [
+      ...fragments,
+      { id: fragmentId, order: maxOrder + 1, enabled: true },
+    ];
+    showAddFragment = false;
+  }
+
+  // Remove fragment function
+  function removeFragment(index: number) {
+    fragments = fragments.filter((_, i) => i !== index);
+    // Reorder remaining fragments
+    fragments = fragments.map((f, i) => ({ ...f, order: i + 1 }));
+  }
 
   // Status colors
   function getStatusColor(status: string): string {
@@ -113,7 +138,17 @@
       goto(form.redirect);
     }
   });
+
+  // Close dropdown when clicking outside
+  function handleClickOutside(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    if (showAddFragment && !target.closest('.add-fragment-dropdown')) {
+      showAddFragment = false;
+    }
+  }
 </script>
+
+<svelte:window onclick={handleClickOutside} />
 
 <svelte:head>
   <title>{proposal.title} | Proposals | Hanawa CMS</title>
@@ -124,7 +159,7 @@
   <div class="flex items-start justify-between">
     <div class="flex items-center gap-4">
       <a
-        href="/proposals"
+        href="/documents"
         class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
       >
         <ArrowLeft size={20} />
@@ -217,7 +252,16 @@
         <form
           method="POST"
           action="?/update"
-          use:enhance
+          use:enhance={() => {
+            return async ({ result, update }) => {
+              // Invalidate and update to refresh data from server
+              await update({ reset: false, invalidateAll: true });
+              // Switch back to view mode on successful save
+              if (result.type === 'success') {
+                editMode = false;
+              }
+            };
+          }}
           class="bg-white rounded-lg shadow p-6 space-y-4"
         >
           <input type="hidden" name="fragments" value={fragmentsJson} />
@@ -314,13 +358,16 @@
 
           <div>
             <label for="custom_sections" class="block text-sm font-medium text-gray-700">
-              Custom Sections (Markdown)
+              Introduction / Cover Letter (Markdown)
             </label>
+            <p class="text-xs text-gray-500 mb-1">
+              Client-specific content that appears before the standard fragments
+            </p>
             <textarea
               id="custom_sections"
               name="custom_sections"
-              rows="6"
-              placeholder="Add client-specific content here..."
+              rows="8"
+              placeholder="Dear [Client Name],&#10;&#10;Thank you for the opportunity to discuss your IT requirements..."
               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-esolia-navy focus:ring-esolia-navy font-mono text-sm"
               >{proposal.custom_sections || ''}</textarea
             >
@@ -364,6 +411,13 @@
               <p class="mt-1 text-gray-900">{proposal.scope}</p>
             </div>
           {/if}
+
+          {#if proposal.custom_sections}
+            <div>
+              <h3 class="text-sm font-medium text-gray-500">Introduction / Cover Letter</h3>
+              <pre class="mt-1 text-sm bg-gray-50 p-3 rounded whitespace-pre-wrap font-mono">{proposal.custom_sections}</pre>
+            </div>
+          {/if}
         </div>
       {/if}
 
@@ -371,9 +425,38 @@
       <div class="bg-white rounded-lg shadow p-6 space-y-4">
         <div class="flex items-center justify-between">
           <h2 class="text-lg font-semibold text-gray-900">Fragments</h2>
-          <span class="text-sm text-gray-500">
-            {fragments.filter((f) => f.enabled).length} of {fragments.length} enabled
-          </span>
+          <div class="flex items-center gap-3">
+            <span class="text-sm text-gray-500">
+              {fragments.filter((f) => f.enabled).length} of {fragments.length} enabled
+            </span>
+            {#if editMode && unusedFragments.length > 0}
+              <div class="relative add-fragment-dropdown">
+                <button
+                  type="button"
+                  onclick={() => (showAddFragment = !showAddFragment)}
+                  class="flex items-center gap-1 px-2 py-1 text-xs font-medium text-esolia-navy bg-esolia-orange/20 rounded hover:bg-esolia-orange/30 transition-colors"
+                >
+                  <Plus size={14} weight="bold" />
+                  Add
+                </button>
+
+                {#if showAddFragment}
+                  <div class="absolute right-0 top-full mt-1 w-64 bg-white rounded-lg shadow-lg border z-10 max-h-64 overflow-y-auto">
+                    {#each unusedFragments as frag (frag.id)}
+                      <button
+                        type="button"
+                        onclick={() => addFragment(frag.id)}
+                        class="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-0"
+                      >
+                        <span class="font-medium text-gray-900">{getFragmentTitle(frag.id)}</span>
+                        <span class="block text-xs text-gray-500">{frag.category}</span>
+                      </button>
+                    {/each}
+                  </div>
+                {/if}
+              </div>
+            {/if}
+          </div>
         </div>
 
         <div class="space-y-2">
@@ -406,24 +489,41 @@
               </span>
 
               {#if editMode}
-                <button
-                  type="button"
-                  onclick={() => toggleFragment(index)}
-                  class="p-1.5 rounded-md transition-colors
-                         {fragment.enabled
-                    ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                    : 'bg-gray-200 text-gray-500 hover:bg-gray-300'}"
-                >
-                  {#if fragment.enabled}
-                    <Check size={16} weight="bold" />
-                  {:else}
-                    <X size={16} weight="bold" />
-                  {/if}
-                </button>
+                <div class="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onclick={() => toggleFragment(index)}
+                    title={fragment.enabled ? 'Disable fragment' : 'Enable fragment'}
+                    class="p-1.5 rounded-md transition-colors
+                           {fragment.enabled
+                      ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                      : 'bg-gray-200 text-gray-500 hover:bg-gray-300'}"
+                  >
+                    {#if fragment.enabled}
+                      <Check size={16} weight="bold" />
+                    {:else}
+                      <X size={16} weight="bold" />
+                    {/if}
+                  </button>
+                  <button
+                    type="button"
+                    onclick={() => removeFragment(index)}
+                    title="Remove fragment from proposal"
+                    class="p-1.5 rounded-md text-red-500 hover:bg-red-50 transition-colors"
+                  >
+                    <Trash size={16} />
+                  </button>
+                </div>
               {/if}
             </div>
           {/each}
         </div>
+
+        {#if editMode && fragments.length === 0}
+          <p class="text-sm text-gray-500 italic py-4 text-center">
+            No fragments added. Click "Add" to include content fragments.
+          </p>
+        {/if}
       </div>
 
       <!-- Preview -->
@@ -459,13 +559,6 @@
               {/if}
             {/each}
 
-            {#if proposal.custom_sections}
-              <section class="border-t pt-4 mt-4">
-                <h2>Custom Content</h2>
-                <pre
-                  class="text-sm bg-gray-50 p-4 rounded overflow-x-auto">{proposal.custom_sections}</pre>
-              </section>
-            {/if}
           </div>
         </div>
       {/if}
@@ -544,7 +637,22 @@
           </button>
         </form>
 
-        {#if proposal.pdf_generated_at}
+        {#if proposal.pdf_generated_at && proposal.pdf_r2_key}
+          <div class="flex items-center justify-between">
+            <div class="text-xs text-gray-500">
+              Last generated: {new Date(proposal.pdf_generated_at).toLocaleString()}
+            </div>
+            <a
+              href="/api/documents/{proposal.id}/pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-flex items-center gap-2 px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+            >
+              <Eye size={16} />
+              View PDF
+            </a>
+          </div>
+        {:else if proposal.pdf_generated_at}
           <div class="text-xs text-gray-500">
             Last generated: {new Date(proposal.pdf_generated_at).toLocaleString()}
           </div>
@@ -657,7 +765,7 @@
             }
             return async ({ result }) => {
               if (result.type === 'success') {
-                goto('/proposals');
+                goto('/documents');
               }
             };
           }}

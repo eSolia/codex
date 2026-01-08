@@ -56,6 +56,8 @@ declare global {
         ENVIRONMENT: string;
         SESSION_SECRET?: string;
         PDF_API_KEY?: string;
+        // Service binding to PDF Worker (direct worker-to-worker)
+        PDF_SERVICE?: Fetcher;
       };
       context: ExecutionContext;
       caches: CacheStorage & { default: Cache };
