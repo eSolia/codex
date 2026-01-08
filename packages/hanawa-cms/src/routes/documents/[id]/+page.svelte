@@ -699,6 +699,15 @@
 
               {#if editMode}
                 <div class="flex items-center gap-1">
+                  <!-- Edit fragment link -->
+                  <a
+                    href="/fragments/{fragment.id}"
+                    target="_blank"
+                    title="Edit fragment (opens in new tab)"
+                    class="p-1.5 rounded-md text-gray-500 hover:bg-gray-200 hover:text-esolia-navy transition-colors"
+                  >
+                    <PencilSimple size={16} />
+                  </a>
                   <button
                     type="button"
                     onclick={() => toggleFragment(index)}
