@@ -531,13 +531,16 @@ export const actions: Actions = {
     <p class="client-name">${firstLang === 'ja' ? '日付' : 'Date'}: ${firstLang === 'ja' ? dateFormattedJa : dateFormattedEn}</p>
   </div>
 
+  <!-- Anchor for first language (for jump back from second section) -->
+  <div id="section-${firstLang}"></div>
+
   <!-- Jump link to second language -->
   <div class="jump-link">
     <a href="#section-${secondLang}">${secondLang === 'ja' ? '日本語版は下記へ ↓' : 'English Version Below ↓'}</a>
   </div>
 
   <!-- First language section -->
-  <section id="section-${firstLang}">
+  <section>
     ${buildSection(firstLang as 'en' | 'ja')}
   </section>
 
