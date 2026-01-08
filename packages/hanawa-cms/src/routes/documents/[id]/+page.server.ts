@@ -13,6 +13,13 @@ import { error, fail } from '@sveltejs/kit';
 function markdownToHtml(markdown: string): string {
   let html = markdown;
 
+  // If content already looks like HTML (starts with < tag), pass through unchanged
+  // InfoSec: Fragment HTML is authored in CMS (trusted), sanitized on save
+  const trimmed = html.trim();
+  if (trimmed.startsWith('<') && (trimmed.startsWith('<p') || trimmed.startsWith('<h') || trimmed.startsWith('<div') || trimmed.startsWith('<ul') || trimmed.startsWith('<ol') || trimmed.startsWith('<table'))) {
+    return html;
+  }
+
   // Escape HTML entities first (prevent XSS in case output is ever displayed)
   // InfoSec: HTML entity encoding (OWASP A03)
   html = html
