@@ -531,11 +531,8 @@ export const actions: Actions = {
     <p class="client-name">${firstLang === 'ja' ? '日付' : 'Date'}: ${firstLang === 'ja' ? dateFormattedJa : dateFormattedEn}</p>
   </div>
 
-  <!-- Anchor for first language (for jump back from second section) -->
-  <div id="section-${firstLang}"></div>
-
-  <!-- Jump link to second language -->
-  <div class="jump-link">
+  <!-- Jump link to second language (with anchor ID for jump back target) -->
+  <div id="section-${firstLang}" class="jump-link">
     <a href="#section-${secondLang}">${secondLang === 'ja' ? '日本語版は下記へ ↓' : 'English Version Below ↓'}</a>
   </div>
 
@@ -547,16 +544,13 @@ export const actions: Actions = {
   <!-- Page break -->
   <div class="page-break"></div>
 
-  <!-- Anchor for second language (placed before header for correct jump target) -->
-  <div id="section-${secondLang}"></div>
-
   <!-- Jump link back -->
   <div class="jump-link">
     <a href="#section-${firstLang}">${firstLang === 'ja' ? '日本語版は上記へ ↑' : 'English Version Above ↑'}</a>
   </div>
 
-  <!-- Second language header -->
-  <div class="section-header">
+  <!-- Second language header (with anchor ID for jump target) -->
+  <div id="section-${secondLang}" class="section-header">
     <h2>${secondLang === 'ja' ? '日本語版' : 'English Version'}</h2>
     ${secondContactName || secondClientName ? `<p class="client-name">${secondLang === 'ja' ? '宛先' : 'Prepared for'}: <strong>${[secondContactName, secondClientName].filter(Boolean).join(', ')}</strong></p>` : ''}
     <p class="client-name">${secondLang === 'ja' ? '日付' : 'Date'}: ${secondLang === 'ja' ? dateFormattedJa : dateFormattedEn}</p>
