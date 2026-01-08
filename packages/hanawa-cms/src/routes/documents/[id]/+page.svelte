@@ -396,15 +396,38 @@
             />
           </div>
 
-          <div>
-            <label for="scope" class="block text-sm font-medium text-gray-700">Scope</label>
-            <textarea
-              id="scope"
-              name="scope"
-              rows="3"
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-esolia-navy focus:ring-esolia-navy"
-              >{proposal.scope || ''}</textarea
-            >
+          <!-- Scope fields (conditional on language mode) -->
+          <div class="grid grid-cols-1 gap-4" class:md:grid-cols-2={isBilingual}>
+            {#if showEnglish}
+              <div>
+                <label for="scope" class="block text-sm font-medium text-gray-700">
+                  Scope {isBilingual ? '(EN)' : ''}
+                </label>
+                <textarea
+                  id="scope"
+                  name="scope"
+                  rows="3"
+                  placeholder="Brief description of project scope..."
+                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-esolia-navy focus:ring-esolia-navy"
+                  >{proposal.scope || ''}</textarea
+                >
+              </div>
+            {/if}
+            {#if showJapanese}
+              <div>
+                <label for="scope_ja" class="block text-sm font-medium text-gray-700">
+                  Scope {isBilingual ? '(JA)' : ''}
+                </label>
+                <textarea
+                  id="scope_ja"
+                  name="scope_ja"
+                  rows="3"
+                  placeholder="プロジェクトスコープの概要..."
+                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-esolia-navy focus:ring-esolia-navy"
+                  >{proposal.scope_ja || ''}</textarea
+                >
+              </div>
+            {/if}
           </div>
 
           <!-- Cover Letter Editors (conditional on language mode) -->
@@ -493,8 +516,15 @@
 
           {#if proposal.scope}
             <div>
-              <h3 class="text-sm font-medium text-gray-500">Scope</h3>
+              <h3 class="text-sm font-medium text-gray-500">Scope (EN)</h3>
               <p class="mt-1 text-gray-900">{proposal.scope}</p>
+            </div>
+          {/if}
+
+          {#if proposal.scope_ja}
+            <div>
+              <h3 class="text-sm font-medium text-gray-500">Scope (JA)</h3>
+              <p class="mt-1 text-gray-900">{proposal.scope_ja}</p>
             </div>
           {/if}
 

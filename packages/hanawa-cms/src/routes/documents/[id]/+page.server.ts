@@ -115,6 +115,7 @@ interface Proposal {
   title: string;
   title_ja: string | null;
   scope: string | null;
+  scope_ja: string | null;
   language: string;
   language_mode: string;
   template_id: string | null;
@@ -253,6 +254,7 @@ export const actions: Actions = {
     const title = formData.get('title')?.toString().trim();
     const titleJa = formData.get('title_ja')?.toString().trim() || null;
     const scope = formData.get('scope')?.toString().trim() || null;
+    const scopeJa = formData.get('scope_ja')?.toString().trim() || null;
     const languageMode = formData.get('language_mode')?.toString() || 'en';
     const fragmentsJson = formData.get('fragments')?.toString() || '[]';
     const coverLetterEn = formData.get('cover_letter_en')?.toString() || null;
@@ -275,7 +277,7 @@ export const actions: Actions = {
           `UPDATE proposals SET
             client_code = ?, client_name = ?, client_name_ja = ?,
             contact_name = ?, contact_name_ja = ?,
-            title = ?, title_ja = ?, scope = ?, language_mode = ?,
+            title = ?, title_ja = ?, scope = ?, scope_ja = ?, language_mode = ?,
             fragments = ?, cover_letter_en = ?, cover_letter_ja = ?,
             updated_at = datetime('now')
            WHERE id = ?`
@@ -289,6 +291,7 @@ export const actions: Actions = {
           title,
           titleJa,
           scope,
+          scopeJa,
           languageMode,
           fragmentsJson,
           coverLetterEn,
@@ -448,9 +451,10 @@ export const actions: Actions = {
           section += markdownToHtml(proposalData.custom_sections) + '\n<hr>\n';
         }
 
-        // Scope
-        if (proposalData.scope) {
-          section += `<h2>${lang === 'ja' ? 'スコープ' : 'Scope'}</h2>\n<p>${proposalData.scope}</p>\n`;
+        // Scope (use language-specific scope)
+        const scopeContent = lang === 'ja' ? (proposalData.scope_ja || proposalData.scope) : proposalData.scope;
+        if (scopeContent) {
+          section += `<h2>${lang === 'ja' ? 'スコープ' : 'Scope'}</h2>\n<p>${scopeContent}</p>\n`;
         }
 
         // Fragments in order
