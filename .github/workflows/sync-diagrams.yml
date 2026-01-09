@@ -159,22 +159,25 @@ jobs:
                 source_file: drawioPath,
                 file_size: fileSize,
                 r2_path: r2Key,
-                r2_url: `/api/diagrams/${id}.svg`
+                r2_url: '/api/diagrams/' + id
               },
               content
             };
 
-            const yamlContent = `# ${fragment.title.en} Diagram Fragment
-# ${'='.repeat(75)}
-# Auto-generated from: ${drawioPath}
-# SVG stored in R2: ${r2Key}
-# Last synced: ${new Date().toISOString()}
-# ${'='.repeat(75)}
-
-${yaml.stringify(fragment, { lineWidth: 0 })}`;
+            const separator = '='.repeat(75);
+            const yamlContent = [
+              '# ' + fragment.title.en + ' Diagram Fragment',
+              '# ' + separator,
+              '# Auto-generated from: ' + drawioPath,
+              '# SVG stored in R2: ' + r2Key,
+              '# Last synced: ' + new Date().toISOString(),
+              '# ' + separator,
+              '',
+              yaml.stringify(fragment, { lineWidth: 0 })
+            ].join('\n');
 
             fs.writeFileSync(fragmentPath, yamlContent);
-            console.log(`  ✓ Fragment: ${id}.yaml`);
+            console.log('  OK Fragment: ' + id + '.yaml');
           }
 
           console.log('\nDone!');

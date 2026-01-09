@@ -32,7 +32,7 @@ diagram:
   source_file: content/diagrams/fiber-path-diagram_1.drawio
   file_size: 2489795
   r2_path: diagrams/fiber-path-diagram_1.svg
-  r2_url: /api/diagrams/fiber-path-diagram_1.svg
+  r2_url: /api/diagrams/fiber-path-diagram_1
 content:
   en: "Diagram: Fiber Path Diagram 1"
   ja: "Diagram: Fiber Path Diagram 1"

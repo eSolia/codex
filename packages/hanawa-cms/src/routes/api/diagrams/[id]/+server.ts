@@ -2,7 +2,7 @@
  * Diagram SVG API Endpoint
  * Serves SVG diagrams from R2 storage
  *
- * GET /api/diagrams/:id.svg - Fetch SVG from R2 and serve with caching
+ * GET /api/diagrams/:id - Fetch SVG from R2 and serve with caching
  *
  * InfoSec: Public endpoint (no auth), read-only, serves only from diagrams/ prefix (OWASP A01)
  */
@@ -17,12 +17,17 @@ const CACHE_CONTROL = 'public, max-age=3600, s-maxage=86400';
 const R2_PREFIX = 'diagrams';
 
 /**
- * GET /api/diagrams/:id.svg - Serve SVG from R2
+ * GET /api/diagrams/:id - Serve SVG from R2
+ * ID can be with or without .svg extension
  *
  * InfoSec: Path traversal prevention - only allows alphanumeric, hyphen, underscore in ID
  */
 export const GET: RequestHandler = async ({ params, platform }) => {
-	const id = params.id;
+	// Strip .svg extension if present
+	let id = params.id;
+	if (id.endsWith('.svg')) {
+		id = id.slice(0, -4);
+	}
 
 	// InfoSec: Validate ID format to prevent path traversal (OWASP A03)
 	if (!id || !/^[a-zA-Z0-9_-]+$/.test(id)) {
@@ -84,10 +89,13 @@ export const GET: RequestHandler = async ({ params, platform }) => {
 };
 
 /**
- * HEAD /api/diagrams/:id.svg - Check if diagram exists
+ * HEAD /api/diagrams/:id - Check if diagram exists
  */
 export const HEAD: RequestHandler = async ({ params, platform }) => {
-	const id = params.id;
+	let id = params.id;
+	if (id.endsWith('.svg')) {
+		id = id.slice(0, -4);
+	}
 
 	// InfoSec: Validate ID format (OWASP A03)
 	if (!id || !/^[a-zA-Z0-9_-]+$/.test(id)) {

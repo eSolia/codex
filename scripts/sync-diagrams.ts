@@ -213,8 +213,8 @@ function createFragmentYaml(
   if (r2Path) {
     // R2 storage mode
     diagram.r2_path = r2Path;
-    // URL pattern: served through Hanawa API or R2 public access
-    diagram.r2_url = `/api/diagrams/${id}.svg`;
+    // URL pattern: served through Hanawa API (with or without .svg extension)
+    diagram.r2_url = `/api/diagrams/${id}`;
   } else {
     // Embedded mode (local/testing)
     diagram.source = readFileSync(svgPath, 'utf-8');

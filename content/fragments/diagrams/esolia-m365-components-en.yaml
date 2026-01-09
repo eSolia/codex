@@ -32,7 +32,7 @@ diagram:
   source_file: content/diagrams/esolia-m365-components-en.drawio
   file_size: 944678
   r2_path: diagrams/esolia-m365-components-en.svg
-  r2_url: /api/diagrams/esolia-m365-components-en.svg
+  r2_url: /api/diagrams/esolia-m365-components-en
 content:
   en: "Diagram: Esolia M365 Components En"
   ja: "Diagram: Esolia M365 Components En"

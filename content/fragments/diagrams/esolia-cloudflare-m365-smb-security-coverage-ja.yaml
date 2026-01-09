@@ -32,7 +32,7 @@ diagram:
   source_file: content/diagrams/esolia-cloudflare-m365-smb-security-coverage-ja.drawio
   file_size: 911736
   r2_path: diagrams/esolia-cloudflare-m365-smb-security-coverage-ja.svg
-  r2_url: /api/diagrams/esolia-cloudflare-m365-smb-security-coverage-ja.svg
+  r2_url: /api/diagrams/esolia-cloudflare-m365-smb-security-coverage-ja
 content:
   en: "Diagram: Esolia Cloudflare M365 Smb Security Coverage Ja"
   ja: "Diagram: Esolia Cloudflare M365 Smb Security Coverage Ja"
