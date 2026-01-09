@@ -23,11 +23,22 @@ interface YamlFragment {
   category?: string;
   tags?: string[];
   versions?: { current: string };
+  version?: string;
   content: { en: string; ja: string };
   metadata?: {
     last_updated?: string;
     author?: string;
     usage_notes?: string;
+  };
+  // Diagram-specific fields
+  diagram?: {
+    format?: string;
+    storage?: 'r2' | 'embedded';
+    r2_path?: string;
+    r2_url?: string;
+    source?: string;
+    source_file?: string;
+    file_size?: number;
   };
 }
 
@@ -71,13 +82,24 @@ function yamlToSQL(filePath: string): string | null {
     const name = data.title?.en || data.id.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 
     const slug = data.id;
-    const contentEn = escapeSQL(data.content.en || '');
-    const contentJa = escapeSQL(data.content.ja || '');
+
+    // For diagram fragments with R2 storage, prepend the image markdown
+    let contentEnRaw = data.content.en || '';
+    let contentJaRaw = data.content.ja || '';
+
+    if (data.diagram?.storage === 'r2' && data.diagram?.r2_url) {
+      const imgMarkdown = `![${data.title?.en || data.id}](${data.diagram.r2_url})\n\n`;
+      contentEnRaw = imgMarkdown + contentEnRaw;
+      contentJaRaw = imgMarkdown + contentJaRaw;
+    }
+
+    const contentEn = escapeSQL(contentEnRaw);
+    const contentJa = escapeSQL(contentJaRaw);
     const description = escapeSQL(data.metadata?.usage_notes || '');
     const tags = JSON.stringify(data.tags || []);
     const version = data.versions?.current || '1.0';
 
-    return `INSERT INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+    return `INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   '${escapeSQL(data.id)}',
   NULL,

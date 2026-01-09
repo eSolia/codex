@@ -1,10 +1,10 @@
 -- Auto-generated fragment import
--- Generated: 2026-01-09T12:50:03.066Z
+-- Generated: 2026-01-09T22:53:08.661Z
 
 -- Clear existing fragments (optional - comment out to preserve)
 -- DELETE FROM fragments;
 
-INSERT INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'esolia-contact',
   NULL,
@@ -37,7 +37,7 @@ Tokyo 105-7105, Japan
   '["en", "ja"]'
 );
 
-INSERT INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'continuous-monitoring',
   NULL,
@@ -125,7 +125,7 @@ All monitoring is managed by eSolia''s security team, with regular reviews and r
   '["en", "ja"]'
 );
 
-INSERT INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'dns-email-reliability',
   NULL,
@@ -219,7 +219,7 @@ All monitoring runs continuously with immediate notification when issues are det
   '["en", "ja"]'
 );
 
-INSERT INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'infrastructure-management',
   NULL,
@@ -307,7 +307,7 @@ eSOLIAはすべてのマネージドインフラストラクチャについて�
   '["en", "ja"]'
 );
 
-INSERT INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'modern-web-development',
   NULL,
@@ -395,7 +395,7 @@ All development follows security best practices, with code review and testing as
   '["en", "ja"]'
 );
 
-INSERT INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'secure-hosting',
   NULL,
@@ -465,7 +465,7 @@ All infrastructure is fully managed by eSolia, with 24/7 monitoring and incident
   '["en", "ja"]'
 );
 
-INSERT INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'call-to-action',
   NULL,
@@ -515,7 +515,7 @@ Use when you want to encourage immediate engagement.
   '["en", "ja"]'
 );
 
-INSERT INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'next-steps',
   NULL,
@@ -569,7 +569,7 @@ Customize timeline based on engagement complexity.
   '["en", "ja"]'
 );
 
-INSERT INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'standard-closing',
   NULL,
@@ -615,7 +615,7 @@ Always include contact information.
   '["en", "ja"]'
 );
 
-INSERT INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'esolia-contact',
   NULL,
@@ -669,7 +669,7 @@ Updated phone number as of 2025.
   '["en", "ja"]'
 );
 
-INSERT INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'esolia-overview',
   NULL,
@@ -745,7 +745,7 @@ Use in proposals and introductory materials.
   '["en", "ja"]'
 );
 
-INSERT INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'cloudflare-security-layers',
   NULL,
@@ -770,7 +770,7 @@ team works securely from anywhere—home, serviced office, or a hotel or café.
   '["en", "ja"]'
 );
 
-INSERT INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'cloudflare-three-layers',
   NULL,
@@ -795,7 +795,95 @@ for your online presence, and encrypted tunnels for secure remote access.
   '["en", "ja"]'
 );
 
-INSERT INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+VALUES (
+  'esolia-cloudflare-m365-smb-security-coverage-ja',
+  NULL,
+  'Esolia Cloudflare M365 Smb Security Coverage Ja',
+  'esolia-cloudflare-m365-smb-security-coverage-ja',
+  'diagrams',
+  '![Esolia Cloudflare M365 Smb Security Coverage Ja](/api/diagrams/esolia-cloudflare-m365-smb-security-coverage-ja)
+
+Diagram: Esolia Cloudflare M365 Smb Security Coverage Ja',
+  '![Esolia Cloudflare M365 Smb Security Coverage Ja](/api/diagrams/esolia-cloudflare-m365-smb-security-coverage-ja)
+
+Diagram: Esolia Cloudflare M365 Smb Security Coverage Ja',
+  '',
+  '["diagram"]',
+  '1.0',
+  'active',
+  1,
+  'en',
+  '["en", "ja"]'
+);
+
+INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+VALUES (
+  'esolia-m365-components-en',
+  NULL,
+  'Esolia M365 Components En',
+  'esolia-m365-components-en',
+  'diagrams',
+  '![Esolia M365 Components En](/api/diagrams/esolia-m365-components-en)
+
+Diagram: Esolia M365 Components En',
+  '![Esolia M365 Components En](/api/diagrams/esolia-m365-components-en)
+
+Diagram: Esolia M365 Components En',
+  '',
+  '["diagram"]',
+  '1.0',
+  'active',
+  1,
+  'en',
+  '["en", "ja"]'
+);
+
+INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+VALUES (
+  'esolia-m365-components-ja',
+  NULL,
+  'Esolia M365 Components Ja',
+  'esolia-m365-components-ja',
+  'diagrams',
+  '![Esolia M365 Components Ja](/api/diagrams/esolia-m365-components-ja)
+
+Diagram: Esolia M365 Components Ja',
+  '![Esolia M365 Components Ja](/api/diagrams/esolia-m365-components-ja)
+
+Diagram: Esolia M365 Components Ja',
+  '',
+  '["diagram"]',
+  '1.0',
+  'active',
+  1,
+  'en',
+  '["en", "ja"]'
+);
+
+INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+VALUES (
+  'fiber-path-diagram_1',
+  NULL,
+  'Fiber Path Diagram 1',
+  'fiber-path-diagram_1',
+  'diagrams',
+  '![Fiber Path Diagram 1](/api/diagrams/fiber-path-diagram_1)
+
+Diagram: Fiber Path Diagram 1',
+  '![Fiber Path Diagram 1](/api/diagrams/fiber-path-diagram_1)
+
+Diagram: Fiber Path Diagram 1',
+  '',
+  '["diagram"]',
+  '1.0',
+  'active',
+  1,
+  'en',
+  '["en", "ja"]'
+);
+
+INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'cloudflare-security-platform',
   NULL,
@@ -845,7 +933,7 @@ DDoS保護との組み合わせ。高速、安全、グローバルに分散さ�
   '["en", "ja"]'
 );
 
-INSERT INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'm365-business-premium',
   NULL,
@@ -900,7 +988,7 @@ PowerPoint、Outlookの永続デスクトップ版が含まれています。ノ
   '["en", "ja"]'
 );
 
-INSERT INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'esolia-agreement-characteristics',
   NULL,
@@ -974,7 +1062,7 @@ Specific rates in client-specific offer section.
   '["en", "ja"]'
 );
 
-INSERT INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'esolia-background',
   NULL,
@@ -1042,7 +1130,7 @@ Aligned with 2025 website messaging.
   '["en", "ja"]'
 );
 
-INSERT INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'esolia-closing',
   NULL,
@@ -1104,7 +1192,7 @@ Updated phone number as of 2025.
   '["en", "ja"]'
 );
 
-INSERT INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'esolia-introduction',
   NULL,
@@ -1157,7 +1245,7 @@ B2B focused messaging aligned with 2025 website content.
   '["en", "ja"]'
 );
 
-INSERT INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'esolia-profile',
   NULL,
@@ -1230,7 +1318,7 @@ Update headquarters address if office moves.
   '["en", "ja"]'
 );
 
-INSERT INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'esolia-project-types',
   NULL,
@@ -1312,7 +1400,7 @@ Directs to website for detailed success stories.
   '["en", "ja"]'
 );
 
-INSERT INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'esolia-service-mechanics',
   NULL,
@@ -1398,7 +1486,7 @@ Specific SLA terms in client-specific section.
   '["en", "ja"]'
 );
 
-INSERT INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'esolia-support-types',
   NULL,
@@ -1479,7 +1567,7 @@ Flexible support for organizations with existing IT staff:
   '["en", "ja"]'
 );
 
-INSERT INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'ongoing-support',
   NULL,
@@ -1567,7 +1655,7 @@ eSOLIAのサポートチームは、日本でのビジネスサポートにお�
   '["en", "ja"]'
 );
 
-INSERT INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'password-manager',
   NULL,
@@ -1606,7 +1694,7 @@ one of the highest-impact security improvements any small team can make.
   '["en", "ja"]'
 );
 
-INSERT INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'periodic-monitoring',
   NULL,
@@ -1648,7 +1736,7 @@ affect email deliverability or security.
   '["en", "ja"]'
 );
 
-INSERT INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'website-development',
   NULL,
@@ -1744,7 +1832,7 @@ All websites are built on secure, globally distributed infrastructure with enter
   '["en", "ja"]'
 );
 
-INSERT INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'billing-terms',
   NULL,
@@ -1816,7 +1904,7 @@ Specific rates to be included in client offer.
   '["en", "ja"]'
 );
 
-INSERT INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'confidentiality',
   NULL,
@@ -1886,7 +1974,7 @@ May need customization for specific industries.
   '["en", "ja"]'
 );
 
-INSERT INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'standard-terms',
   NULL,
