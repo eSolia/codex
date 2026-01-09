@@ -2,6 +2,9 @@
  * Import YAML fragments into D1 database
  * Run with: npx tsx scripts/import-fragments.ts
  *
+ * By default, only inserts NEW fragments (skips existing ones).
+ * Use --force to overwrite existing fragments (for recovery only).
+ *
  * Generates SQL that can be executed with wrangler d1 execute
  */
 
@@ -15,6 +18,14 @@ const __dirname = dirname(__filename);
 
 const FRAGMENTS_DIR = join(__dirname, '..', 'content', 'fragments');
 const OUTPUT_FILE = join(__dirname, 'import-fragments.sql');
+
+// Parse command line arguments
+const args = process.argv.slice(2);
+const FORCE_MODE = args.includes('--force');
+
+if (FORCE_MODE) {
+  console.log('⚠️  FORCE MODE: Will overwrite existing fragments in D1');
+}
 
 interface YamlFragment {
   id: string;
@@ -99,7 +110,10 @@ function yamlToSQL(filePath: string): string | null {
     const tags = JSON.stringify(data.tags || []);
     const version = data.versions?.current || '1.0';
 
-    return `INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+    // Use INSERT OR IGNORE by default (skip existing), INSERT OR REPLACE with --force
+    const insertMode = FORCE_MODE ? 'INSERT OR REPLACE' : 'INSERT OR IGNORE';
+
+    return `${insertMode} INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   '${escapeSQL(data.id)}',
   NULL,
@@ -130,9 +144,7 @@ console.log(`Found ${yamlFiles.length} YAML files`);
 const sqlStatements: string[] = [
   '-- Auto-generated fragment import',
   `-- Generated: ${new Date().toISOString()}`,
-  '',
-  '-- Clear existing fragments (optional - comment out to preserve)',
-  '-- DELETE FROM fragments;',
+  `-- Mode: ${FORCE_MODE ? 'FORCE (overwrites existing)' : 'SAFE (skips existing)'}`,
   '',
 ];
 
@@ -150,5 +162,11 @@ writeFileSync(OUTPUT_FILE, output);
 
 console.log(`\nGenerated ${OUTPUT_FILE}`);
 console.log(`Total fragments: ${yamlFiles.length}`);
+console.log(`Mode: ${FORCE_MODE ? 'FORCE (will overwrite existing)' : 'SAFE (will skip existing)'}`);
 console.log('\nTo import, run:');
 console.log(`cd packages/hanawa-cms && npx wrangler d1 execute hanawa-db --remote --file=../../scripts/import-fragments.sql`);
+
+if (!FORCE_MODE) {
+  console.log('\nNote: Only NEW fragments will be inserted. Existing fragments are preserved.');
+  console.log('To overwrite existing fragments (recovery only): npx tsx scripts/import-fragments.ts --force');
+}
