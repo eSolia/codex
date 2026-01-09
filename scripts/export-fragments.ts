@@ -2,8 +2,8 @@
  * Export fragments from D1 database to YAML files
  * Run with: npx tsx scripts/export-fragments.ts
  *
- * This creates a backup of the canonical D1 data as version-controlled YAML.
- * The exported YAML files can be committed to git for backup/history.
+ * Syncs canonical D1 data back to YAML files in content/fragments/.
+ * Git tracks version history - restore previous versions with git checkout.
  *
  * Requires wrangler to be configured with D1 access.
  */
@@ -17,7 +17,7 @@ import { stringify } from 'yaml';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const EXPORT_DIR = join(__dirname, '..', 'content', 'fragments', 'exported');
+const FRAGMENTS_DIR = join(__dirname, '..', 'content', 'fragments');
 const HANAWA_DIR = join(__dirname, '..', 'packages', 'hanawa-cms');
 
 interface D1Fragment {
@@ -135,9 +135,6 @@ async function main() {
       return;
     }
 
-    // Ensure export directory exists
-    ensureDir(EXPORT_DIR);
-
     // Group by category
     const byCategory = new Map<string, D1Fragment[]>();
     for (const fragment of fragments) {
@@ -150,7 +147,7 @@ async function main() {
 
     let exported = 0;
     for (const [category, frags] of byCategory) {
-      const categoryDir = join(EXPORT_DIR, category);
+      const categoryDir = join(FRAGMENTS_DIR, category);
       ensureDir(categoryDir);
 
       console.log(`\n${category}/`);
@@ -163,10 +160,10 @@ async function main() {
       }
     }
 
-    console.log(`\n✓ Exported ${exported} fragments to ${EXPORT_DIR}`);
-    console.log('\nTo commit the backup:');
-    console.log('  git add content/fragments/exported/');
-    console.log('  git commit -m "chore(fragments): backup D1 fragments to YAML"');
+    console.log(`\n✓ Exported ${exported} fragments to ${FRAGMENTS_DIR}`);
+    console.log('\nTo commit:');
+    console.log('  git add content/fragments/');
+    console.log('  git commit -m "chore(fragments): sync D1 fragments to YAML"');
   } catch (error) {
     console.error('Error exporting fragments:', error);
     process.exit(1);
