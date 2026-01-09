@@ -156,9 +156,9 @@ function uploadToR2(svgPath: string, r2Key: string): boolean {
       return true;
     }
 
-    // Use wrangler r2 object put
+    // Use wrangler r2 object put with --remote flag
     // InfoSec: File content is read from local filesystem, validated by draw.io export
-    const cmd = `wrangler r2 object put "${R2_BUCKET}/${r2Key}" --file="${svgPath}" --content-type="image/svg+xml"`;
+    const cmd = `wrangler r2 object put "${R2_BUCKET}/${r2Key}" --file="${svgPath}" --content-type="image/svg+xml" --remote`;
 
     execSync(cmd, {
       stdio: 'pipe',

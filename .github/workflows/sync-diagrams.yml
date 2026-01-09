@@ -78,29 +78,29 @@ jobs:
           const svgFiles = fs.readdirSync(DIAGRAMS_DIR)
             .filter(f => f.endsWith('.svg'));
 
-          console.log(`Processing ${svgFiles.length} SVG file(s)`);
+          console.log('Processing ' + svgFiles.length + ' SVG file(s)');
 
           for (const svgFile of svgFiles) {
             const id = path.basename(svgFile, '.svg');
             const svgPath = path.join(DIAGRAMS_DIR, svgFile);
-            const fragmentPath = path.join(FRAGMENTS_DIR, `${id}.yaml`);
-            const drawioPath = `content/diagrams/${id}.drawio`;
-            const r2Key = `${R2_PREFIX}/${svgFile}`;
+            const fragmentPath = path.join(FRAGMENTS_DIR, id + '.yaml');
+            const drawioPath = 'content/diagrams/' + id + '.drawio';
+            const r2Key = R2_PREFIX + '/' + svgFile;
 
             // Get file size
             const fileSize = fs.statSync(svgPath).size;
-            console.log(`\n${id}: ${(fileSize / 1024).toFixed(1)} KB`);
+            console.log('\n' + id + ': ' + (fileSize / 1024).toFixed(1) + ' KB');
 
             // Upload to R2
             try {
-              console.log(`  Uploading to R2: ${r2Key}`);
+              console.log('  Uploading to R2: ' + r2Key);
               execSync(
-                `npx wrangler r2 object put "${R2_BUCKET}/${r2Key}" --file="${svgPath}" --content-type="image/svg+xml"`,
+                'npx wrangler r2 object put "' + R2_BUCKET + '/' + r2Key + '" --file="' + svgPath + '" --content-type="image/svg+xml" --remote',
                 { stdio: 'pipe', timeout: 120000 }
               );
-              console.log(`  ✓ Uploaded to R2`);
+              console.log('  OK Uploaded to R2');
             } catch (error) {
-              console.error(`  ✗ R2 upload failed:`, error.message);
+              console.error('  ERROR R2 upload failed:', error.message);
               continue; // Skip this diagram
             }
 
@@ -114,7 +114,7 @@ jobs:
                   existing = yaml.parse(content.substring(yamlStart));
                 }
               } catch (e) {
-                console.log(`  Could not parse existing ${id}.yaml, creating fresh`);
+                console.log('  Could not parse existing ' + id + '.yaml, creating fresh');
               }
             }
 
@@ -129,7 +129,7 @@ jobs:
               .join(' ');
 
             // Default caption (not SVG content)
-            const defaultCaption = `Diagram: ${defaultTitle}`;
+            const defaultCaption = 'Diagram: ' + defaultTitle;
 
             // Preserve existing content unless it's embedded SVG
             let content = existing.content || { en: defaultCaption, ja: defaultCaption };
