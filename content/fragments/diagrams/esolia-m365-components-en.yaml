@@ -1,0 +1,38 @@
+# Esolia M365 Components En Diagram Fragment
+# ═══════════════════════════════════════════════════════════════════════════
+# Auto-generated from: content/diagrams/esolia-m365-components-en.drawio
+# SVG stored in R2: diagrams/esolia-m365-components-en.svg
+# Last synced: 2026-01-09T19:34:13.015Z
+# ═══════════════════════════════════════════════════════════════════════════
+
+id: esolia-m365-components-en
+category: diagrams
+version: 2026-01
+title:
+  en: Esolia M365 Components En
+  ja: Esolia M365 Components En
+type: diagram
+tags:
+  - diagram
+status: production
+created: 2026-01-09
+modified: 2026-01-09
+author: rick.cogley@esolia.co.jp
+reviewer: null
+review_due: 2026-04-09
+sensitivity: normal
+allowed_collections:
+  - proposals
+  - help
+  - concepts
+  - blog
+diagram:
+  format: svg
+  storage: r2
+  source_file: content/diagrams/esolia-m365-components-en.drawio
+  file_size: 944678
+  r2_path: diagrams/esolia-m365-components-en.svg
+  r2_url: /api/diagrams/esolia-m365-components-en.svg
+content:
+  en: "Diagram: Esolia M365 Components En"
+  ja: "Diagram: Esolia M365 Components En"

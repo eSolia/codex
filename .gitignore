@@ -26,6 +26,9 @@ Thumbs.db
 # Generated files
 cloudflare-api-schema.json
 
+# Diagram SVGs (stored in R2, not git)
+content/diagrams/*.svg
+
 # IDE
 .idea/
 .vscode/

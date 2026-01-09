@@ -1,0 +1,204 @@
+name: Sync Draw.io Diagrams
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'content/diagrams/**/*.drawio'
+  schedule:
+    # Run daily at 9:00 AM JST (00:00 UTC)
+    - cron: '0 0 * * *'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    name: Export diagrams and upload to R2
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Find .drawio files
+        id: find-diagrams
+        run: |
+          if [ -d "content/diagrams" ]; then
+            count=$(find content/diagrams -name "*.drawio" -type f | wc -l)
+            echo "count=$count" >> $GITHUB_OUTPUT
+            echo "Found $count .drawio file(s)"
+          else
+            echo "count=0" >> $GITHUB_OUTPUT
+            echo "No content/diagrams directory"
+          fi
+
+      - name: Export diagrams with draw.io
+        if: steps.find-diagrams.outputs.count != '0'
+        uses: rlespinasse/drawio-export-action@v2
+        with:
+          path: content/diagrams
+          format: svg
+          transparent: false
+          output: content/diagrams
+
+      - name: Setup Node.js
+        if: steps.find-diagrams.outputs.count != '0'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        if: steps.find-diagrams.outputs.count != '0'
+        run: npm install yaml wrangler
+
+      - name: Upload SVGs to R2 and generate fragments
+        if: steps.find-diagrams.outputs.count != '0'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          node << 'EOF'
+          const fs = require('fs');
+          const path = require('path');
+          const yaml = require('yaml');
+          const { execSync } = require('child_process');
+
+          const DIAGRAMS_DIR = 'content/diagrams';
+          const FRAGMENTS_DIR = 'content/fragments/diagrams';
+          const R2_BUCKET = 'codex';
+          const R2_PREFIX = 'diagrams';
+
+          // Ensure fragments directory exists
+          if (!fs.existsSync(FRAGMENTS_DIR)) {
+            fs.mkdirSync(FRAGMENTS_DIR, { recursive: true });
+          }
+
+          // Find all SVG files (exported by previous step)
+          const svgFiles = fs.readdirSync(DIAGRAMS_DIR)
+            .filter(f => f.endsWith('.svg'));
+
+          console.log(`Processing ${svgFiles.length} SVG file(s)`);
+
+          for (const svgFile of svgFiles) {
+            const id = path.basename(svgFile, '.svg');
+            const svgPath = path.join(DIAGRAMS_DIR, svgFile);
+            const fragmentPath = path.join(FRAGMENTS_DIR, `${id}.yaml`);
+            const drawioPath = `content/diagrams/${id}.drawio`;
+            const r2Key = `${R2_PREFIX}/${svgFile}`;
+
+            // Get file size
+            const fileSize = fs.statSync(svgPath).size;
+            console.log(`\n${id}: ${(fileSize / 1024).toFixed(1)} KB`);
+
+            // Upload to R2
+            try {
+              console.log(`  Uploading to R2: ${r2Key}`);
+              execSync(
+                `npx wrangler r2 object put "${R2_BUCKET}/${r2Key}" --file="${svgPath}" --content-type="image/svg+xml"`,
+                { stdio: 'pipe', timeout: 120000 }
+              );
+              console.log(`  ✓ Uploaded to R2`);
+            } catch (error) {
+              console.error(`  ✗ R2 upload failed:`, error.message);
+              continue; // Skip this diagram
+            }
+
+            // Check for existing fragment (to preserve metadata)
+            let existing = {};
+            if (fs.existsSync(fragmentPath)) {
+              try {
+                const content = fs.readFileSync(fragmentPath, 'utf-8');
+                const yamlStart = content.indexOf('id:');
+                if (yamlStart > -1) {
+                  existing = yaml.parse(content.substring(yamlStart));
+                }
+              } catch (e) {
+                console.log(`  Could not parse existing ${id}.yaml, creating fresh`);
+              }
+            }
+
+            const now = new Date().toISOString().split('T')[0];
+            const reviewDue = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000)
+              .toISOString().split('T')[0];
+
+            // Generate title from ID (handle both - and _)
+            const defaultTitle = id
+              .split(/[-_]/)
+              .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+              .join(' ');
+
+            // Default caption (not SVG content)
+            const defaultCaption = `Diagram: ${defaultTitle}`;
+
+            // Preserve existing content unless it's embedded SVG
+            let content = existing.content || { en: defaultCaption, ja: defaultCaption };
+            if (content.en && content.en.startsWith('<svg')) {
+              content = { en: defaultCaption, ja: defaultCaption };
+            }
+
+            const fragment = {
+              id,
+              category: 'diagrams',
+              version: existing.version || now.slice(0, 7),
+              title: existing.title || { en: defaultTitle, ja: defaultTitle },
+              type: 'diagram',
+              tags: existing.tags || ['diagram'],
+              status: existing.status || 'production',
+              created: existing.created || now,
+              modified: now,
+              author: existing.author || 'ci@esolia.co.jp',
+              reviewer: existing.reviewer || null,
+              review_due: existing.review_due || reviewDue,
+              sensitivity: existing.sensitivity || 'normal',
+              allowed_collections: existing.allowed_collections ||
+                ['proposals', 'help', 'concepts', 'blog'],
+              diagram: {
+                format: 'svg',
+                storage: 'r2',
+                source_file: drawioPath,
+                file_size: fileSize,
+                r2_path: r2Key,
+                r2_url: `/api/diagrams/${id}.svg`
+              },
+              content
+            };
+
+            const yamlContent = `# ${fragment.title.en} Diagram Fragment
+# ${'='.repeat(75)}
+# Auto-generated from: ${drawioPath}
+# SVG stored in R2: ${r2Key}
+# Last synced: ${new Date().toISOString()}
+# ${'='.repeat(75)}
+
+${yaml.stringify(fragment, { lineWidth: 0 })}`;
+
+            fs.writeFileSync(fragmentPath, yamlContent);
+            console.log(`  ✓ Fragment: ${id}.yaml`);
+          }
+
+          console.log('\nDone!');
+          EOF
+
+      - name: Check for changes
+        if: steps.find-diagrams.outputs.count != '0'
+        id: check-changes
+        run: |
+          git add content/fragments/diagrams/*.yaml
+          if git diff --staged --quiet; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "No changes to commit"
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "Changes detected"
+          fi
+
+      - name: Commit and push changes
+        if: steps.check-changes.outputs.changed == 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git commit -m "chore(diagrams): sync draw.io exports to R2
+
+          Auto-generated by sync-diagrams workflow"
+          git push

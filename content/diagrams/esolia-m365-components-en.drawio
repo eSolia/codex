@@ -1,0 +1,157 @@
+<mxfile host="app.diagrams.net" modified="2025-01-15T00:00:00.000Z" agent="Claude" version="21.0.0">
+  <diagram name="M365 Business Premium Components" id="m365-components-en">
+    <mxGraphModel dx="1200" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="900" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- Title -->
+        <mxCell id="title" value="Microsoft 365 Business Premium" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=28;fontStyle=1;fontColor=#0078d4;" vertex="1" parent="1">
+          <mxGeometry x="250" y="20" width="600" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="subtitle" value="What's Included" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontColor=#666666;" vertex="1" parent="1">
+          <mxGeometry x="250" y="55" width="600" height="25" as="geometry" />
+        </mxCell>
+        
+        <!-- Productivity Apps Section -->
+        <mxCell id="prod-header" value="📝 Productivity Apps" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;fontColor=#0078d4;" vertex="1" parent="1">
+          <mxGeometry x="40" y="100" width="200" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- Office Apps -->
+        <mxCell id="office-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e6f3ff;strokeColor=#0078d4;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="40" y="140" width="320" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="office-title" value="📦 Office Apps" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;fontColor=#0078d4;" vertex="1" parent="1">
+          <mxGeometry x="55" y="145" width="290" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="office-desc" value="Word, Excel, PowerPoint, Outlook—desktop &amp; web versions, always updated" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="55" y="170" width="290" height="35" as="geometry" />
+        </mxCell>
+        
+        <!-- Teams -->
+        <mxCell id="teams-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e6f3ff;strokeColor=#0078d4;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="40" y="220" width="320" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="teams-title" value="💬 Microsoft Teams" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;fontColor=#0078d4;" vertex="1" parent="1">
+          <mxGeometry x="55" y="225" width="290" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="teams-desc" value="Chat, video calls, and meetings—your central hub for team communication" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="55" y="250" width="290" height="35" as="geometry" />
+        </mxCell>
+        
+        <!-- Storage Section -->
+        <mxCell id="storage-header" value="📁 Storage &amp; Collaboration" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;fontColor=#0078d4;" vertex="1" parent="1">
+          <mxGeometry x="40" y="310" width="250" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- OneDrive -->
+        <mxCell id="onedrive-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e6f3ff;strokeColor=#0078d4;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="40" y="350" width="320" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="onedrive-title" value="☁️ OneDrive for Business" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;fontColor=#0078d4;" vertex="1" parent="1">
+          <mxGeometry x="55" y="355" width="290" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="onedrive-desc" value="1TB personal cloud storage per user—sync files across all your devices" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="55" y="380" width="290" height="35" as="geometry" />
+        </mxCell>
+        
+        <!-- SharePoint -->
+        <mxCell id="sharepoint-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e6f3ff;strokeColor=#0078d4;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="40" y="430" width="320" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="sharepoint-title" value="🏢 SharePoint Online" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;fontColor=#0078d4;" vertex="1" parent="1">
+          <mxGeometry x="55" y="435" width="290" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="sharepoint-desc" value="Shared team files and intranet sites—your company's central document library" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="55" y="460" width="290" height="35" as="geometry" />
+        </mxCell>
+        
+        <!-- Exchange -->
+        <mxCell id="exchange-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e6f3ff;strokeColor=#0078d4;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="40" y="510" width="320" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="exchange-title" value="📧 Exchange Online" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;fontColor=#0078d4;" vertex="1" parent="1">
+          <mxGeometry x="55" y="515" width="290" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="exchange-desc" value="Business email with your domain, 50GB mailbox, shared calendars &amp; contacts" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="55" y="540" width="290" height="35" as="geometry" />
+        </mxCell>
+        
+        <!-- Security Section -->
+        <mxCell id="security-header" value="🛡️ Security &amp; Protection" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;fontColor=#c41e3a;" vertex="1" parent="1">
+          <mxGeometry x="420" y="100" width="250" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- Defender for O365 -->
+        <mxCell id="defender-o365-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6e6;strokeColor=#c41e3a;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="420" y="140" width="320" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="defender-o365-title" value="🛡️ Defender for Office 365" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;fontColor=#c41e3a;" vertex="1" parent="1">
+          <mxGeometry x="435" y="145" width="290" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="defender-o365-desc" value="Safe Links, Safe Attachments—scans emails for phishing &amp; malware in real-time" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="435" y="170" width="290" height="35" as="geometry" />
+        </mxCell>
+        
+        <!-- Defender Antivirus -->
+        <mxCell id="defender-av-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6e6;strokeColor=#c41e3a;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="420" y="220" width="320" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="defender-av-title" value="🦠 Defender Antivirus" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;fontColor=#c41e3a;" vertex="1" parent="1">
+          <mxGeometry x="435" y="225" width="290" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="defender-av-desc" value="Built-in antivirus &amp; anti-malware protection for Windows PCs" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="435" y="250" width="290" height="35" as="geometry" />
+        </mxCell>
+        
+        <!-- Management Section -->
+        <mxCell id="mgmt-header" value="⚙️ Identity &amp; Management" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;fontColor=#6b21a8;" vertex="1" parent="1">
+          <mxGeometry x="420" y="310" width="250" height="30" as="geometry" />
+        </mxCell>
+        
+        <!-- Entra ID -->
+        <mxCell id="entra-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f3e8ff;strokeColor=#6b21a8;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="420" y="350" width="320" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="entra-title" value="🔐 Entra ID (Azure AD) P1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;fontColor=#6b21a8;" vertex="1" parent="1">
+          <mxGeometry x="435" y="355" width="290" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="entra-desc" value="Identity management, MFA, Conditional Access—control who logs in and how" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="435" y="380" width="290" height="35" as="geometry" />
+        </mxCell>
+        
+        <!-- Intune -->
+        <mxCell id="intune-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f3e8ff;strokeColor=#6b21a8;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="420" y="430" width="320" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="intune-title" value="📱 Intune" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;fontColor=#6b21a8;" vertex="1" parent="1">
+          <mxGeometry x="435" y="435" width="290" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="intune-desc" value="Mobile device management—enforce policies, deploy apps, remote wipe if lost" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="435" y="460" width="290" height="35" as="geometry" />
+        </mxCell>
+        
+        <!-- AIP -->
+        <mxCell id="aip-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f3e8ff;strokeColor=#6b21a8;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="420" y="510" width="320" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="aip-title" value="🏷️ Azure Information Protection" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;fontColor=#6b21a8;" vertex="1" parent="1">
+          <mxGeometry x="435" y="515" width="290" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="aip-desc" value="Label &amp; encrypt sensitive documents—protection travels with the file" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=top;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="435" y="540" width="290" height="35" as="geometry" />
+        </mxCell>
+        
+        <!-- Bottom note -->
+        <mxCell id="note-box" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f0fdf4;strokeColor=#16a34a;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry x="40" y="610" width="700" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="note-text" value="💡 Business Premium includes security features normally reserved for Enterprise E3/E5 licenses—at a fraction of the cost." style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;fontStyle=0;fontColor=#166534;" vertex="1" parent="1">
+          <mxGeometry x="50" y="620" width="680" height="40" as="geometry" />
+        </mxCell>
+        
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

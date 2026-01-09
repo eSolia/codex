@@ -1,5 +1,5 @@
 -- Auto-generated fragment import
--- Generated: 2025-12-28T02:20:50.503Z
+-- Generated: 2026-01-09T12:50:03.066Z
 
 -- Clear existing fragments (optional - comment out to preserve)
 -- DELETE FROM fragments;
@@ -31,6 +31,714 @@ Tokyo 105-7105, Japan
   '',
   '["contact","esolia","company-info"]',
   '1.0',
+  'active',
+  1,
+  'en',
+  '["en", "ja"]'
+);
+
+INSERT INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+VALUES (
+  'continuous-monitoring',
+  NULL,
+  'Continuous Security Monitoring',
+  'continuous-monitoring',
+  'capabilities',
+  '## Proactive Security Monitoring
+
+Stay ahead of threats with continuous monitoring that detects issues before they become incidents:
+
+**Real-time Threat Detection**
+- 24/7 monitoring of your infrastructure
+- Automated anomaly detection
+- Correlation of events across systems
+- Immediate alerting on suspicious activity
+
+**Vulnerability Management**
+- Regular security scans
+- Prioritized remediation recommendations
+- Tracking of patch status
+- Third-party component monitoring
+
+**Compliance Tracking**
+- Continuous control assessment
+- Evidence collection for audits
+- Gap analysis and remediation planning
+- Regular compliance reporting
+
+**Security Dashboards**
+- Executive-level security posture overview
+- Trend analysis and historical data
+- Risk scoring and prioritization
+- Exportable reports for stakeholders
+
+**Incident Response**
+- Defined escalation procedures
+- Rapid containment capabilities
+- Post-incident analysis and reporting
+- Lessons learned integration
+
+All monitoring is managed by eSolia''s security team, with regular reviews and recommendations for improvement.
+',
+  '## プロアクティブなセキュリティ監視
+
+インシデントになる前に問題を検出する継続的な監視で脅威に先手を打ちます：
+
+**リアルタイム脅威検出**
+- インフラストラクチャの24時間365日監視
+- 自動異常検出
+- システム間でのイベント相関分析
+- 疑わしい活動の即時アラート
+
+**脆弱性管理**
+- 定期的なセキュリティスキャン
+- 優先順位付けされた修正推奨事項
+- パッチ状況の追跡
+- サードパーティコンポーネントの監視
+
+**コンプライアンス追跡**
+- 継続的なコントロール評価
+- 監査のための証拠収集
+- ギャップ分析と修正計画
+- 定期的なコンプライアンスレポート
+
+**セキュリティダッシュボード**
+- エグゼクティブレベルのセキュリティ態勢概要
+- トレンド分析と履歴データ
+- リスクスコアリングと優先順位付け
+- ステークホルダー向けのエクスポート可能なレポート
+
+**インシデント対応**
+- 定義されたエスカレーション手順
+- 迅速な封じ込め能力
+- インシデント後の分析とレポート
+- 教訓のフィードバック統合
+
+すべての監視はeSOLIAのセキュリティチームが管理し、定期的なレビューと改善提案を提供します。
+',
+  '',
+  '["security","monitoring","compliance"]',
+  '1.0',
+  'active',
+  1,
+  'en',
+  '["en", "ja"]'
+);
+
+INSERT INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+VALUES (
+  'dns-email-reliability',
+  NULL,
+  'DNS & Email Reliability Monitoring',
+  'dns-email-reliability',
+  'capabilities',
+  '## Proactive DNS & Email Monitoring
+
+Ensure your domain and email infrastructure remains healthy and secure with continuous monitoring:
+
+**DNS Health Monitoring**
+- Record propagation verification
+- DNSSEC validation status
+- Nameserver availability checks
+- TTL and configuration tracking
+- Change detection and alerting
+
+**Email Authentication**
+- SPF record validation and monitoring
+- DKIM signature verification
+- DMARC policy compliance tracking
+- Aggregate and forensic report analysis
+- Unauthorized sender detection
+
+**Email Deliverability**
+- Blacklist monitoring across major providers
+- Reputation score tracking
+- Bounce rate analysis
+- Spam filter testing
+- Delivery success metrics
+
+**SSL/TLS Certificate Monitoring**
+- Expiration tracking and alerts
+- Certificate chain validation
+- Protocol version monitoring
+- Cipher suite assessment
+
+**Reporting & Alerts**
+- Daily health summaries
+- Immediate alerts on critical issues
+- Trend analysis over time
+- Actionable remediation guidance
+
+All monitoring runs continuously with immediate notification when issues are detected, allowing rapid response before impact to your business.
+',
+  '## プロアクティブなDNS＆メール監視
+
+継続的な監視でドメインとメールインフラストラクチャの健全性とセキュリティを確保します：
+
+**DNSヘルス監視**
+- レコード伝播の検証
+- DNSSEC検証ステータス
+- ネームサーバー可用性チェック
+- TTLと設定の追跡
+- 変更検出とアラート
+
+**メール認証**
+- SPFレコードの検証と監視
+- DKIM署名の検証
+- DMARCポリシー準拠の追跡
+- 集計レポートとフォレンジックレポートの分析
+- 不正な送信者の検出
+
+**メール到達性**
+- 主要プロバイダー全体でのブラックリスト監視
+- 評価スコアの追跡
+- バウンス率の分析
+- スパムフィルターテスト
+- 配信成功メトリクス
+
+**SSL/TLS証明書監視**
+- 有効期限の追跡とアラート
+- 証明書チェーンの検証
+- プロトコルバージョンの監視
+- 暗号スイートの評価
+
+**レポート＆アラート**
+- 日次ヘルスサマリー
+- 重大な問題に対する即時アラート
+- 時間経過に伴うトレンド分析
+- 実行可能な修正ガイダンス
+
+すべての監視は継続的に実行され、問題が検出されると即座に通知されるため、ビジネスへの影響が出る前に迅速な対応が可能です。
+',
+  '',
+  '["dns","email","monitoring","deliverability"]',
+  '1.0',
+  'active',
+  1,
+  'en',
+  '["en", "ja"]'
+);
+
+INSERT INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+VALUES (
+  'infrastructure-management',
+  NULL,
+  'Managed IT Infrastructure',
+  'infrastructure-management',
+  'capabilities',
+  '## Fully Managed Infrastructure
+
+Focus on your business while we handle the complexity of modern IT infrastructure:
+
+**Cloud Management**
+- Multi-cloud expertise and optimization
+- Cost monitoring and right-sizing
+- Resource provisioning and scaling
+- Backup and disaster recovery
+
+**Identity & Access Management**
+- Single sign-on implementation
+- Multi-factor authentication
+- Role-based access control
+- Regular access reviews
+
+**Network Security**
+- Firewall management
+- VPN configuration and support
+- Network segmentation
+- Traffic monitoring and analysis
+
+**Endpoint Management**
+- Device enrollment and configuration
+- Security policy enforcement
+- Patch management
+- Remote wipe capabilities
+
+**Documentation & Knowledge**
+- Complete infrastructure documentation
+- Runbooks for common procedures
+- Change management tracking
+- Knowledge transfer to your team
+
+eSolia provides transparent reporting on all managed infrastructure, with regular reviews to ensure alignment with your business needs.
+',
+  '## 完全マネージドインフラストラクチャ
+
+モダンITインフラストラクチャの複雑さを私たちが処理する間、ビジネスに集中してください：
+
+**クラウド管理**
+- マルチクラウドの専門知識と最適化
+- コスト監視と適正化
+- リソースのプロビジョニングとスケーリング
+- バックアップと災害復旧
+
+**アイデンティティ＆アクセス管理**
+- シングルサインオンの実装
+- 多要素認証
+- ロールベースのアクセス制御
+- 定期的なアクセスレビュー
+
+**ネットワークセキュリティ**
+- ファイアウォール管理
+- VPN設定とサポート
+- ネットワークセグメンテーション
+- トラフィック監視と分析
+
+**エンドポイント管理**
+- デバイス登録と設定
+- セキュリティポリシーの適用
+- パッチ管理
+- リモートワイプ機能
+
+**ドキュメンテーション＆ナレッジ**
+- 完全なインフラストラクチャドキュメント
+- 一般的な手順のランブック
+- 変更管理の追跡
+- チームへのナレッジ移転
+
+eSOLIAはすべてのマネージドインフラストラクチャについて透明性のあるレポートを提供し、ビジネスニーズとの整合性を確保するための定期的なレビューを実施します。
+',
+  '',
+  '["infrastructure","management","cloud"]',
+  '1.0',
+  'active',
+  1,
+  'en',
+  '["en", "ja"]'
+);
+
+INSERT INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+VALUES (
+  'modern-web-development',
+  NULL,
+  'Modern Web Development',
+  'modern-web-development',
+  'capabilities',
+  '## Modern, Performant Web Applications
+
+We build websites and web applications using current best practices that prioritize speed, security, and maintainability:
+
+**Performance First**
+- Server-side rendering for instant initial page loads
+- Optimized asset delivery and caching
+- Core Web Vitals scores in the "Good" range
+- Progressive loading for large content
+
+**Search Engine Optimization**
+- Semantic HTML structure
+- Proper meta tags and structured data
+- Fast load times (a key ranking factor)
+- Mobile-first responsive design
+
+**Accessibility**
+- WCAG 2.1 AA compliance
+- Keyboard navigation support
+- Screen reader compatibility
+- High contrast and readable typography
+
+**Content Management**
+- Easy-to-use editing interface for your team
+- Real-time preview of changes
+- Version history and rollback capability
+- Multi-language content support
+
+**Long-term Maintainability**
+- Clean, documented codebase
+- Automated testing and deployment
+- Regular security updates
+- No vendor lock-in
+
+All development follows security best practices, with code review and testing as standard parts of our process.
+',
+  '## モダンで高性能なWebアプリケーション
+
+私たちは、スピード、セキュリティ、保守性を優先した現在のベストプラクティスを使用してウェブサイトとウェブアプリケーションを構築します：
+
+**パフォーマンス重視**
+- 瞬時の初期ページ読み込みのためのサーバーサイドレンダリング
+- 最適化されたアセット配信とキャッシング
+- 「良好」範囲のCore Web Vitalsスコア
+- 大容量コンテンツの段階的読み込み
+
+**検索エンジン最適化**
+- セマンティックなHTML構造
+- 適切なメタタグと構造化データ
+- 高速な読み込み時間（重要なランキング要素）
+- モバイルファーストのレスポンシブデザイン
+
+**アクセシビリティ**
+- WCAG 2.1 AA準拠
+- キーボードナビゲーションサポート
+- スクリーンリーダー互換性
+- 高コントラストで読みやすいタイポグラフィ
+
+**コンテンツ管理**
+- チーム向けの使いやすい編集インターフェース
+- 変更のリアルタイムプレビュー
+- バージョン履歴とロールバック機能
+- 多言語コンテンツサポート
+
+**長期的な保守性**
+- クリーンでドキュメント化されたコードベース
+- 自動テストとデプロイメント
+- 定期的なセキュリティアップデート
+- ベンダーロックインなし
+
+すべての開発はセキュリティのベストプラクティスに従い、コードレビューとテストをプロセスの標準部分として実施します。
+',
+  '',
+  '["web","development","frontend"]',
+  '1.0',
+  'active',
+  1,
+  'en',
+  '["en", "ja"]'
+);
+
+INSERT INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+VALUES (
+  'secure-hosting',
+  NULL,
+  'Enterprise-Grade Secure Hosting',
+  'secure-hosting',
+  'capabilities',
+  '## Secure, Globally Distributed Hosting
+
+Your application runs on enterprise-grade infrastructure designed for security, performance, and reliability:
+
+**Global Edge Network**
+- Content delivered from data centers worldwide
+- Automatic routing to the nearest location
+- Sub-100ms response times for most users
+
+**Security by Default**
+- DDoS protection at network and application layers
+- Web Application Firewall (WAF) with managed rulesets
+- Automatic SSL/TLS certificate provisioning and renewal
+- Zero Trust security architecture
+
+**Reliability Guarantees**
+- 99.99% uptime Service Level Agreement
+- Automatic failover and redundancy
+- Real-time monitoring and alerting
+
+**Compliance Ready**
+- SOC 2 Type II certified infrastructure
+- GDPR-compliant data handling
+- Regular security audits and penetration testing
+
+All infrastructure is fully managed by eSolia, with 24/7 monitoring and incident response.
+',
+  '## セキュアでグローバルに分散されたホスティング
+
+お客様のアプリケーションは、セキュリティ、パフォーマンス、信頼性を重視したエンタープライズグレードのインフラストラクチャで稼働します：
+
+**グローバルエッジネットワーク**
+- 世界中のデータセンターからコンテンツを配信
+- 最寄りのロケーションへの自動ルーティング
+- ほとんどのユーザーに対して100ミリ秒未満の応答時間
+
+**デフォルトでセキュア**
+- ネットワーク層およびアプリケーション層でのDDoS保護
+- マネージドルールセットを備えたWebアプリケーションファイアウォール（WAF）
+- SSL/TLS証明書の自動プロビジョニングと更新
+- ゼロトラストセキュリティアーキテクチャ
+
+**信頼性の保証**
+- 99.99%稼働率のサービスレベル契約
+- 自動フェイルオーバーと冗長性
+- リアルタイム監視とアラート
+
+**コンプライアンス対応**
+- SOC 2 Type II認証インフラストラクチャ
+- GDPR準拠のデータ取り扱い
+- 定期的なセキュリティ監査とペネトレーションテスト
+
+すべてのインフラストラクチャはeSOLIAが完全に管理し、24時間365日の監視とインシデント対応を提供します。
+',
+  '',
+  '["hosting","security","infrastructure"]',
+  '1.0',
+  'active',
+  1,
+  'en',
+  '["en", "ja"]'
+);
+
+INSERT INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+VALUES (
+  'call-to-action',
+  NULL,
+  'Ready to Start',
+  'call-to-action',
+  'closing',
+  '## Ready to Start?
+
+Let''s discuss how we can help your organization:
+
+- **Schedule a call** — 30-minute introduction call
+- **Request a demo** — See our tools and processes in action
+- **Get a quote** — Customized pricing for your needs
+
+Contact us today:
+
+- Email: **sales@esolia.co.jp**
+- Phone: **03-4577-3380**
+- Web: [Book a meeting](https://esolia.co.jp/en/contact)
+
+We respond to all inquiries within one business day.
+',
+  '## 始める準備はできていますか？
+
+貴社の組織をどのようにサポートできるか、ぜひご相談ください：
+
+- **電話のスケジュール** — 30分の紹介電話
+- **デモのリクエスト** — ツールとプロセスを実際にご覧ください
+- **見積もりを取得** — ニーズに合わせたカスタマイズ価格
+
+今すぐお問い合わせ：
+
+- メール: **sales@esolia.co.jp**
+- 電話: **03-4577-3380**
+- Web: [ミーティングを予約](https://esolia.co.jp/contact)
+
+すべてのお問い合わせに1営業日以内に回答いたします。
+',
+  'Strong call-to-action for proposals.
+Use when you want to encourage immediate engagement.
+',
+  '["closing","cta","engagement"]',
+  '2025-01',
+  'active',
+  1,
+  'en',
+  '["en", "ja"]'
+);
+
+INSERT INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+VALUES (
+  'next-steps',
+  NULL,
+  'Next Steps',
+  'next-steps',
+  'closing',
+  '## Next Steps
+
+1. **Review** — Review this proposal and let us know any questions
+2. **Discussion** — Schedule a call to discuss details and adjustments
+3. **Agreement** — We prepare the MSA and SoW documents
+4. **Signatures** — Both parties sign via DocuSign or similar
+5. **Kickoff** — Begin onboarding and service delivery
+
+We are flexible and can adjust scope and terms based on your feedback.
+
+### Timeline
+
+| Phase | Duration |
+|-------|----------|
+| Review & Discussion | 1-2 weeks |
+| Contract Preparation | 3-5 days |
+| Kickoff | Upon signature |
+',
+  '## 次のステップ
+
+1. **レビュー** — 本提案をご確認、ご質問をお知らせください
+2. **ディスカッション** — 詳細と調整を話し合う電話を設定
+3. **契約書** — MSAとSoW文書を準備
+4. **署名** — DocuSign等で両者署名
+5. **キックオフ** — オンボーディングとサービス提供開始
+
+スコープと条件はフィードバックに基づいて柔軟に調整可能です。
+
+### タイムライン
+
+| フェーズ | 期間 |
+|---------|------|
+| レビュー＆ディスカッション | 1〜2週間 |
+| 契約書準備 | 3〜5日 |
+| キックオフ | 署名後 |
+',
+  'Standard next steps section for all proposals.
+Customize timeline based on engagement complexity.
+',
+  '["closing","next-steps","workflow","onboarding"]',
+  '2025-01',
+  'active',
+  1,
+  'en',
+  '["en", "ja"]'
+);
+
+INSERT INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+VALUES (
+  'standard-closing',
+  NULL,
+  'In Closing',
+  'standard-closing',
+  'closing',
+  '## In Closing
+
+Thank you for considering our services. We look forward to supporting your needs and building a successful partnership.
+
+Please contact us anytime with questions or to discuss next steps.
+
+---
+
+**Contact Information**
+
+Tel: 03-4577-3380
+Email: info@esolia.co.jp
+Web: https://esolia.co.jp/en
+',
+  '## 最後に
+
+当社サービスをご検討いただきありがとうございます。お客様のニーズをサポートし、成功するパートナーシップを築けることを楽しみにしております。
+
+ご質問や次のステップについては、いつでもお気軽にお問い合わせください。
+
+---
+
+**お問い合わせ**
+
+Tel: 03-4577-3380
+Email: info@esolia.co.jp
+Web: https://esolia.co.jp
+',
+  'Standard closing for all proposals.
+Always include contact information.
+',
+  '["closing","thank-you","contact"]',
+  '2025-01',
+  'active',
+  1,
+  'en',
+  '["en", "ja"]'
+);
+
+INSERT INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+VALUES (
+  'esolia-contact',
+  NULL,
+  'Contact Information',
+  'esolia-contact',
+  'company',
+  '## Contact Us
+
+**eSolia Inc.**
+Shiodome City Center 5F
+1-5-2 Higashi-Shimbashi, Minato-ku
+Tokyo 105-7105, Japan
+
+| | |
+|---|---|
+| **Phone** | 03-4577-3380 |
+| **Email** | info@esolia.co.jp |
+| **Web** | https://esolia.co.jp/en |
+| **Hours** | Monday-Friday, 9:00-18:00 JST |
+
+### After Hours Support
+
+For contracted clients with after-hours support coverage, emergency contact details are provided separately.
+',
+  '## お問い合わせ
+
+**株式会社イソリア**
+〒105-7105
+東京都港区東新橋1-5-2
+汐留シティセンター5階
+
+| | |
+|---|---|
+| **電話** | 03-4577-3380 |
+| **メール** | info@esolia.co.jp |
+| **Web** | https://esolia.co.jp |
+| **営業時間** | 月〜金、9:00〜18:00 |
+
+### 営業時間外サポート
+
+営業時間外サポート契約をお持ちのお客様には、緊急連絡先を別途ご案内しております。
+',
+  'Official eSolia contact information.
+Updated phone number as of 2025.
+',
+  '["company","contact","esolia"]',
+  '2025-01',
+  'active',
+  1,
+  'en',
+  '["en", "ja"]'
+);
+
+INSERT INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+VALUES (
+  'esolia-overview',
+  NULL,
+  'About eSolia',
+  'esolia-overview',
+  'company',
+  '## About eSolia
+
+**eSolia Inc.** is a Tokyo-based IT management and consulting firm founded in 1999. We serve as the "virtual IT department" for foreign-affiliated companies operating in Japan.
+
+### At a Glance
+
+| | |
+|---|---|
+| **Founded** | 1999 |
+| **Location** | Shiodome, Tokyo |
+| **Team** | Bilingual professionals |
+| **Clients** | 50+ active accounts |
+| **Focus** | Foreign-affiliated companies in Japan |
+
+### What We Do
+
+- IT infrastructure management
+- Help desk and user support
+- Cloud and SaaS implementation
+- Security and compliance
+- Project management
+
+### Why Choose Us
+
+- **Bilingual** — All staff are fluent in Japanese and English
+- **Local expertise** — Deep knowledge of doing IT in Japan
+- **Vendor neutral** — We recommend what''s best, not what pays us most
+- **Responsive** — Fast response times with clear communication
+',
+  '## イソリアについて
+
+**株式会社イソリア**は、1999年設立の東京を拠点とするIT管理・コンサルティング企業です。日本で事業を展開する外資系企業の「バーチャルIT部門」として機能しています。
+
+### 会社概要
+
+| | |
+|---|---|
+| **設立** | 1999年 |
+| **所在地** | 東京・汐留 |
+| **チーム** | バイリンガル専門家 |
+| **クライアント** | 50社以上のアクティブアカウント |
+| **対象** | 日本の外資系企業 |
+
+### 事業内容
+
+- ITインフラ管理
+- ヘルプデスクとユーザーサポート
+- クラウド・SaaS導入
+- セキュリティとコンプライアンス
+- プロジェクト管理
+
+### 選ばれる理由
+
+- **バイリンガル** — 全スタッフが日本語と英語に堪能
+- **現地の専門知識** — 日本でのIT運用に関する深い知識
+- **ベンダー中立** — 最も報酬の高いものではなく、最適なものを推奨
+- **迅速な対応** — 明確なコミュニケーションと素早い対応
+',
+  'Standard company overview.
+Use in proposals and introductory materials.
+',
+  '["company","about","esolia","overview"]',
+  '2025-01',
   'active',
   1,
   'en',
@@ -773,6 +1481,94 @@ Flexible support for organizations with existing IT staff:
 
 INSERT INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
+  'ongoing-support',
+  NULL,
+  'Ongoing IT Support Services',
+  'ongoing-support',
+  'services',
+  '## eSolia IT Support Services
+
+Reliable, professional IT support tailored to your organization''s needs:
+
+**TotalSupport** — Comprehensive Managed IT
+
+Your virtual IT department. We handle all aspects of your IT operations:
+- Help desk for end-user support
+- System administration and maintenance
+- Vendor management and coordination
+- Project planning and execution
+- Strategic IT consulting
+- Regular reporting and reviews
+
+Ideal for organizations that want to outsource IT operations entirely.
+
+**Co-Support** — Collaborative Partnership
+
+Work alongside your existing IT team:
+- Augment your team''s capabilities
+- Provide specialized expertise
+- Handle overflow and after-hours support
+- Knowledge transfer and training
+- Backup for vacations and absences
+
+Ideal for organizations with internal IT that need additional capacity or expertise.
+
+**Support Delivery**
+- Bilingual support (English and Japanese)
+- Business hours and after-hours options available
+- Remote and on-site support
+- Ticketing system with full history
+- SLA-backed response times
+
+eSolia''s support team brings decades of combined experience supporting businesses in Japan, with deep knowledge of both local and international IT environments.
+',
+  '## eSOLIA ITサポートサービス
+
+お客様の組織のニーズに合わせた信頼性の高いプロフェッショナルなITサポート：
+
+**TotalSupport** — 包括的マネージドIT
+
+お客様のバーチャルIT部門として、IT運用のすべての側面を担当します：
+- エンドユーザーサポートのヘルプデスク
+- システム管理とメンテナンス
+- ベンダー管理と調整
+- プロジェクト計画と実行
+- 戦略的ITコンサルティング
+- 定期的なレポートとレビュー
+
+IT運用を完全にアウトソーシングしたい組織に最適です。
+
+**Co-Support** — コラボレーティブパートナーシップ
+
+既存のITチームと協力して：
+- チームの能力を強化
+- 専門的な知識を提供
+- オーバーフローと時間外サポートを処理
+- ナレッジ移転とトレーニング
+- 休暇や不在時のバックアップ
+
+追加のキャパシティや専門知識が必要な社内ITを持つ組織に最適です。
+
+**サポート提供方法**
+- バイリンガルサポート（英語と日本語）
+- 営業時間および時間外オプションあり
+- リモートおよびオンサイトサポート
+- 完全な履歴を持つチケットシステム
+- SLAに基づく応答時間
+
+eSOLIAのサポートチームは、日本でのビジネスサポートにおける数十年の経験を持ち、国内外のIT環境に関する深い知識を持っています。
+',
+  '',
+  '["support","helpdesk","managed-services"]',
+  '1.0',
+  'active',
+  1,
+  'en',
+  '["en", "ja"]'
+);
+
+INSERT INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+VALUES (
   'password-manager',
   NULL,
   'Password Manager Recommendation',
@@ -846,6 +1642,304 @@ affect email deliverability or security.
   '',
   '["dns","email","monitoring","spf","dkim","dmarc","periodic"]',
   '1.0',
+  'active',
+  1,
+  'en',
+  '["en", "ja"]'
+);
+
+INSERT INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+VALUES (
+  'website-development',
+  NULL,
+  'Website Development Services',
+  'website-development',
+  'services',
+  '## eSolia Website Development
+
+Professional website development with a focus on performance, security, and maintainability:
+
+**Discovery & Planning**
+- Requirements gathering and analysis
+- Information architecture design
+- Content strategy and planning
+- Technical approach recommendation
+- Project timeline and milestones
+
+**Design & Development**
+- Modern, responsive design
+- Bilingual content support (EN/JA)
+- Content management system setup
+- Integration with existing systems
+- Search engine optimization
+
+**Quality Assurance**
+- Cross-browser and device testing
+- Performance optimization
+- Security review
+- Accessibility compliance
+- Content review and proofreading
+
+**Launch & Support**
+- Staging environment for review
+- Zero-downtime deployment
+- Post-launch monitoring
+- Training for content editors
+- Ongoing maintenance options
+
+**What''s Included**
+- Source code ownership
+- Documentation
+- 30-day warranty period
+- Knowledge transfer session
+
+All websites are built on secure, globally distributed infrastructure with enterprise-grade reliability.
+',
+  '## eSOLIA ウェブサイト開発
+
+パフォーマンス、セキュリティ、保守性を重視したプロフェッショナルなウェブサイト開発：
+
+**ディスカバリー＆プランニング**
+- 要件収集と分析
+- 情報アーキテクチャ設計
+- コンテンツ戦略と計画
+- 技術的アプローチの提案
+- プロジェクトタイムラインとマイルストーン
+
+**デザイン＆開発**
+- モダンでレスポンシブなデザイン
+- バイリンガルコンテンツサポート（EN/JA）
+- コンテンツ管理システムのセットアップ
+- 既存システムとの統合
+- 検索エンジン最適化
+
+**品質保証**
+- クロスブラウザおよびデバイステスト
+- パフォーマンス最適化
+- セキュリティレビュー
+- アクセシビリティ準拠
+- コンテンツレビューと校正
+
+**ローンチ＆サポート**
+- レビュー用ステージング環境
+- ゼロダウンタイムデプロイメント
+- ローンチ後の監視
+- コンテンツ編集者向けトレーニング
+- 継続的なメンテナンスオプション
+
+**含まれるもの**
+- ソースコードの所有権
+- ドキュメント
+- 30日間の保証期間
+- ナレッジ移転セッション
+
+すべてのウェブサイトは、エンタープライズグレードの信頼性を備えた安全でグローバルに分散されたインフラストラクチャ上に構築されます。
+',
+  '',
+  '["website","development","project"]',
+  '1.0',
+  'active',
+  1,
+  'en',
+  '["en", "ja"]'
+);
+
+INSERT INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+VALUES (
+  'billing-terms',
+  NULL,
+  'Billing Model',
+  'billing-terms',
+  'terms',
+  '## Billing Model
+
+### Time and Materials
+
+Our agreements are time-and-materials based with transparent pricing:
+
+| Item | Description |
+|------|-------------|
+| **Minimum billing** | 1 hour minimum per engagement |
+| **Increments** | 15-minute increments beyond minimum |
+| **Administration fee** | Monthly fixed fee for account management |
+| **Travel fees** | Per-visit fee for onsite work (varies by location) |
+
+### Rate Options
+
+Greater commitment means better rates:
+
+- **Reserved Hours** — Regular monthly commitment at preferred rates
+- **Pool Blocks** — Pre-paid time blocks (12-month validity)
+- **Multi-year Term** — Reduced rates for longer commitment periods
+
+### Payment Terms
+
+- Invoices issued monthly
+- Payment due within 30 days
+- Consumption reports provided monthly
+',
+  '## 請求モデル
+
+### タイム＆マテリアル
+
+タイム＆マテリアル方式で透明性のある価格設定：
+
+| 項目 | 説明 |
+|------|------|
+| **最低請求** | エンゲージメントごとに1時間最低 |
+| **増分** | 最低時間を超えた分は15分単位 |
+| **管理費** | アカウント管理のための月額固定料金 |
+| **出張費** | オンサイト作業の訪問ごとの料金（場所により異なる） |
+
+### レートオプション
+
+より大きなコミットメントでより良いレート：
+
+- **予約時間** — 優遇レートでの月次の定期的なコミットメント
+- **プールブロック** — 前払い時間ブロック（12ヶ月有効）
+- **複数年契約** — 長期コミットメントで割引レート
+
+### 支払い条件
+
+- 月次で請求書発行
+- 30日以内にお支払い
+- 月次で消費レポートを提供
+',
+  'Standard billing terms section.
+Specific rates to be included in client offer.
+',
+  '["terms","billing","pricing","rates"]',
+  '2025-01',
+  'active',
+  1,
+  'en',
+  '["en", "ja"]'
+);
+
+INSERT INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+VALUES (
+  'confidentiality',
+  NULL,
+  'Confidentiality & Data Protection',
+  'confidentiality',
+  'terms',
+  '## Confidentiality & Data Protection
+
+### Mutual NDA
+
+Both parties agree to protect confidential information:
+
+- **Definition** — All non-public business, technical, and financial information
+- **Obligations** — Use only for engagement purposes, protect as own
+- **Exceptions** — Public knowledge, independently developed, legally required
+- **Duration** — Survives termination for 3 years
+
+### Data Handling
+
+| Aspect | Commitment |
+|--------|------------|
+| **Access** | Need-to-know basis only |
+| **Storage** | Encrypted at rest and in transit |
+| **Retention** | Only for duration required |
+| **Disposal** | Secure deletion on request |
+
+### Compliance
+
+- Japan Act on Protection of Personal Information (APPI)
+- GDPR where applicable
+- Industry-specific regulations as required
+',
+  '## 機密保持とデータ保護
+
+### 相互NDA
+
+両当事者が機密情報を保護することに同意：
+
+- **定義** — すべての非公開のビジネス、技術、財務情報
+- **義務** — エンゲージメント目的にのみ使用、自社同様に保護
+- **例外** — 公知の情報、独自に開発、法的に要求
+- **期間** — 終了後3年間継続
+
+### データ取り扱い
+
+| 側面 | コミットメント |
+|------|--------------|
+| **アクセス** | 必要に応じてのみ |
+| **保存** | 保存時および転送時に暗号化 |
+| **保持** | 必要な期間のみ |
+| **廃棄** | 要求に応じて安全に削除 |
+
+### コンプライアンス
+
+- 個人情報保護法（APPI）
+- 該当する場合GDPR
+- 必要に応じて業界固有の規制
+',
+  'Standard confidentiality and data protection section.
+May need customization for specific industries.
+',
+  '["terms","confidentiality","nda","privacy","security"]',
+  '2025-01',
+  'active',
+  1,
+  'en',
+  '["en", "ja"]'
+);
+
+INSERT INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+VALUES (
+  'standard-terms',
+  NULL,
+  'Agreement Structure',
+  'standard-terms',
+  'terms',
+  '## Agreement Structure
+
+### Contract Format
+
+Our engagements use a **Master Services Agreement (MSA)** and **Statement of Work (SoW)** structure:
+
+- **MSA** — Basic terms covering confidentiality, liability, and general conditions
+- **SoW** — Specific scope, services, and pricing for each engagement
+
+This separation allows flexibility to add services without renegotiating base terms.
+
+### Key Terms
+
+| Term | Description |
+|------|-------------|
+| **Term** | Initial term with auto-renewal options |
+| **Termination** | Notice period for either party |
+| **Liability** | Reasonable limitations |
+| **Confidentiality** | Mutual NDA provisions |
+| **IP** | Work product ownership |
+',
+  '## ご契約について
+
+### 契約形式
+
+**マスターサービス契約（MSA）**と**業務仕様書（SoW）**の構造を採用しています：
+
+- **MSA** — 機密保持、責任、一般条件を規定する基本契約
+- **SoW** — 各エンゲージメントの具体的な範囲、サービス、価格
+
+この分離により、基本条件を再交渉することなくサービスを追加できる柔軟性があります。
+
+### 主要条件
+
+| 項目 | 説明 |
+|------|------|
+| **契約期間** | 自動更新オプション付きの初期期間 |
+| **解約** | 双方の通知期間 |
+| **責任** | 合理的な制限 |
+| **機密保持** | 相互NDA条項 |
+| **知的財産** | 成果物の所有権 |
+',
+  'Standard agreement structure section.
+Use for any service engagement.
+',
+  '["terms","agreement","msa","sow","contract"]',
+  '2025-01',
   'active',
   1,
   'en',

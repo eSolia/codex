@@ -1,0 +1,38 @@
+# Fiber Path Diagram 1 Diagram Fragment
+# ═══════════════════════════════════════════════════════════════════════════
+# Auto-generated from: content/diagrams/fiber-path-diagram_1.drawio
+# SVG stored in R2: diagrams/fiber-path-diagram_1.svg
+# Last synced: 2026-01-09T19:34:15.616Z
+# ═══════════════════════════════════════════════════════════════════════════
+
+id: fiber-path-diagram_1
+category: diagrams
+version: 2026-01
+title:
+  en: Fiber Path Diagram 1
+  ja: Fiber Path Diagram 1
+type: diagram
+tags:
+  - diagram
+status: production
+created: 2026-01-09
+modified: 2026-01-09
+author: rick.cogley@esolia.co.jp
+reviewer: null
+review_due: 2026-04-09
+sensitivity: normal
+allowed_collections:
+  - proposals
+  - help
+  - concepts
+  - blog
+diagram:
+  format: svg
+  storage: r2
+  source_file: content/diagrams/fiber-path-diagram_1.drawio
+  file_size: 2489795
+  r2_path: diagrams/fiber-path-diagram_1.svg
+  r2_url: /api/diagrams/fiber-path-diagram_1.svg
+content:
+  en: "Diagram: Fiber Path Diagram 1"
+  ja: "Diagram: Fiber Path Diagram 1"
