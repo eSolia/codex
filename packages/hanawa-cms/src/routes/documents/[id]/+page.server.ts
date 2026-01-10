@@ -20,11 +20,19 @@ function markdownToHtml(markdown: string, imageResolver?: Map<string, string>): 
   // InfoSec: Fragment HTML is authored in CMS (trusted), sanitized on save
   const trimmed = html.trim();
   if (trimmed.startsWith('<') && (trimmed.startsWith('<p') || trimmed.startsWith('<h') || trimmed.startsWith('<div') || trimmed.startsWith('<ul') || trimmed.startsWith('<ol') || trimmed.startsWith('<table'))) {
+    let processed = html;
     // Tiptap wraps list item content in <p> tags - remove them for cleaner PDF
-    // Transform: <li><p>text</p></li> → <li>text</li>
-    let processed = html.replace(/<li><p>(.*?)<\/p><\/li>/gs, '<li>$1</li>');
-    // Also handle multiline: <li>\n<p>text</p>\n</li>
-    processed = processed.replace(/<li>\s*<p>(.*?)<\/p>\s*<\/li>/gs, '<li>$1</li>');
+    // Handle <p> with or without attributes: <li><p class="...">text</p></li> → <li>text</li>
+    processed = processed.replace(/<li>\s*<p[^>]*>([\s\S]*?)<\/p>\s*<\/li>/g, '<li>$1</li>');
+    // Remove any remaining <p> tags inside <li> (handles multiple <p> in one <li>)
+    processed = processed.replace(/<li>([\s\S]*?)<\/li>/g, (match, content) => {
+      const stripped = content.replace(/<\/?p[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+      return `<li>${stripped}</li>`;
+    });
+    // Remove empty paragraphs
+    processed = processed.replace(/<p[^>]*>\s*<\/p>/g, '');
+    // Collapse multiple whitespace/newlines between tags
+    processed = processed.replace(/>\s+</g, '><');
     return processed;
   }
 
@@ -72,13 +80,18 @@ function markdownToHtml(markdown: string, imageResolver?: Map<string, string>): 
   // Ordered lists
   html = html.replace(/^\d+\. (.+)$/gm, '<li>$1</li>');
 
-  // Normalize: remove blank lines between consecutive <li> tags
+  // Normalize: remove ALL blank lines between <li> tags (even with whitespace)
   // This handles markdown with blank lines between list items
-  html = html.replace(/<\/li>\n\n+<li>/g, '</li>\n<li>');
+  html = html.replace(/<\/li>\s*\n\s*\n+\s*<li>/g, '</li>\n<li>');
+
+  // Also normalize blank lines BEFORE first <li> (after heading)
+  html = html.replace(/(<\/h[1-6]>)\s*\n\s*\n+\s*(<li>)/g, '$1\n$2');
 
   // Wrap consecutive <li> tags in <ul>
-  html = html.replace(/(<li>.*<\/li>\n?)+/g, (match) => {
-    return '<ul>' + match + '</ul>';
+  html = html.replace(/(<li>[\s\S]*?<\/li>\s*)+/g, (match) => {
+    // Clean up the match - remove extra whitespace between items
+    const cleaned = match.replace(/(<\/li>)\s+(<li>)/g, '$1$2');
+    return '<ul>' + cleaned + '</ul>';
   });
 
   // Tables (basic support)
@@ -612,11 +625,13 @@ export const actions: Actions = {
     table { border-collapse: collapse; width: 100%; margin: 0.8em 0; }
     th, td { border: 1px solid #ddd; padding: 5px 8px; text-align: left; }
     th { background-color: #f5f5f5; }
-    /* Compact list styling */
-    ul, ol { margin: 0.3em 0; padding-left: 1.5em; }
-    li { margin: 0.15em 0; line-height: 1.35; }
-    li p { margin: 0; display: inline; }
-    ul ul, ol ol, ul ol, ol ul { margin: 0.15em 0; }
+    /* Compact list styling - aggressive reset */
+    ul, ol { margin: 0.2em 0 !important; padding-left: 1.5em; }
+    li { margin: 0 !important; padding: 0 !important; line-height: 1.35; }
+    li p { margin: 0 !important; padding: 0 !important; display: inline; }
+    li > p:first-child { display: inline; }
+    ul ul, ol ol, ul ol, ol ul { margin: 0.1em 0 !important; }
+    ul li, ol li { margin-bottom: 0.1em !important; }
     strong { color: #2D2F63; }
     hr { border: none; border-top: 1px solid #ddd; margin: 1em 0; }
     a { color: #2D2F63; }
