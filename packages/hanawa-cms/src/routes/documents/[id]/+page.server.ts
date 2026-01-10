@@ -608,30 +608,29 @@ export const actions: Actions = {
       const pdfStyles = `
     body {
       font-family: 'IBM Plex Sans', 'IBM Plex Sans JP', sans-serif;
-      line-height: 1.45;
+      line-height: 1.5;
       color: #2D2F63;
       max-width: 100%;
       margin: 0;
       padding: 20px;
       font-size: 10.5pt;
     }
-    p { margin: 0.4em 0; }
+    p { margin: 0.5em 0; }
     p:empty { display: none; }
     h1 { color: #2D2F63; border-bottom: 2px solid #FFBC68; padding-bottom: 10px; margin-top: 0; }
-    h2 { color: #2D2F63; margin-top: 1.2em; margin-bottom: 0.3em; }
-    h3 { color: #4a4c7a; margin-top: 0.8em; margin-bottom: 0.2em; }
+    h2 { color: #2D2F63; margin-top: 1.3em; margin-bottom: 0.4em; }
+    h3 { color: #4a4c7a; margin-top: 0.9em; margin-bottom: 0.3em; }
     /* Reduce gap when heading immediately precedes list */
-    h2 + ul, h2 + ol, h3 + ul, h3 + ol { margin-top: 0.2em; }
+    h2 + ul, h2 + ol, h3 + ul, h3 + ol { margin-top: 0.25em; }
     table { border-collapse: collapse; width: 100%; margin: 0.8em 0; }
     th, td { border: 1px solid #ddd; padding: 5px 8px; text-align: left; }
     th { background-color: #f5f5f5; }
-    /* Compact list styling - aggressive reset */
-    ul, ol { margin: 0.2em 0 !important; padding-left: 1.5em; }
-    li { margin: 0 !important; padding: 0 !important; line-height: 1.35; }
-    li p { margin: 0 !important; padding: 0 !important; display: inline; }
-    li > p:first-child { display: inline; }
-    ul ul, ol ol, ul ol, ol ul { margin: 0.1em 0 !important; }
-    ul li, ol li { margin-bottom: 0.1em !important; }
+    /* Compact list styling - balanced */
+    ul, ol { margin: 0.4em 0; padding-left: 1.5em; }
+    li { margin: 0.15em 0; padding: 0; line-height: 1.4; }
+    li p { margin: 0; padding: 0; display: inline; }
+    ul ul, ol ol, ul ol, ol ul { margin: 0.2em 0; }
+    ul li, ol li { margin-bottom: 0.15em; }
     strong { color: #2D2F63; }
     hr { border: none; border-top: 1px solid #ddd; margin: 1em 0; }
     a { color: #2D2F63; }
