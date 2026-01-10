@@ -582,14 +582,15 @@ export const actions: Actions = {
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+JP:wght@400;500;600;700&display=block" rel="stylesheet">`;
 
       // Shared CSS styles for all PDFs
+      // A4 is 210mm x 297mm, with 12mm margins = 186mm content width
       const pdfStyles = `
     body {
       font-family: 'IBM Plex Sans', 'IBM Plex Sans JP', sans-serif;
       line-height: 1.6;
       color: #2D2F63;
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 40px;
+      max-width: 100%;
+      margin: 0;
+      padding: 20px;
     }
     h1 { color: #2D2F63; border-bottom: 2px solid #FFBC68; padding-bottom: 10px; margin-top: 0; }
     h2 { color: #2D2F63; margin-top: 30px; }
@@ -612,6 +613,9 @@ export const actions: Actions = {
     h2 { page-break-before: auto; page-break-after: avoid; }
     h3 { page-break-after: avoid; }
     ul, ol, table { page-break-inside: avoid; }
+    /* Diagram container - ensure SVGs fit within content width */
+    .diagram-container { margin: 20px 0; text-align: center; max-width: 100%; overflow: hidden; }
+    .diagram-container svg { max-width: 100%; height: auto; display: block; margin: 0 auto; }
     @media print { body { padding: 0; } .logo { margin-bottom: 20px; } }
       `.trim();
 
@@ -683,7 +687,7 @@ export const actions: Actions = {
               displayHeaderFooter: true,
               headerTemplate: '<div></div>',
               footerTemplate,
-              margin: { top: '20mm', right: '20mm', bottom: '25mm', left: '20mm' },
+              margin: { top: '15mm', right: '12mm', bottom: '20mm', left: '12mm' },
             },
             firstLanguage: firstLang,
           }),
@@ -835,7 +839,7 @@ export const actions: Actions = {
             displayHeaderFooter: true,
             headerTemplate: '<div></div>', // Empty header
             footerTemplate,
-            margin: { top: '20mm', right: '20mm', bottom: '25mm', left: '20mm' },
+            margin: { top: '15mm', right: '12mm', bottom: '20mm', left: '12mm' },
           },
         }),
       });
