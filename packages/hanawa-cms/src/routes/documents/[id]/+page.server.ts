@@ -9,8 +9,11 @@ import { error, fail } from '@sveltejs/kit';
 /**
  * Basic markdown to HTML converter
  * InfoSec: Only used for server-side PDF generation, output not displayed in browser
+ *
+ * @param markdown - The markdown content to convert
+ * @param imageResolver - Optional async function to resolve image URLs to inline content
  */
-function markdownToHtml(markdown: string): string {
+function markdownToHtml(markdown: string, imageResolver?: Map<string, string>): string {
   let html = markdown;
 
   // If content already looks like HTML (starts with < tag), pass through unchanged
@@ -20,12 +23,26 @@ function markdownToHtml(markdown: string): string {
     return html;
   }
 
-  // Escape HTML entities first (prevent XSS in case output is ever displayed)
+  // Handle images BEFORE escaping (images need their URLs intact)
+  // Replace markdown images with HTML img tags
+  // For /api/diagrams/* URLs, use resolved inline SVG if available
+  html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (match, alt, url) => {
+    // Check if we have an inline SVG for this URL
+    if (imageResolver && imageResolver.has(url)) {
+      const svgContent = imageResolver.get(url)!;
+      return `<div class="diagram-container" style="margin: 20px 0; text-align: center;">${svgContent}</div>`;
+    }
+    // For external URLs or when no resolver, use img tag with absolute URL
+    const absoluteUrl = url.startsWith('/') ? `https://hanawa.esolia.co.jp${url}` : url;
+    return `<img src="${absoluteUrl}" alt="${alt}" style="max-width: 100%; height: auto; margin: 20px 0;">`;
+  });
+
+  // Escape HTML entities (prevent XSS in case output is ever displayed)
   // InfoSec: HTML entity encoding (OWASP A03)
-  html = html
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
+  // Note: We must NOT escape the already-converted img/div tags
+  // So we only escape content outside of HTML tags
+  html = html.replace(/&(?![a-z]+;|#\d+;)/g, '&amp;');
+  // Don't escape < and > as we have valid HTML tags now
 
   // Headers (must be at start of line)
   html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
@@ -37,7 +54,7 @@ function markdownToHtml(markdown: string): string {
   html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
   html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
 
-  // Links (after escaping, brackets are safe)
+  // Links (after images, so we don't double-process)
   html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
 
   // Horizontal rules
@@ -419,6 +436,45 @@ export const actions: Actions = {
       // Build content map for ordering
       const contentMap = new Map(fragmentContents.map((f) => [f.id, f]));
 
+      // Fetch diagram SVGs from R2 for inline embedding in PDF
+      // This resolves /api/diagrams/* URLs to actual SVG content
+      const imageResolver = new Map<string, string>();
+      if (platform.env.R2) {
+        const diagramUrlRegex = /!\[[^\]]*\]\((\/api\/diagrams\/([^)]+))\)/g;
+        const diagramIds = new Set<string>();
+
+        // Scan all fragment content for diagram URLs
+        for (const frag of fragmentContents) {
+          const contentToScan = [frag.content_en, frag.content_ja].filter(Boolean).join('\n');
+          let match;
+          while ((match = diagramUrlRegex.exec(contentToScan)) !== null) {
+            const url = match[1]; // /api/diagrams/some-id
+            const id = match[2];  // some-id (may or may not have .svg)
+            diagramIds.add(JSON.stringify({ url, id }));
+          }
+        }
+
+        // Fetch each diagram from R2
+        for (const entry of diagramIds) {
+          const { url, id } = JSON.parse(entry);
+          // Strip .svg if present for R2 key lookup
+          const diagramId = id.endsWith('.svg') ? id.slice(0, -4) : id;
+          const r2Key = `diagrams/${diagramId}.svg`;
+
+          try {
+            const object = await platform.env.R2.get(r2Key);
+            if (object) {
+              const svgContent = await object.text();
+              // Store with the original URL as key
+              imageResolver.set(url, svgContent);
+              console.log(`PDF: Loaded diagram ${diagramId} from R2`);
+            }
+          } catch (err) {
+            console.warn(`PDF: Failed to load diagram ${diagramId}:`, err);
+          }
+        }
+      }
+
       // Determine language mode and primary language
       const langMode = proposal.language_mode || 'en';
       const isBilingual = langMode.startsWith('both_');
@@ -461,7 +517,7 @@ export const actions: Actions = {
           section += `<div class="cover-letter">${coverLetter}</div>\n`;
         } else if (!isBilingual && proposalData.custom_sections) {
           // Fall back to custom_sections for single-language proposals
-          section += `<div class="cover-letter">${markdownToHtml(proposalData.custom_sections)}</div>\n`;
+          section += `<div class="cover-letter">${markdownToHtml(proposalData.custom_sections, imageResolver)}</div>\n`;
         }
 
         // Scope (use language-specific scope)
@@ -478,7 +534,7 @@ export const actions: Actions = {
             const fragContent =
               lang === 'ja' && content.content_ja ? content.content_ja : content.content_en;
             if (fragContent) {
-              section += markdownToHtml(fragContent) + '\n';
+              section += markdownToHtml(fragContent, imageResolver) + '\n';
             }
           }
         }
