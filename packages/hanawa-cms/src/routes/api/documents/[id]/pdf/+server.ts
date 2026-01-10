@@ -16,6 +16,8 @@ interface Proposal {
   pdf_r2_key: string | null;
   pdf_r2_key_en: string | null;
   pdf_r2_key_ja: string | null;
+  language_mode: string | null;
+  updated_at: string | null;
 }
 
 export const GET: RequestHandler = async ({ params, platform, url }) => {
@@ -31,7 +33,7 @@ export const GET: RequestHandler = async ({ params, platform, url }) => {
 
   // InfoSec: Verify document exists and user has access (OWASP A01)
   const proposal = await db
-    .prepare('SELECT id, client_code, title, title_ja, pdf_r2_key, pdf_r2_key_en, pdf_r2_key_ja FROM proposals WHERE id = ?')
+    .prepare('SELECT id, client_code, title, title_ja, pdf_r2_key, pdf_r2_key_en, pdf_r2_key_ja, language_mode, updated_at FROM proposals WHERE id = ?')
     .bind(params.id)
     .first<Proposal>();
 
@@ -41,17 +43,19 @@ export const GET: RequestHandler = async ({ params, platform, url }) => {
 
   // Determine which R2 key to use based on language parameter
   let r2Key: string | null = null;
-  let filenameSuffix = '';
+  let langSuffix = '';
 
   if (lang === 'en' && proposal.pdf_r2_key_en) {
     r2Key = proposal.pdf_r2_key_en;
-    filenameSuffix = '_EN';
+    langSuffix = 'en';
   } else if (lang === 'ja' && proposal.pdf_r2_key_ja) {
     r2Key = proposal.pdf_r2_key_ja;
-    filenameSuffix = '_JA';
+    langSuffix = 'ja';
   } else {
-    // Default to combined/main PDF
+    // Default to combined/main PDF - use language_mode for suffix
     r2Key = proposal.pdf_r2_key;
+    // language_mode is 'en-first' or 'ja-first', map to 'en-ja' or 'ja-en'
+    langSuffix = proposal.language_mode === 'ja-first' ? 'ja-en' : 'en-ja';
   }
 
   if (!r2Key) {
@@ -65,10 +69,16 @@ export const GET: RequestHandler = async ({ params, platform, url }) => {
     throw error(404, 'PDF file not found in storage');
   }
 
-  // Generate filename - use appropriate title based on language
+  // Format date as YYYYMMDD
+  const dateStr = proposal.updated_at
+    ? new Date(proposal.updated_at).toISOString().slice(0, 10).replace(/-/g, '')
+    : new Date().toISOString().slice(0, 10).replace(/-/g, '');
+
+  // Generate filename: eSolia_ClientCode_Title_YYYYMMDD_lang.pdf
   const title = lang === 'ja' && proposal.title_ja ? proposal.title_ja : proposal.title;
-  const safeTitle = title.replace(/[^a-zA-Z0-9-_\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/g, '_').substring(0, 50);
-  const filename = `${proposal.client_code}_${safeTitle}${filenameSuffix}.pdf`;
+  // Sanitize title: keep alphanumeric, hyphens, and CJK characters
+  const safeTitle = title.replace(/[^a-zA-Z0-9-\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/g, '_').substring(0, 50);
+  const filename = `eSolia_${proposal.client_code}_${safeTitle}_${dateStr}_${langSuffix}.pdf`;
 
   // Return PDF with appropriate headers
   // InfoSec: no-store ensures fresh PDF after regeneration
