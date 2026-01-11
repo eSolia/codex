@@ -139,8 +139,8 @@ interface TocData {
 function buildTocHtml(toc: TocData, firstLanguage: "en" | "ja"): string {
   const { title, titleJa, clientNameEn, clientNameJa, dateEn, dateJa } = toc;
 
-  // eSolia logo SVG
-  const logoSvg = `<svg width="160" height="59" viewBox="0 0 531 195" xmlns="http://www.w3.org/2000/svg">
+  // eSolia logo SVG (1.5x size)
+  const logoSvg = `<svg width="240" height="89" viewBox="0 0 531 195" xmlns="http://www.w3.org/2000/svg">
     <g transform="translate(39.1401, 37)" fill="none" fill-rule="evenodd">
       <path d="M156.657,52.998C147.81,52.656 139.181,54.04 131.058,56.877C132.812,45.67 132.677,32.026 128.98,15.586L127.844,10.512L123.041,12.49C103.935,20.354 89.655,35.493 82.833,55.123C76.647,72.934 77.724,92.052 85.706,106.261L86.147,107.044C85.494,110.44 85.111,113.837 85.164,117.168L85.188,118.934L86.895,119.375C88.237,119.729 90.297,120 92.94,120C97.772,120 104.524,119.081 112.276,115.997C127.809,109.822 148.487,94.383 158.805,55.917L159.559,53.11L156.657,52.998Z" fill="#FFBC68"/>
       <path d="M43.468,5.831L41.467,4.412L40.802,6.625C31.967,36.074 48.989,49.712 56.718,54.203L58.384,55.174L59.125,53.532C66.954,36.127 61.103,18.298 43.468,5.831" fill="#2D2F63"/>
