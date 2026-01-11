@@ -110,8 +110,8 @@ app.post("/pdf/bilingual", async (c) => {
       return c.json({ error: "Missing required fields: htmlEn and htmlJa" }, 400);
     }
 
-    if (!body.toc?.title || !body.toc?.date) {
-      return c.json({ error: "Missing required TOC fields: title and date" }, 400);
+    if (!body.toc?.title || !body.toc?.dateEn) {
+      return c.json({ error: "Missing required TOC fields: title and dateEn" }, 400);
     }
 
     // Validate HTML sizes
