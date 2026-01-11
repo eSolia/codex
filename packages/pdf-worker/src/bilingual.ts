@@ -86,16 +86,18 @@ export async function generateBilingualPdf(
   const tocPage = combinedPdf.getPage(0);
   const { height } = tocPage.getSize();
 
-  // TOC entries are approximately 465px and 510px from the top
-  // (adjusted based on visual debugging - entries are lower than initially calculated)
+  // TOC entries are card-style boxes approximately:
+  // - First card: ~340px from top, ~80px tall
+  // - Second card: ~432px from top, ~80px tall
   console.log(`Adding TOC links: height=${height}, firstLangPageIndex=${firstLangPageIndex}, secondLangPageIndex=${secondLangPageIndex}`);
   try {
     addTocLinks(combinedPdf, {
       tocPageIndex: 0,
       firstLangPageIndex,
       secondLangPageIndex,
-      firstEntryY: height - 465,  // ~465px from top (English Version)
-      secondEntryY: height - 510, // ~510px from top (Japanese Version)
+      firstEntryY: height - 380,  // Center of first card (~340-420px from top)
+      secondEntryY: height - 472, // Center of second card (~432-512px from top)
+      entryHeight: 80,            // Height of each card entry
       width: 595.28, // A4 width
       margin: 60,
     });
@@ -125,8 +127,9 @@ export async function generateBilingualPdf(
 interface TocData {
   title: string;
   titleJa?: string;
-  clientName?: string;
-  date: string;
+  clientNameEn?: string;
+  clientNameJa?: string;
+  dateEn: string;
   dateJa?: string;
 }
 
@@ -134,7 +137,7 @@ interface TocData {
  * Build TOC page as HTML with proper fonts
  */
 function buildTocHtml(toc: TocData, firstLanguage: "en" | "ja"): string {
-  const { title, titleJa, clientName, date, dateJa } = toc;
+  const { title, titleJa, clientNameEn, clientNameJa, dateEn, dateJa } = toc;
 
   // eSolia logo SVG
   const logoSvg = `<svg width="160" height="59" viewBox="0 0 531 195" xmlns="http://www.w3.org/2000/svg">
@@ -155,15 +158,22 @@ function buildTocHtml(toc: TocData, firstLanguage: "en" | "ja"): string {
     </g>
   </svg>`;
 
-  const tocEntries = firstLanguage === "en"
-    ? [
-        { label: "English Version", labelJa: "英語版" },
-        { label: "Japanese Version", labelJa: "日本語版" },
-      ]
-    : [
-        { label: "Japanese Version", labelJa: "日本語版" },
-        { label: "English Version", labelJa: "英語版" },
-      ];
+  // Build TOC entries with language-specific details
+  const enEntry = {
+    label: "English Version",
+    labelJa: "英語版",
+    preparedFor: clientNameEn ? `Prepared for: ${clientNameEn}` : '',
+    date: `Date: ${dateEn}`,
+  };
+
+  const jaEntry = {
+    label: "日本語版",
+    labelJa: "Japanese Version",
+    preparedFor: clientNameJa ? `宛先: ${clientNameJa}` : '',
+    date: `日付: ${dateJa || dateEn}`,
+  };
+
+  const tocEntries = firstLanguage === "en" ? [enEntry, jaEntry] : [jaEntry, enEntry];
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -201,33 +211,34 @@ function buildTocHtml(toc: TocData, firstLanguage: "en" | "ja"): string {
     .divider {
       height: 3px;
       background: #FFBC68;
-      margin-bottom: 30px;
-    }
-    .meta {
-      font-size: 14px;
-      color: #666;
-      margin-bottom: 8px;
+      margin-bottom: 40px;
     }
     .toc-header {
       font-size: 18px;
       font-weight: 600;
       color: #2D2F63;
-      margin-top: 50px;
       margin-bottom: 8px;
     }
     .toc-header-ja {
       font-size: 14px;
       color: #4a4c7a;
-      margin-bottom: 30px;
+      margin-bottom: 24px;
     }
     .toc-entry {
+      padding: 16px 20px;
+      margin-bottom: 12px;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      background: #fafafa;
+    }
+    .toc-entry-header {
       display: flex;
       align-items: baseline;
-      padding: 12px 0;
-      border-bottom: 1px dotted #ddd;
+      margin-bottom: 8px;
     }
     .toc-label {
-      font-size: 16px;
+      font-size: 18px;
+      font-weight: 600;
       color: #2D2F63;
     }
     .toc-label-ja {
@@ -235,7 +246,14 @@ function buildTocHtml(toc: TocData, firstLanguage: "en" | "ja"): string {
       color: #666;
       margin-left: 12px;
     }
-    .spacer { flex: 1; }
+    .toc-details {
+      font-size: 13px;
+      color: #666;
+      line-height: 1.5;
+    }
+    .toc-details span {
+      display: block;
+    }
     .footer {
       margin-top: auto;
       padding-top: 40px;
@@ -254,17 +272,19 @@ function buildTocHtml(toc: TocData, firstLanguage: "en" | "ja"): string {
 
   <div class="divider"></div>
 
-  ${clientName ? `<div class="meta">Prepared for / 宛先: <strong>${clientName}</strong></div>` : ''}
-  <div class="meta">Date / 日付: ${date}${dateJa ? ` (${dateJa})` : ''}</div>
-
   <div class="toc-header">Table of Contents</div>
   <div class="toc-header-ja">目次</div>
 
   ${tocEntries.map(entry => `
     <div class="toc-entry">
-      <span class="toc-label">${entry.label}</span>
-      <span class="toc-label-ja">${entry.labelJa}</span>
-      <span class="spacer"></span>
+      <div class="toc-entry-header">
+        <span class="toc-label">${entry.label}</span>
+        <span class="toc-label-ja">${entry.labelJa}</span>
+      </div>
+      <div class="toc-details">
+        ${entry.preparedFor ? `<span>${entry.preparedFor}</span>` : ''}
+        <span>${entry.date}</span>
+      </div>
     </div>
   `).join('')}
 
@@ -281,6 +301,7 @@ interface TocLinkOptions {
   secondLangPageIndex: number;
   firstEntryY: number;
   secondEntryY: number;
+  entryHeight: number;
   width: number;
   margin: number;
 }
@@ -295,6 +316,7 @@ function addTocLinks(pdf: PDFDocument, opts: TocLinkOptions): void {
     secondLangPageIndex,
     firstEntryY,
     secondEntryY,
+    entryHeight,
     width,
     margin,
   } = opts;
@@ -323,8 +345,9 @@ function addTocLinks(pdf: PDFDocument, opts: TocLinkOptions): void {
       D: destArray,
     });
 
-    // Create link annotation dictionary with action
-    const rect = [margin, y - 15, width - margin, y + 25];
+    // Create link annotation rectangle covering the card entry
+    const halfHeight = entryHeight / 2;
+    const rect = [margin, y - halfHeight, width - margin, y + halfHeight];
 
     return context.obj({
       Type: PDFName.of("Annot"),

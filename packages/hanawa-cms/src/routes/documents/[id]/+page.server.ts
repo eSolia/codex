@@ -710,8 +710,9 @@ export const actions: Actions = {
             toc: {
               title: proposal.title,
               titleJa: proposal.title_ja,
-              clientName: [proposal.contact_name, proposal.client_name].filter(Boolean).join(', ') || undefined,
-              date: dateFormattedEn,
+              clientNameEn: [proposal.contact_name, proposal.client_name].filter(Boolean).join(', ') || undefined,
+              clientNameJa: [proposal.contact_name_ja || proposal.contact_name, proposal.client_name_ja || proposal.client_name].filter(Boolean).join(', ') || undefined,
+              dateEn: dateFormattedEn,
               dateJa: dateFormattedJa,
             },
             options: {

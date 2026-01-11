@@ -131,11 +131,13 @@ export interface BilingualPdfRequest {
     title: string;
     /** Japanese title */
     titleJa?: string;
-    /** Client/company name */
-    clientName?: string;
-    /** Date string */
-    date: string;
-    /** Date string in Japanese format */
+    /** Client/company name (English) */
+    clientNameEn?: string;
+    /** Client/company name (Japanese) */
+    clientNameJa?: string;
+    /** Date string (English format) */
+    dateEn: string;
+    /** Date string (Japanese format) */
     dateJa?: string;
   };
 
