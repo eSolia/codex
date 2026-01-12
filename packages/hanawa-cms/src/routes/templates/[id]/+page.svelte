@@ -71,15 +71,6 @@
 
   const fragmentsJson = $derived(JSON.stringify(fragments));
 
-  // Show success message when form action succeeds
-  $effect(() => {
-    if (form?.success && form?.message) {
-      saveMessage = form.message;
-      setTimeout(() => {
-        saveMessage = null;
-      }, 3000);
-    }
-  });
 
   // Build fragment lookup map
   const fragmentMap = $derived(new Map(availableFragments.map((f) => [f.id, f])));
@@ -240,7 +231,21 @@
     </div>
   {/if}
 
-  <form method="POST" action="?/update" use:enhance class="space-y-6">
+  <form method="POST" action="?/update" use:enhance={() => {
+    return async ({ result, update }) => {
+      if (result.type === 'success') {
+        // Show success message without resetting form state
+        saveMessage = result.data?.message || 'Template updated';
+        setTimeout(() => {
+          saveMessage = null;
+        }, 3000);
+        // Don't call update() - preserve current form values
+      } else {
+        // For errors, use default behavior
+        await update();
+      }
+    };
+  }} class="space-y-6">
     <!-- Hidden fields -->
     <input type="hidden" name="fragments" value={fragmentsJson} />
     <input type="hidden" name="is_default" value={isDefault.toString()} />
