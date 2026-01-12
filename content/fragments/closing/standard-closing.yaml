@@ -1,5 +1,5 @@
 # Standard Closing Fragment
-# Thank you and contact information
+# Thank you message - use with esolia-contact fragment for contact info
 
 id: standard-closing
 title:
@@ -7,7 +7,7 @@ title:
   ja: "最後に"
 type: closing
 category: closing
-tags: ["closing", "thank-you", "contact"]
+tags: ["all-clients", "closing", "thank-you"]
 versions:
   current: "2025-01"
 
@@ -19,14 +19,6 @@ content:
 
     Please contact us anytime with questions or to discuss next steps.
 
-    ---
-
-    **Contact Information**
-
-    Tel: 03-4577-3380
-    Email: info@esolia.co.jp
-    Web: https://esolia.co.jp/en
-
   ja: |
     ## 最後に
 
@@ -34,17 +26,9 @@ content:
 
     ご質問や次のステップについては、いつでもお気軽にお問い合わせください。
 
-    ---
-
-    **お問い合わせ**
-
-    Tel: 03-4577-3380
-    Email: info@esolia.co.jp
-    Web: https://esolia.co.jp
-
 metadata:
-  last_updated: "2025-01-08"
+  last_updated: "2025-01-12"
   author: "eSolia Technical Team"
   usage_notes: |
     Standard closing for all proposals.
-    Always include contact information.
+    Use with esolia-contact fragment for contact details.
