@@ -53,6 +53,9 @@
   // Dirty tracking
   let isDirty = $state(false);
 
+  // Success message state (for preserving form values after save)
+  let saveMessage = $state<string | null>(null);
+
   function markDirty() {
     isDirty = true;
   }
@@ -137,9 +140,9 @@
   </div>
 
   <!-- Form Messages -->
-  {#if form?.success}
+  {#if saveMessage}
     <div class="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg text-green-800">
-      {form.published ? 'Content published successfully!' : 'Content saved successfully!'}
+      {saveMessage}
     </div>
   {/if}
   {#if form?.message}
@@ -153,10 +156,20 @@
     action="?/save"
     use:enhance={() => {
       isSaving = true;
-      return async ({ update }) => {
+      return async ({ result, update }) => {
         isSaving = false;
         isDirty = false;
-        await update();
+        if (result.type === 'success') {
+          // Show success message without resetting form state
+          const data = result.data as { published?: boolean } | undefined;
+          saveMessage = data?.published ? 'Content published successfully!' : 'Content saved successfully!';
+          setTimeout(() => {
+            saveMessage = null;
+          }, 3000);
+          // Don't call update() - preserve current form values
+        } else {
+          await update();
+        }
       };
     }}
   >
