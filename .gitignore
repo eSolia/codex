@@ -34,4 +34,4 @@ content/diagrams/*.svg
 .vscode/
 *.swp
 *.swo
-diagrams/
+/diagrams/
