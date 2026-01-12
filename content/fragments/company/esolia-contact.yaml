@@ -16,20 +16,16 @@ content:
     ## Contact Us
 
     **eSolia Inc.**
-    Shiodome City Center 5F
+    Shiodome City Center 5F (Workstyling)
     1-5-2 Higashi-Shimbashi, Minato-ku
     Tokyo 105-7105, Japan
 
     | | |
     |---|---|
     | **Phone** | 03-4577-3380 |
-    | **Email** | info@esolia.co.jp |
+    | **Email** | hello@esolia.co.jp |
     | **Web** | https://esolia.co.jp/en |
     | **Hours** | Monday-Friday, 9:00-18:00 JST |
-
-    ### After Hours Support
-
-    For contracted clients with after-hours support coverage, emergency contact details are provided separately.
 
   ja: |
     ## お問い合わせ
@@ -37,22 +33,18 @@ content:
     **株式会社イソリア**
     〒105-7105
     東京都港区東新橋1-5-2
-    汐留シティセンター5階
+    汐留シティセンター5階 (Workstyling)
 
     | | |
     |---|---|
     | **電話** | 03-4577-3380 |
-    | **メール** | info@esolia.co.jp |
+    | **メール** | hello@esolia.co.jp |
     | **Web** | https://esolia.co.jp |
     | **営業時間** | 月〜金、9:00〜18:00 |
 
-    ### 営業時間外サポート
-
-    営業時間外サポート契約をお持ちのお客様には、緊急連絡先を別途ご案内しております。
-
 metadata:
-  last_updated: "2025-01-08"
+  last_updated: "2025-01-12"
   author: "eSolia Technical Team"
   usage_notes: |
     Official eSolia contact information.
-    Updated phone number as of 2025.
+    After-hours support info moved to esolia-after-hours-support fragment.
