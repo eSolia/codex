@@ -1,0 +1,104 @@
+# M365 Security Essentials Pricing & Timeline Fragment
+# Separate from main service description for easy updates
+
+id: m365-security-essentials-pricing
+title:
+  en: "M365 Security Essentials - Timeline & Pricing"
+  ja: "M365 セキュリティ・エッセンシャルズ - スケジュール・料金"
+type: pricing-table
+category: services
+tags: ["m365", "security", "cloudflare", "pricing", "timeline", "smb"]
+versions:
+  current: "2025-01"
+  history:
+    - version: "2025-01"
+      changes: "Initial version"
+
+content:
+  en: |
+    ## Implementation Timeline
+
+    ```
+    Week 1: Foundation
+    ├── M365 admin account hardening
+    ├── MFA enrollment (all users)
+    ├── Defender for Office 365 configuration
+    └── DNS zone audit and Cloudflare preparation
+
+    Week 2: Email & DNS
+    ├── Cloudflare DNS migration (coordinated cutover)
+    ├── SPF/DKIM configuration
+    ├── DMARC p=none deployment
+    └── Periodic monitoring setup
+
+    Week 3: Zero Trust & Validation
+    ├── Cloudflare Zero Trust policies
+    ├── WARP client deployment
+    ├── Full security validation
+    └── User documentation and training
+    ```
+
+    ---
+
+    ## Pricing
+
+    | Component | One-Time Setup | Annual Recurring |
+    |-----------|---------------|------------------|
+    | M365 Business Premium (10 users) | — | ¥400,000* |
+    | M365 Business Premium Hardening | ¥150,000 | — |
+    | Cloudflare Pro + DNS Migration | ¥100,000 | ¥100,000 |
+    | Email Security (SPF/DKIM/DMARC) | ¥80,000 | — |
+    | Cloudflare Zero Trust (Basic) | ¥120,000 | ¥0** |
+    | Periodic Monitoring (first domain) | — | ¥20,000 |
+    | **Total** | **¥450,000** | **¥520,000** |
+
+    *\* M365 Business Premium subscription*
+    *\*\* Cloudflare Zero Trust free tier for up to 50 users*
+
+  ja: |
+    ## 導入スケジュール
+
+    ```
+    第1週: 基盤構築
+    ├── M365管理者アカウントの強化
+    ├── MFA登録（全ユーザー）
+    ├── Defender for Office 365の設定
+    └── DNSゾーン監査とCloudflare準備
+
+    第2週: メール & DNS
+    ├── Cloudflare DNS移行（調整された切り替え）
+    ├── SPF/DKIM設定
+    ├── DMARC p=none展開
+    └── Periodic監視のセットアップ
+
+    第3週: Zero Trust & 検証
+    ├── Cloudflare Zero Trustポリシー
+    ├── WARPクライアント展開
+    ├── 完全なセキュリティ検証
+    └── ユーザードキュメントとトレーニング
+    ```
+
+    ---
+
+    ## 料金
+
+    | コンポーネント | 初期設定費用 | 年額費用 |
+    |---------------|-------------|----------|
+    | M365 Business Premium（10ユーザー） | — | ¥400,000* |
+    | M365 Business Premiumセキュリティ強化 | ¥150,000 | — |
+    | Cloudflare Pro + DNS移行 | ¥100,000 | ¥100,000 |
+    | メールセキュリティ（SPF/DKIM/DMARC） | ¥80,000 | — |
+    | Cloudflare Zero Trust（基本） | ¥120,000 | ¥0** |
+    | Periodic監視（最初のドメイン） | — | ¥20,000 |
+    | **合計** | **¥450,000** | **¥520,000** |
+
+    *\* M365 Business Premiumサブスクリプション*
+    *\*\* Cloudflare Zero Trust無料枠（50ユーザーまで）*
+
+metadata:
+  last_updated: "2025-01-15"
+  author: "eSolia Technical Team"
+  usage_notes: |
+    Timeline and pricing for M365 Security Essentials package.
+    Update this fragment when pricing changes - keeps main service description stable.
+    Pair with m365-security-essentials fragment for complete proposal.
