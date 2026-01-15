@@ -36,6 +36,24 @@ function markdownToHtml(markdown: string, imageResolver?: Map<string, string>): 
     return processed;
   }
 
+  // Handle fenced code blocks FIRST (before any other processing)
+  // Preserves content exactly as-is, prevents other rules from mangling code
+  html = html.replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) => {
+    // Escape HTML entities in code content
+    const escapedCode = code
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .trimEnd();
+    const langClass = lang ? ` class="language-${lang}"` : '';
+    return `<pre><code${langClass}>${escapedCode}</code></pre>`;
+  });
+
+  // Handle page break markers
+  // Syntax: <!-- pagebreak --> or :::pagebreak
+  html = html.replace(/<!--\s*pagebreak\s*-->/gi, '<div class="page-break"></div>');
+  html = html.replace(/^:::pagebreak\s*$/gm, '<div class="page-break"></div>');
+
   // Handle images BEFORE escaping (images need their URLs intact)
   // Replace markdown images with HTML img tags
   // For /api/diagrams/* URLs, use resolved inline SVG if available
@@ -66,6 +84,10 @@ function markdownToHtml(markdown: string, imageResolver?: Map<string, string>): 
   html = html.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
   html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
   html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+
+  // Inline code (single backticks, but not inside <pre> blocks)
+  // Match `code` but avoid matching inside already-processed <pre><code> blocks
+  html = html.replace(/`([^`\n]+)`/g, '<code>$1</code>');
 
   // Links (after images, so we don't double-process)
   html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
@@ -129,7 +151,8 @@ function markdownToHtml(markdown: string, imageResolver?: Map<string, string>): 
         trimmed.startsWith('<ol') ||
         trimmed.startsWith('<table') ||
         trimmed.startsWith('<hr') ||
-        trimmed.startsWith('<div')
+        trimmed.startsWith('<div') ||
+        trimmed.startsWith('<pre')
       ) {
         return trimmed;
       }
@@ -601,7 +624,7 @@ export const actions: Actions = {
       const fontLinks = `
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+JP:wght@400;500;600;700&display=block" rel="stylesheet">`;
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+JP:wght@400;500;600;700&display=block" rel="stylesheet">`;
 
       // Shared CSS styles for all PDFs
       // A4 is 210mm x 297mm, with 12mm margins = 186mm content width
@@ -634,6 +657,12 @@ export const actions: Actions = {
     strong { color: #2D2F63; }
     hr { border: none; border-top: 1px solid #ddd; margin: 1em 0; }
     a { color: #2D2F63; }
+    /* Code styling */
+    code { font-family: 'IBM Plex Mono', monospace; font-size: 0.9em; background-color: #f5f5f5; padding: 2px 5px; border-radius: 3px; }
+    pre { background-color: #f5f5f5; border: 1px solid #ddd; border-radius: 4px; padding: 12px; overflow-x: auto; margin: 0.8em 0; page-break-inside: avoid; }
+    pre code { background-color: transparent; padding: 0; border-radius: 0; font-size: 9pt; line-height: 1.4; display: block; white-space: pre-wrap; word-wrap: break-word; }
+    /* Page break support */
+    .page-break { page-break-before: always; break-before: page; height: 0; margin: 0; padding: 0; }
     .logo { margin-bottom: 20px; }
     .header { margin-bottom: 25px; }
     .client-name { font-size: 1.05em; color: #666; margin-top: 8px; }
