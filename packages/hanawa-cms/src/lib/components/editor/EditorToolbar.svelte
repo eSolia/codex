@@ -92,6 +92,11 @@
     editor.chain().focus().insertMermaid().run();
   }
 
+  function insertPageBreak() {
+    // Insert a page break marker that the PDF renderer recognizes
+    editor.chain().focus().insertContent('<p><!-- pagebreak --></p>').run();
+  }
+
   // Button component helper
   function buttonClass(active: boolean): string {
     return `p-2 rounded hover:bg-gray-100 ${active ? 'bg-gray-200 text-esolia-navy' : 'text-gray-600'}`;
@@ -363,6 +368,18 @@
           stroke-width="1.5"
           fill="none"
         />
+      </svg>
+    </button>
+
+    <button
+      type="button"
+      class="p-2 rounded hover:bg-gray-100 text-gray-600"
+      onclick={insertPageBreak}
+      title="Insert Page Break (PDF only)"
+    >
+      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+        <path d="M4 4h16v6H4zm0 10h16v6H4z" opacity="0.3" />
+        <path d="M2 11h20v2H2z" />
       </svg>
     </button>
   </div>

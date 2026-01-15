@@ -156,6 +156,21 @@ const slashCommands: SlashCommandItem[] = [
     },
   },
   {
+    title: 'Page Break',
+    description: 'Force new page in PDF',
+    icon: '📄',
+    keywords: ['page', 'break', 'newpage', 'pagebreak'],
+    command: ({ editor, range }) => {
+      // Insert a div marker that the PDF renderer recognizes
+      editor
+        .chain()
+        .focus()
+        .deleteRange(range)
+        .insertContent('<p><!-- pagebreak --></p>')
+        .run();
+    },
+  },
+  {
     title: 'Table',
     description: 'Insert a table',
     icon: '📋',

@@ -1,43 +1,8 @@
 -- Auto-generated fragment import
--- Generated: 2026-01-09T22:53:08.661Z
+-- Generated: 2026-01-15T11:01:59.728Z
+-- Mode: SAFE (skips existing)
 
--- Clear existing fragments (optional - comment out to preserve)
--- DELETE FROM fragments;
-
-INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
-VALUES (
-  'esolia-contact',
-  NULL,
-  'eSolia Contact Information',
-  'esolia-contact',
-  'boilerplate',
-  '**eSolia Inc.**
-Shiodome City Center 5F (Work Styling)
-1-5-2 Higashi-Shimbashi, Minato-ku
-Tokyo 105-7105, Japan
-
-**Tel:** +81-3-4577-3380
-**Web:** https://esolia.co.jp/en
-**Email:** hello@esolia.co.jp
-',
-  '**株式会社イソリア**
-〒105-7105　東京都港区東新橋一丁目５番２号
-汐留シティセンター５階（Work Styling）
-
-**Tel (代表):** +81-3-4577-3380
-**Web:** https://esolia.co.jp
-**Email:** hello@esolia.co.jp
-',
-  '',
-  '["contact","esolia","company-info"]',
-  '1.0',
-  'active',
-  1,
-  'en',
-  '["en", "ja"]'
-);
-
-INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR IGNORE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'continuous-monitoring',
   NULL,
@@ -114,7 +79,7 @@ All monitoring is managed by eSolia''s security team, with regular reviews and r
 - インシデント後の分析とレポート
 - 教訓のフィードバック統合
 
-すべての監視はeSOLIAのセキュリティチームが管理し、定期的なレビューと改善提案を提供します。
+すべての監視はeSoliaのセキュリティチームが管理し、定期的なレビューと改善提案を提供します。
 ',
   '',
   '["security","monitoring","compliance"]',
@@ -125,7 +90,7 @@ All monitoring is managed by eSolia''s security team, with regular reviews and r
   '["en", "ja"]'
 );
 
-INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR IGNORE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'dns-email-reliability',
   NULL,
@@ -219,7 +184,7 @@ All monitoring runs continuously with immediate notification when issues are det
   '["en", "ja"]'
 );
 
-INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR IGNORE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'infrastructure-management',
   NULL,
@@ -296,7 +261,7 @@ eSolia provides transparent reporting on all managed infrastructure, with regula
 - 変更管理の追跡
 - チームへのナレッジ移転
 
-eSOLIAはすべてのマネージドインフラストラクチャについて透明性のあるレポートを提供し、ビジネスニーズとの整合性を確保するための定期的なレビューを実施します。
+eSoliaはすべてのマネージドインフラストラクチャについて透明性のあるレポートを提供し、ビジネスニーズとの整合性を確保するための定期的なレビューを実施します。
 ',
   '',
   '["infrastructure","management","cloud"]',
@@ -307,7 +272,7 @@ eSOLIAはすべてのマネージドインフラストラクチャについて�
   '["en", "ja"]'
 );
 
-INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR IGNORE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'modern-web-development',
   NULL,
@@ -395,7 +360,7 @@ All development follows security best practices, with code review and testing as
   '["en", "ja"]'
 );
 
-INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR IGNORE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'secure-hosting',
   NULL,
@@ -404,7 +369,7 @@ VALUES (
   'capabilities',
   '## Secure, Globally Distributed Hosting
 
-Your application runs on enterprise-grade infrastructure designed for security, performance, and reliability:
+Your website or application runs on enterprise-grade infrastructure designed for security, performance, and reliability:
 
 **Global Edge Network**
 - Content delivered from data centers worldwide
@@ -431,7 +396,7 @@ All infrastructure is fully managed by eSolia, with 24/7 monitoring and incident
 ',
   '## セキュアでグローバルに分散されたホスティング
 
-お客様のアプリケーションは、セキュリティ、パフォーマンス、信頼性を重視したエンタープライズグレードのインフラストラクチャで稼働します：
+お客様のウェブサイトまたはアプリケーションは、セキュリティ、パフォーマンス、信頼性を重視したエンタープライズグレードのインフラストラクチャで稼働します：
 
 **グローバルエッジネットワーク**
 - 世界中のデータセンターからコンテンツを配信
@@ -454,7 +419,7 @@ All infrastructure is fully managed by eSolia, with 24/7 monitoring and incident
 - GDPR準拠のデータ取り扱い
 - 定期的なセキュリティ監査とペネトレーションテスト
 
-すべてのインフラストラクチャはeSOLIAが完全に管理し、24時間365日の監視とインシデント対応を提供します。
+すべてのインフラストラクチャはeSoliaが完全に管理し、24時間365日の監視とインシデント対応を提供します。
 ',
   '',
   '["hosting","security","infrastructure"]',
@@ -465,7 +430,7 @@ All infrastructure is fully managed by eSolia, with 24/7 monitoring and incident
   '["en", "ja"]'
 );
 
-INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR IGNORE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'call-to-action',
   NULL,
@@ -507,7 +472,7 @@ We respond to all inquiries within one business day.
   'Strong call-to-action for proposals.
 Use when you want to encourage immediate engagement.
 ',
-  '["closing","cta","engagement"]',
+  '["all-clients","closing","cta","engagement"]',
   '2025-01',
   'active',
   1,
@@ -515,7 +480,7 @@ Use when you want to encourage immediate engagement.
   '["en", "ja"]'
 );
 
-INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR IGNORE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'next-steps',
   NULL,
@@ -561,7 +526,7 @@ We are flexible and can adjust scope and terms based on your feedback.
   'Standard next steps section for all proposals.
 Customize timeline based on engagement complexity.
 ',
-  '["closing","next-steps","workflow","onboarding"]',
+  '["all-clients","closing","next-steps","workflow","onboarding"]',
   '2025-01',
   'active',
   1,
@@ -569,7 +534,7 @@ Customize timeline based on engagement complexity.
   '["en", "ja"]'
 );
 
-INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR IGNORE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'standard-closing',
   NULL,
@@ -581,33 +546,17 @@ VALUES (
 Thank you for considering our services. We look forward to supporting your needs and building a successful partnership.
 
 Please contact us anytime with questions or to discuss next steps.
-
----
-
-**Contact Information**
-
-Tel: 03-4577-3380
-Email: info@esolia.co.jp
-Web: https://esolia.co.jp/en
 ',
   '## 最後に
 
 当社サービスをご検討いただきありがとうございます。お客様のニーズをサポートし、成功するパートナーシップを築けることを楽しみにしております。
 
 ご質問や次のステップについては、いつでもお気軽にお問い合わせください。
-
----
-
-**お問い合わせ**
-
-Tel: 03-4577-3380
-Email: info@esolia.co.jp
-Web: https://esolia.co.jp
 ',
   'Standard closing for all proposals.
-Always include contact information.
+Use with esolia-contact fragment for contact details.
 ',
-  '["closing","thank-you","contact"]',
+  '["all-clients","closing","thank-you"]',
   '2025-01',
   'active',
   1,
@@ -615,7 +564,7 @@ Always include contact information.
   '["en", "ja"]'
 );
 
-INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR IGNORE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'esolia-contact',
   NULL,
@@ -625,41 +574,33 @@ VALUES (
   '## Contact Us
 
 **eSolia Inc.**
-Shiodome City Center 5F
+Shiodome City Center 5F (Workstyling)
 1-5-2 Higashi-Shimbashi, Minato-ku
 Tokyo 105-7105, Japan
 
 | | |
 |---|---|
 | **Phone** | 03-4577-3380 |
-| **Email** | info@esolia.co.jp |
+| **Email** | hello@esolia.co.jp |
 | **Web** | https://esolia.co.jp/en |
 | **Hours** | Monday-Friday, 9:00-18:00 JST |
-
-### After Hours Support
-
-For contracted clients with after-hours support coverage, emergency contact details are provided separately.
 ',
   '## お問い合わせ
 
 **株式会社イソリア**
 〒105-7105
 東京都港区東新橋1-5-2
-汐留シティセンター5階
+汐留シティセンター5階 (Workstyling)
 
 | | |
 |---|---|
 | **電話** | 03-4577-3380 |
-| **メール** | info@esolia.co.jp |
+| **メール** | hello@esolia.co.jp |
 | **Web** | https://esolia.co.jp |
 | **営業時間** | 月〜金、9:00〜18:00 |
-
-### 営業時間外サポート
-
-営業時間外サポート契約をお持ちのお客様には、緊急連絡先を別途ご案内しております。
 ',
   'Official eSolia contact information.
-Updated phone number as of 2025.
+After-hours support info moved to esolia-after-hours-support fragment.
 ',
   '["company","contact","esolia"]',
   '2025-01',
@@ -669,7 +610,7 @@ Updated phone number as of 2025.
   '["en", "ja"]'
 );
 
-INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR IGNORE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'esolia-overview',
   NULL,
@@ -678,66 +619,94 @@ VALUES (
   'company',
   '## About eSolia
 
-**eSolia Inc.** is a Tokyo-based IT management and consulting firm founded in 1999. We serve as the "virtual IT department" for foreign-affiliated companies operating in Japan.
+**eSolia Inc.** is your B2B IT partner for professional services in Japan. Since 1999, our bilingual team has provided the full capabilities of a dedicated IT department, resolving Japan IT challenges for foreign-affiliated companies.
 
 ### At a Glance
 
 | | |
 |---|---|
-| **Founded** | 1999 |
-| **Location** | Shiodome, Tokyo |
-| **Team** | Bilingual professionals |
-| **Clients** | 50+ active accounts |
-| **Focus** | Foreign-affiliated companies in Japan |
+| **Founded** | 1999 (25+ years) |
+| **Location** | Shiodome City Center, Tokyo |
+| **Team** | Multilingual certified professionals |
+| **Approach** | Team-based, not temp staffing |
+| **Standards** | ISO 27001 compliant |
 
 ### What We Do
 
-- IT infrastructure management
-- Help desk and user support
-- Cloud and SaaS implementation
-- Security and compliance
-- Project management
+We bridge the gap between your headquarters and Japan operations, communicating effectively with both HQ and local teams while negotiating on your behalf with Japanese vendors.
 
-### Why Choose Us
+- **IT Support** — Remote and onsite support for your Japan business
+- **Project Management** — Practical PM ensuring Japan project success
+- **Helpdesk** — Bilingual helpdesk for your Japan team
+- **Security** — Information security and compliance
+- **Cloud & Infrastructure** — Design, implementation, and management
+- **Consulting** — Expert guidance for your IT strategy
 
-- **Bilingual** — All staff are fluent in Japanese and English
-- **Local expertise** — Deep knowledge of doing IT in Japan
-- **Vendor neutral** — We recommend what''s best, not what pays us most
-- **Responsive** — Fast response times with clear communication
+### Why eSolia
+
+| Strength | Description |
+|---|---|
+| **Expertise** | Multilingual certified professionals with real-world experience across IT disciplines |
+| **Secure & Private** | ISO 27001 standards prioritizing information security in all services and systems |
+| **Proven Track Record** | Over 25 years delivering IT solutions in Japan with focus on quality and satisfaction |
+| **Service Value** | Team-based approach—we work as a cohesive unit, not as individual contractors |
+| **Professionalism** | Highest standards of conduct, ethics, confidentiality, and continuous improvement |
+| **Tools & Techniques** | Well-developed support systems for documentation, communication, and service delivery |
+
+### By the Numbers
+
+- **60,000+** hours booked over 5 years
+- **3,000+** support tickets resolved annually
+- **2** professionals assigned per account
+- **100+** years combined management experience
 ',
   '## イソリアについて
 
-**株式会社イソリア**は、1999年設立の東京を拠点とするIT管理・コンサルティング企業です。日本で事業を展開する外資系企業の「バーチャルIT部門」として機能しています。
+**株式会社イソリア**は、日本における法人向け（B2B）ITサービスのパートナーです。1999年の設立以来、バイリンガルチームが専任IT部門と同等の機能を提供し、外資系企業の日本拠点におけるIT課題を解決してきました。
 
 ### 会社概要
 
 | | |
 |---|---|
-| **設立** | 1999年 |
-| **所在地** | 東京・汐留 |
-| **チーム** | バイリンガル専門家 |
-| **クライアント** | 50社以上のアクティブアカウント |
-| **対象** | 日本の外資系企業 |
+| **設立** | 1999年（25年以上の実績） |
+| **所在地** | 東京・汐留シティセンター |
+| **チーム** | 多言語対応の認定プロフェッショナル |
+| **アプローチ** | チーム制（人材派遣ではありません） |
+| **認証** | ISO 27001準拠 |
 
 ### 事業内容
 
-- ITインフラ管理
-- ヘルプデスクとユーザーサポート
-- クラウド・SaaS導入
-- セキュリティとコンプライアンス
-- プロジェクト管理
+海外本社と日本拠点の橋渡し役として、双方との円滑なコミュニケーションを実現し、日本のベンダーとの交渉も代行いたします。
 
-### 選ばれる理由
+- **ITサポート** — 日本拠点向けリモート・オンサイトサポート
+- **プロジェクト管理** — 日本でのプロジェクト成功を導く実践的なPM
+- **ヘルプデスク** — バイリンガル対応のヘルプデスク
+- **セキュリティ** — 情報セキュリティとコンプライアンス対応
+- **クラウド・インフラ** — 設計、導入、運用管理
+- **コンサルティング** — IT戦略の専門的アドバイス
 
-- **バイリンガル** — 全スタッフが日本語と英語に堪能
-- **現地の専門知識** — 日本でのIT運用に関する深い知識
-- **ベンダー中立** — 最も報酬の高いものではなく、最適なものを推奨
-- **迅速な対応** — 明確なコミュニケーションと素早い対応
+### イソリアが選ばれる理由
+
+| 強み | 説明 |
+|---|---|
+| **専門性** | IT分野全般で実務経験を持つ多言語対応の認定プロフェッショナル |
+| **セキュリティ** | ISO 27001に基づき、全サービス・システムで情報セキュリティを最優先 |
+| **実績** | 25年以上にわたり日本でITソリューションを提供、品質と顧客満足を重視 |
+| **サービス価値** | チーム制で一丸となって対応—個人派遣ではありません |
+| **プロ意識** | 最高水準の行動規範、倫理観、機密保持、継続的改善 |
+| **ツールと手法** | ドキュメント、コミュニケーション、サービス提供のための確立された仕組み |
+
+### 実績データ
+
+- **60,000時間以上** — 過去5年間の稼働時間
+- **3,000件以上** — 年間サポートチケット解決数
+- **2名体制** — アカウントあたりの担当者数
+- **100年以上** — マネジメントチームの合計経験年数
 ',
-  'Standard company overview.
+  'Standard company overview aligned with esolia.co.jp website messaging.
 Use in proposals and introductory materials.
 ',
-  '["company","about","esolia","overview"]',
+  '["company","about","esolia","overview","b2b","it-partner"]',
   '2025-01',
   'active',
   1,
@@ -745,7 +714,7 @@ Use in proposals and introductory materials.
   '["en", "ja"]'
 );
 
-INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR IGNORE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'cloudflare-security-layers',
   NULL,
@@ -770,7 +739,7 @@ team works securely from anywhere—home, serviced office, or a hotel or café.
   '["en", "ja"]'
 );
 
-INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR IGNORE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'cloudflare-three-layers',
   NULL,
@@ -795,7 +764,7 @@ for your online presence, and encrypted tunnels for secure remote access.
   '["en", "ja"]'
 );
 
-INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR IGNORE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'esolia-cloudflare-m365-smb-security-coverage-ja',
   NULL,
@@ -817,7 +786,7 @@ Diagram: Esolia Cloudflare M365 Smb Security Coverage Ja',
   '["en", "ja"]'
 );
 
-INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR IGNORE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'esolia-m365-components-en',
   NULL,
@@ -839,7 +808,7 @@ Diagram: Esolia M365 Components En',
   '["en", "ja"]'
 );
 
-INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR IGNORE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'esolia-m365-components-ja',
   NULL,
@@ -861,7 +830,7 @@ Diagram: Esolia M365 Components Ja',
   '["en", "ja"]'
 );
 
-INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR IGNORE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'fiber-path-diagram_1',
   NULL,
@@ -883,7 +852,7 @@ Diagram: Fiber Path Diagram 1',
   '["en", "ja"]'
 );
 
-INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR IGNORE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'cloudflare-security-platform',
   NULL,
@@ -933,7 +902,7 @@ DDoS保護との組み合わせ。高速、安全、グローバルに分散さ�
   '["en", "ja"]'
 );
 
-INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR IGNORE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'm365-business-premium',
   NULL,
@@ -988,7 +957,7 @@ PowerPoint、Outlookの永続デスクトップ版が含まれています。ノ
   '["en", "ja"]'
 );
 
-INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR IGNORE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'esolia-agreement-characteristics',
   NULL,
@@ -1054,7 +1023,7 @@ Greater commitment means better rates:
   'Standard terms section for all proposals.
 Specific rates in client-specific offer section.
 ',
-  '["proposal","agreement","billing","terms"]',
+  '["initial-client","proposal","agreement","billing","terms"]',
   '2025-12',
   'active',
   1,
@@ -1062,7 +1031,7 @@ Specific rates in client-specific offer section.
   '["en", "ja"]'
 );
 
-INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR IGNORE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'esolia-background',
   NULL,
@@ -1122,7 +1091,7 @@ We adjust emphasis across these areas based on your specific requirements.
   'Explains eSolia''s team approach and focus areas.
 Aligned with 2025 website messaging.
 ',
-  '["proposal","background","approach"]',
+  '["initial-client","proposal","background","approach"]',
   '2025-12',
   'active',
   1,
@@ -1130,7 +1099,7 @@ Aligned with 2025 website messaging.
   '["en", "ja"]'
 );
 
-INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR IGNORE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'esolia-closing',
   NULL,
@@ -1156,7 +1125,7 @@ Please contact us anytime with questions.
 **eSolia Inc.**
 
 Tel: 03-4577-3380
-Email: info@esolia.co.jp
+Email: hello@esolia.co.jp
 Web: https://esolia.co.jp/en
 ',
   '## 次のステップ
@@ -1178,21 +1147,21 @@ Web: https://esolia.co.jp/en
 **株式会社イソリア**
 
 Tel: 03-4577-3380
-Email: info@esolia.co.jp
+Email: hello@esolia.co.jp
 Web: https://esolia.co.jp
 ',
   'Standard closing for all proposals.
-Updated phone number as of 2025.
+Use with esolia-contact fragment for full contact info.
 ',
-  '["proposal","closing","next-steps"]',
-  '2025-12',
+  '["proposal","closing","next-steps","all-clients"]',
+  '2025-01',
   'active',
   1,
   'en',
   '["en", "ja"]'
 );
 
-INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR IGNORE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'esolia-introduction',
   NULL,
@@ -1237,7 +1206,7 @@ Thank you for the opportunity to present this proposal.
 Should appear after the cover page and table of contents.
 B2B focused messaging aligned with 2025 website content.
 ',
-  '["proposal","introduction","B2B"]',
+  '["initial-client","proposal","introduction","B2B"]',
   '2025-12',
   'active',
   1,
@@ -1245,7 +1214,7 @@ B2B focused messaging aligned with 2025 website content.
   '["en", "ja"]'
 );
 
-INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR IGNORE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'esolia-profile',
   NULL,
@@ -1257,7 +1226,7 @@ VALUES (
 | | |
 |---|---|
 | **Company** | eSolia Inc. (株式会社イソリア) |
-| **Headquarters** | Shiodome City Center 5F, Tokyo |
+| **Headquarters** | Shiodome City Center 5F (Workstyling), Tokyo |
 | **Established** | July 7, 1999 |
 | **Leadership** | James R. Cogley (CEO), Takumi Fukuoka (COO) |
 | **Website** | https://esolia.co.jp/en |
@@ -1310,7 +1279,7 @@ For detailed company information, capability statement, and code of conduct, ple
 Directs readers to website for full company details.
 Update headquarters address if office moves.
 ',
-  '["proposal","profile","company-info"]',
+  '["initial-client","proposal","profile","company-info"]',
   '2025-12',
   'active',
   1,
@@ -1318,7 +1287,7 @@ Update headquarters address if office moves.
   '["en", "ja"]'
 );
 
-INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR IGNORE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'esolia-project-types',
   NULL,
@@ -1392,7 +1361,7 @@ For detailed success stories, visit: **https://esolia.co.jp/en/success/**
   'Condensed track record for proposals.
 Directs to website for detailed success stories.
 ',
-  '["proposal","projects","experience"]',
+  '["initial-client","proposal","projects","experience"]',
   '2025-12',
   'active',
   1,
@@ -1400,7 +1369,7 @@ Directs to website for detailed success stories.
   '["en", "ja"]'
 );
 
-INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR IGNORE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'esolia-service-mechanics',
   NULL,
@@ -1478,7 +1447,7 @@ VALUES (
   'Standard service mechanics section.
 Specific SLA terms in client-specific section.
 ',
-  '["proposal","service","support"]',
+  '["all-clients","proposal","service","support"]',
   '2025-12',
   'active',
   1,
@@ -1486,7 +1455,7 @@ Specific SLA terms in client-specific section.
   '["en", "ja"]'
 );
 
-INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR IGNORE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'esolia-support-types',
   NULL,
@@ -1559,7 +1528,7 @@ Flexible support for organizations with existing IT staff:
 ',
   'Use when explaining support model options.
 ',
-  '["proposal","support","totalsupport","co-support"]',
+  '["all-clients","proposal","support","totalsupport","co-support"]',
   '2025-12',
   'active',
   1,
@@ -1567,7 +1536,451 @@ Flexible support for organizations with existing IT staff:
   '["en", "ja"]'
 );
 
-INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR IGNORE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+VALUES (
+  'esolia-after-hours-support',
+  NULL,
+  'After Hours Support',
+  'esolia-after-hours-support',
+  'services',
+  '## After Hours Support
+
+For contracted clients with after-hours support coverage, emergency contact details are provided separately through your dedicated support channel.
+
+Our after-hours support ensures critical issues are addressed outside regular business hours, providing peace of mind for your Japan operations.
+',
+  '## 営業時間外サポート
+
+営業時間外サポート契約をお持ちのお客様には、専用サポートチャネルを通じて緊急連絡先を別途ご案内しております。
+
+営業時間外サポートにより、通常営業時間外でも重要な問題に対応し、日本拠点の安定運用をサポートいたします。
+',
+  'Use for proposals to EXISTING clients who have or may want after-hours support.
+Not needed for new client proposals where this detail is premature.
+',
+  '["repeat-client","support","after-hours","existing-clients","emergency"]',
+  '2025-01',
+  'active',
+  1,
+  'en',
+  '["en", "ja"]'
+);
+
+INSERT OR IGNORE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+VALUES (
+  'm365-security-essentials-pricing',
+  NULL,
+  'M365 Security Essentials - Timeline & Pricing',
+  'm365-security-essentials-pricing',
+  'services',
+  '## Implementation Timeline
+
+```
+Week 1: Foundation
+├── M365 admin account hardening
+├── MFA enrollment (all users)
+├── Defender for Office 365 configuration
+└── DNS zone audit and Cloudflare preparation
+
+Week 2: Email & DNS
+├── Cloudflare DNS migration (coordinated cutover)
+├── SPF/DKIM configuration
+├── DMARC p=none deployment
+└── Periodic monitoring setup
+
+Week 3: Zero Trust & Validation
+├── Cloudflare Zero Trust policies
+├── WARP client deployment
+├── Full security validation
+└── User documentation and training
+```
+
+---
+
+## Pricing
+
+| Component | One-Time Setup | Annual Recurring |
+|-----------|---------------|------------------|
+| M365 Business Premium (10 users) | — | ¥400,000* |
+| M365 Business Premium Hardening | ¥150,000 | — |
+| Cloudflare Pro + DNS Migration | ¥100,000 | ¥100,000 |
+| Email Security (SPF/DKIM/DMARC) | ¥80,000 | — |
+| Cloudflare Zero Trust (Basic) | ¥120,000 | ¥0** |
+| Periodic Monitoring (first domain) | — | ¥20,000 |
+| **Total** | **¥450,000** | **¥520,000** |
+
+*\* M365 Business Premium subscription*
+*\*\* Cloudflare Zero Trust free tier for up to 50 users*
+',
+  '## 導入スケジュール
+
+```
+第1週: 基盤構築
+├── M365管理者アカウントの強化
+├── MFA登録（全ユーザー）
+├── Defender for Office 365の設定
+└── DNSゾーン監査とCloudflare準備
+
+第2週: メール & DNS
+├── Cloudflare DNS移行（調整された切り替え）
+├── SPF/DKIM設定
+├── DMARC p=none展開
+└── Periodic監視のセットアップ
+
+第3週: Zero Trust & 検証
+├── Cloudflare Zero Trustポリシー
+├── WARPクライアント展開
+├── 完全なセキュリティ検証
+└── ユーザードキュメントとトレーニング
+```
+
+---
+
+## 料金
+
+| コンポーネント | 初期設定費用 | 年額費用 |
+|---------------|-------------|----------|
+| M365 Business Premium（10ユーザー） | — | ¥400,000* |
+| M365 Business Premiumセキュリティ強化 | ¥150,000 | — |
+| Cloudflare Pro + DNS移行 | ¥100,000 | ¥100,000 |
+| メールセキュリティ（SPF/DKIM/DMARC） | ¥80,000 | — |
+| Cloudflare Zero Trust（基本） | ¥120,000 | ¥0** |
+| Periodic監視（最初のドメイン） | — | ¥20,000 |
+| **合計** | **¥450,000** | **¥520,000** |
+
+*\* M365 Business Premiumサブスクリプション*
+*\*\* Cloudflare Zero Trust無料枠（50ユーザーまで）*
+',
+  'Timeline and pricing for M365 Security Essentials package.
+Update this fragment when pricing changes - keeps main service description stable.
+Pair with m365-security-essentials fragment for complete proposal.
+',
+  '["m365","security","cloudflare","pricing","timeline","smb"]',
+  '2025-01',
+  'active',
+  1,
+  'en',
+  '["en", "ja"]'
+);
+
+INSERT OR IGNORE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+VALUES (
+  'm365-security-essentials',
+  NULL,
+  'M365 Security Essentials',
+  'm365-security-essentials',
+  'services',
+  '## M365 Security Essentials
+### Foundation-Level Protection for Modern Small Businesses
+
+**Service Package:** M365 Security Essentials
+**Target Audience:** SMBs (10-100 employees) with Microsoft 365 Business Premium
+**Implementation Time:** 2-3 weeks
+**Monthly Monitoring:** Included via eSolia Periodic
+
+---
+
+## The Challenge
+
+Your business runs on Microsoft 365 and cloud services. But out-of-the-box settings leave critical gaps that attackers actively exploit—misconfigured email authentication, exposed admin accounts, and endpoints connecting from anywhere without verification.
+
+Think of it like moving into a new office building: the doors lock, but you haven''t installed the security cameras, programmed the access cards, or set up the alarm system.
+
+**This package installs your digital security system.**
+
+---
+
+## What You Get
+
+### 1. Microsoft 365 Business Premium Hardening
+
+We configure the security features already included in your license—features that protect nothing until properly set up.
+
+| Security Control | What It Does | Business Impact |
+|-----------------|--------------|-----------------|
+| **Multi-Factor Authentication (MFA)** | Requires phone verification for all sign-ins | Blocks 99.9% of account compromise attacks |
+| **Security Defaults Optimization** | Enforces baseline protections across all users | Eliminates common configuration gaps |
+| **Admin Account Protection** | Dedicated, MFA-enforced admin accounts | Prevents privilege escalation attacks |
+| **Legacy Protocol Blocking** | Disables outdated authentication methods | Closes backdoors that bypass MFA |
+| **Conditional Access (Basic)** | Location and risk-based access policies | Blocks suspicious sign-in attempts automatically |
+| **Defender for Office 365** | Anti-phishing, Safe Links, Safe Attachments | Catches threats that basic filtering misses |
+| **Data Loss Prevention (Basic)** | Prevents accidental sharing of sensitive data | Reduces compliance exposure |
+| **Audit Logging Configuration** | 90-day activity retention (default) | Provides investigation trail |
+
+**Note on Advanced Features:**
+M365 Business Premium includes Intune for device management. Full device compliance policies, app protection, and endpoint configuration require Intune enrollment—a separate phase that takes 4-6 weeks for proper rollout. This package establishes your security foundation; Intune deployment is available as a follow-on engagement.
+
+*Features requiring Intune (not included in this package):*
+- Device compliance enforcement in Conditional Access
+- Mobile Application Management (MAM) policies
+- Windows Autopilot device provisioning
+- BitLocker enforcement and recovery key management
+- Endpoint configuration profiles
+
+---
+
+### 2. Cloudflare Pro + DNS Migration
+
+Your domain is your digital identity. We migrate DNS management to Cloudflare, adding enterprise-grade protection to your existing website and email infrastructure.
+
+| Capability | What It Does | Business Impact |
+|-----------|--------------|-----------------|
+| **DNS Zone Protection** | DDoS mitigation, DNSSEC signing | Prevents domain hijacking and DNS attacks |
+| **Website Security** | WAF rules, bot management, SSL/TLS | Protects public-facing web properties |
+| **Performance Optimization** | Global CDN, caching, image optimization | Faster site for visitors worldwide |
+| **Always Online™** | Cached version during origin failures | Maintains availability during outages |
+| **Analytics & Insights** | Traffic patterns, threat intelligence | Visibility into who''s accessing your domain |
+
+**Migration Process:**
+1. Audit current DNS records and TTLs
+2. Replicate zone in Cloudflare
+3. Coordinate nameserver cutover (minimal downtime)
+4. Verify all services resolve correctly
+5. Enable security features progressively
+
+---
+
+### 3. Email Security Configuration (SPF, DKIM, DMARC)
+
+Email spoofing is trivially easy without proper authentication. We implement the full email security stack—configured for maximum protection, not just "passing" compliance checks.
+
+| Protocol | What It Does | Our Configuration |
+|----------|--------------|-------------------|
+| **SPF (Sender Policy Framework)** | Lists authorized sending servers | Strict `-all` policy (fail unauthorized) |
+| **DKIM (DomainKeys Identified Mail)** | Cryptographically signs outbound email | 2048-bit keys, proper selector rotation |
+| **DMARC (Domain-based Message Authentication)** | Policy for handling failures | `p=reject` (ultimate goal), phased rollout |
+
+**DMARC Rollout Phases:**
+1. **Week 1-2:** `p=none` with monitoring (collect data, identify legitimate senders)
+2. **Week 3-4:** `p=quarantine` (suspicious mail to spam)
+3. **Week 5+:** `p=reject` (block all unauthorized mail)
+
+*Why "p=reject" matters:* Anything less lets spoofed emails through. Many implementations stop at `p=none`—which does nothing except generate reports.
+
+---
+
+### 4. Ongoing Monitoring via eSolia Periodic
+
+Security isn''t a one-time setup. We continuously monitor your configuration through our **Periodic** monitoring platform at [periodic.esolia.co.jp](https://periodic.esolia.co.jp).
+
+| Monitoring Area | Check Frequency | Alert Threshold |
+|----------------|-----------------|-----------------|
+| **DNS Zone Integrity** | Every 15 minutes | Any record change (A, MX, TXT, CNAME) |
+| **SSL/TLS Certificates** | Every 15 minutes | Expiry <30 days, chain issues |
+| **Website Availability** | Every 15 minutes | Downtime detected |
+| **Domain Reputation** | Daily | Blacklist appearance |
+| **DMARC Report Analysis** | Regular (typically daily) | Unauthorized senders detected |
+
+**Monthly Reports Include:**
+- DMARC report summary (volume, pass/fail rates, unauthorized senders)
+- DNS change log
+- Uptime statistics
+- Recommendations for improvement
+
+---
+
+### 5. Cloudflare Zero Trust (Endpoint Protection)
+
+Traditional VPNs trust everything inside the network. Zero Trust verifies every connection, every time—without requiring full device enrollment.
+
+| Capability | What It Does | Business Impact |
+|-----------|--------------|-----------------|
+| **WARP Client** | Encrypted tunnel for all device traffic | Protects data in transit everywhere |
+| **Gateway DNS Filtering** | Block malicious domains at DNS layer | Prevents malware callbacks, phishing sites |
+| **Secure Web Gateway** | HTTP/S inspection and policy enforcement | Blocks downloads from risky categories |
+| **Access Policies** | Identity-aware application access | SaaS apps protected without VPN complexity |
+| **Device Posture (Basic)** | OS version, disk encryption checks | Baseline security verification |
+
+**Deployment Without Intune:**
+This package deploys WARP clients manually or via simple installer distribution. For automatic deployment, compliance enforcement, and advanced posture checks, Intune integration is recommended as a follow-on phase.
+
+*What''s included:*
+- WARP client deployment to company devices
+- Gateway DNS and HTTP policies
+- Basic device posture rules
+- Access policies for critical applications
+
+*What requires Intune (future phase):*
+- Automatic client deployment via MDM
+- Strict device compliance enforcement
+- Certificate-based device trust
+- Conditional access integration
+
+---
+
+## What Comes Next
+
+This package establishes your security foundation. Common follow-on engagements include:
+
+| Phase | Focus |
+|-------|-------|
+| **Intune Deployment** | Full device management, compliance policies |
+| **E5 Security Upgrade** | Advanced threat protection, insider risk |
+| **ISO 27001 Preparation** | ISMS documentation, certification readiness |
+| **Incident Response Planning** | Playbooks, tabletop exercises |
+',
+  '## M365 セキュリティ・エッセンシャルズ
+### 現代の中小企業のための基盤レベルの保護
+
+**サービスパッケージ:** M365 セキュリティ・エッセンシャルズ
+**対象:** Microsoft 365 Business Premiumを利用するSMB（従業員10〜100名）
+**導入期間:** 2〜3週間
+**月次監視:** イソリアPeriodicによる監視を含む
+
+---
+
+## 課題
+
+御社のビジネスはMicrosoft 365とクラウドサービスで運営されています。しかし、初期設定のままでは重大なセキュリティギャップが残ります。攻撃者はこれらを積極的に悪用します。メール認証の設定ミス、露出した管理者アカウント、どこからでも検証なしで接続するエンドポイント...
+
+新しいオフィスビルに入居するようなものです。ドアには鍵がかかりますが、防犯カメラの設置、入館カードのプログラミング、警報システムの設定はまだ完了していません。
+
+**このパッケージは、御社のデジタルセキュリティシステムを構築します。**
+
+---
+
+## サービス内容
+
+### 1. Microsoft 365 Business Premium セキュリティ強化
+
+御社のライセンスに既に含まれているセキュリティ機能を設定します。これらの機能は適切に設定されるまで何も保護しません。
+
+| セキュリティ統制 | 機能 | ビジネスへの影響 |
+|-----------------|------|-----------------|
+| **多要素認証（MFA）** | すべてのサインインに電話認証を要求 | アカウント侵害攻撃の99.9%をブロック |
+| **セキュリティ既定値の最適化** | 全ユーザーに基本保護を適用 | 一般的な設定ギャップを解消 |
+| **管理者アカウント保護** | 専用のMFA強制管理者アカウント | 権限昇格攻撃を防止 |
+| **レガシープロトコルのブロック** | 古い認証方式を無効化 | MFAをバイパスするバックドアを閉鎖 |
+| **条件付きアクセス（基本）** | 場所とリスクに基づくアクセスポリシー | 疑わしいサインイン試行を自動ブロック |
+| **Defender for Office 365** | フィッシング対策、安全なリンク、安全な添付ファイル | 基本フィルタリングが見逃す脅威を検出 |
+| **データ損失防止（基本）** | 機密データの誤った共有を防止 | コンプライアンスリスクを低減 |
+| **監査ログ設定** | 90日間のアクティビティ保持（デフォルト） | 調査用の証跡を提供 |
+
+**高度な機能について:**
+M365 Business PremiumにはIntuneによるデバイス管理が含まれています。完全なデバイスコンプライアンスポリシー、アプリ保護、エンドポイント構成にはIntune登録が必要です。これは適切な展開に4〜6週間かかる別フェーズとなります。本パッケージはセキュリティの基盤を確立します。Intune展開は後続の契約として対応可能です。
+
+*Intuneを必要とする機能（本パッケージに含まれません）:*
+- 条件付きアクセスにおけるデバイスコンプライアンス適用
+- モバイルアプリケーション管理（MAM）ポリシー
+- Windows Autopilotデバイスプロビジョニング
+- BitLocker強制と回復キー管理
+- エンドポイント構成プロファイル
+
+---
+
+### 2. Cloudflare Pro + DNS移行
+
+御社のドメインはデジタルアイデンティティです。DNS管理をCloudflareに移行し、既存のウェブサイトとメールインフラにエンタープライズグレードの保護を追加します。
+
+| 機能 | 内容 | ビジネスへの影響 |
+|-----|------|-----------------|
+| **DNSゾーン保護** | DDoS軽減、DNSSEC署名 | ドメインハイジャックとDNS攻撃を防止 |
+| **ウェブサイトセキュリティ** | WAFルール、ボット管理、SSL/TLS | 公開ウェブサイトを保護 |
+| **パフォーマンス最適化** | グローバルCDN、キャッシュ、画像最適化 | 世界中の訪問者に対してサイトを高速化 |
+| **Always Online™** | オリジン障害時のキャッシュバージョン提供 | 障害時の可用性を維持 |
+| **分析とインサイト** | トラフィックパターン、脅威インテリジェンス | ドメインへのアクセス状況を可視化 |
+
+**移行プロセス:**
+1. 現在のDNSレコードとTTLを監査
+2. Cloudflareでゾーンを複製
+3. ネームサーバー切り替えを調整（最小限のダウンタイム）
+4. すべてのサービスが正しく解決されることを確認
+5. セキュリティ機能を段階的に有効化
+
+---
+
+### 3. メールセキュリティ設定（SPF、DKIM、DMARC）
+
+適切な認証がなければ、メールのなりすましは非常に簡単です。単なるコンプライアンス「合格」ではなく、最大限の保護を目的とした完全なメールセキュリティスタックを実装します。
+
+| プロトコル | 機能 | 当社の設定 |
+|-----------|------|-----------|
+| **SPF (Sender Policy Framework)** | 許可された送信サーバーをリスト化 | 厳格な `-all` ポリシー（未承認は失敗） |
+| **DKIM (DomainKeys Identified Mail)** | 送信メールに暗号署名 | 2048ビット鍵、適切なセレクターローテーション |
+| **DMARC (Domain-based Message Authentication)** | 認証失敗時のポリシー | `p=reject`（最終目標）、段階的導入 |
+
+**DMARC導入フェーズ:**
+1. **第1〜2週:** `p=none` + 監視（データ収集、正当な送信元を特定）
+2. **第3〜4週:** `p=quarantine`（疑わしいメールを迷惑メールへ）
+3. **第5週以降:** `p=reject`（すべての未承認メールをブロック）
+
+*「p=reject」が重要な理由:* それ以外の設定では、なりすましメールが通過します。多くの実装は `p=none` で止まります。これはレポートを生成するだけで、何も保護しません。
+
+---
+
+### 4. イソリアPeriodicによる継続監視
+
+セキュリティは一度きりの設定ではありません。当社の**Periodic**監視プラットフォーム（[periodic.esolia.co.jp](https://periodic.esolia.co.jp)）を通じて、御社の設定を継続的に監視します。
+
+| 監視対象 | 確認頻度 | アラート閾値 |
+|---------|---------|-------------|
+| **DNSゾーン整合性** | 15分ごと | レコード変更（A、MX、TXT、CNAME） |
+| **SSL/TLS証明書** | 15分ごと | 有効期限30日未満、チェーンの問題 |
+| **ウェブサイト可用性** | 15分ごと | ダウンタイム検出 |
+| **ドメインレピュテーション** | 毎日 | ブラックリスト掲載 |
+| **DMARCレポート分析** | 定期（通常毎日） | 未承認の送信元を検出 |
+
+**月次レポートの内容:**
+- DMARCレポートサマリー（送信量、認証成功/失敗率、未承認の送信元）
+- DNS変更ログ
+- 稼働統計
+- 改善のための推奨事項
+
+---
+
+### 5. Cloudflare Zero Trust（エンドポイント保護）
+
+従来のVPNはネットワーク内のすべてを信頼します。Zero Trustは、完全なデバイス登録なしで、毎回すべての接続を検証します。
+
+| 機能 | 内容 | ビジネスへの影響 |
+|-----|------|-----------------|
+| **WARPクライアント** | すべてのデバイストラフィックの暗号化トンネル | どこでも転送中のデータを保護 |
+| **Gateway DNSフィルタリング** | DNSレイヤーで悪意のあるドメインをブロック | マルウェアのコールバック、フィッシングサイトを防止 |
+| **セキュアウェブゲートウェイ** | HTTP/S検査とポリシー適用 | リスクのあるカテゴリからのダウンロードをブロック |
+| **アクセスポリシー** | IDを認識したアプリケーションアクセス | VPNの複雑さなしでSaaSアプリを保護 |
+| **デバイスポスチャ（基本）** | OSバージョン、ディスク暗号化チェック | 基本的なセキュリティ検証 |
+
+**Intuneなしでの展開:**
+本パッケージでは、WARPクライアントを手動または簡単なインストーラー配布で展開します。自動展開、コンプライアンス適用、高度なポスチャチェックには、Intune統合を後続フェーズとして推奨します。
+
+*含まれる内容:*
+- 会社デバイスへのWARPクライアント展開
+- Gateway DNSおよびHTTPポリシー
+- 基本的なデバイスポスチャルール
+- 重要アプリケーションのアクセスポリシー
+
+*Intuneが必要な内容（将来のフェーズ）:*
+- MDMによる自動クライアント展開
+- 厳格なデバイスコンプライアンス適用
+- 証明書ベースのデバイス信頼
+- 条件付きアクセス統合
+
+---
+
+## 次のステップ
+
+本パッケージはセキュリティの基盤を確立します。一般的な後続の契約には以下が含まれます:
+
+| フェーズ | 重点領域 |
+|---------|---------|
+| **Intune展開** | 完全なデバイス管理、コンプライアンスポリシー |
+| **E5セキュリティアップグレード** | 高度な脅威保護、インサイダーリスク |
+| **ISO 27001準備** | ISMS文書化、認証準備 |
+| **インシデント対応計画** | プレイブック、卓上演習 |
+',
+  'Comprehensive service description for M365 + Cloudflare security setup.
+Use with m365-security-essentials-pricing fragment for complete proposal.
+Target: SMBs with 10-100 employees using M365 Business Premium.
+',
+  '["m365","security","cloudflare","zero-trust","smb","email-security","dmarc"]',
+  '2025-01',
+  'active',
+  1,
+  'en',
+  '["en", "ja"]'
+);
+
+INSERT OR IGNORE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'ongoing-support',
   NULL,
@@ -1610,7 +2023,7 @@ Ideal for organizations with internal IT that need additional capacity or expert
 
 eSolia''s support team brings decades of combined experience supporting businesses in Japan, with deep knowledge of both local and international IT environments.
 ',
-  '## eSOLIA ITサポートサービス
+  '## eSolia ITサポートサービス
 
 お客様の組織のニーズに合わせた信頼性の高いプロフェッショナルなITサポート：
 
@@ -1644,7 +2057,7 @@ IT運用を完全にアウトソーシングしたい組織に最適です。
 - 完全な履歴を持つチケットシステム
 - SLAに基づく応答時間
 
-eSOLIAのサポートチームは、日本でのビジネスサポートにおける数十年の経験を持ち、国内外のIT環境に関する深い知識を持っています。
+eSoliaのサポートチームは、日本でのビジネスサポートにおける数十年の経験を持ち、国内外のIT環境に関する深い知識を持っています。
 ',
   '',
   '["support","helpdesk","managed-services"]',
@@ -1655,7 +2068,7 @@ eSOLIAのサポートチームは、日本でのビジネスサポートにお�
   '["en", "ja"]'
 );
 
-INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR IGNORE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'password-manager',
   NULL,
@@ -1694,7 +2107,7 @@ one of the highest-impact security improvements any small team can make.
   '["en", "ja"]'
 );
 
-INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR IGNORE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'periodic-monitoring',
   NULL,
@@ -1736,7 +2149,7 @@ affect email deliverability or security.
   '["en", "ja"]'
 );
 
-INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR IGNORE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'website-development',
   NULL,
@@ -1783,7 +2196,7 @@ Professional website development with a focus on performance, security, and main
 
 All websites are built on secure, globally distributed infrastructure with enterprise-grade reliability.
 ',
-  '## eSOLIA ウェブサイト開発
+  '## eSolia ウェブサイト開発
 
 パフォーマンス、セキュリティ、保守性を重視したプロフェッショナルなウェブサイト開発：
 
@@ -1832,7 +2245,7 @@ All websites are built on secure, globally distributed infrastructure with enter
   '["en", "ja"]'
 );
 
-INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR IGNORE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'billing-terms',
   NULL,
@@ -1904,7 +2317,7 @@ Specific rates to be included in client offer.
   '["en", "ja"]'
 );
 
-INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR IGNORE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'confidentiality',
   NULL,
@@ -1974,7 +2387,7 @@ May need customization for specific industries.
   '["en", "ja"]'
 );
 
-INSERT OR REPLACE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
+INSERT OR IGNORE INTO fragments (id, site_id, name, slug, category, content_en, content_ja, description, tags, version, status, is_bilingual, default_locale, available_locales)
 VALUES (
   'standard-terms',
   NULL,

@@ -172,6 +172,7 @@ interface Fragment {
   id: string;
   order: number;
   enabled: boolean;
+  pageBreakBefore?: boolean;
 }
 
 interface Proposal {
@@ -458,10 +459,11 @@ export const actions: Actions = {
       }
 
       // Load fragment contents
-      const enabledFragmentIds = fragments
+      // Keep full fragment objects for pageBreakBefore support
+      const enabledFragments = fragments
         .filter((f) => f.enabled)
-        .sort((a, b) => a.order - b.order)
-        .map((f) => f.id);
+        .sort((a, b) => a.order - b.order);
+      const enabledFragmentIds = enabledFragments.map((f) => f.id);
 
       let fragmentContents: FragmentContent[] = [];
       if (enabledFragmentIds.length > 0) {
@@ -572,13 +574,17 @@ export const actions: Actions = {
           section += `<div class="scope-section">\n<h2>${lang === 'ja' ? 'スコープ' : 'Scope'}</h2>\n<p>${scopeContent}</p>\n</div>\n`;
         }
 
-        // Fragments in order
-        for (const fragId of enabledFragmentIds) {
-          const content = contentMap.get(fragId);
+        // Fragments in order (with page break support)
+        for (const frag of enabledFragments) {
+          const content = contentMap.get(frag.id);
           if (content) {
             const fragContent =
               lang === 'ja' && content.content_ja ? content.content_ja : content.content_en;
             if (fragContent) {
+              // Add page break before this fragment if flagged
+              if (frag.pageBreakBefore) {
+                section += '<div class="page-break"></div>\n';
+              }
               section += markdownToHtml(fragContent, imageResolver) + '\n';
             }
           }

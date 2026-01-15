@@ -22,6 +22,7 @@
     id: string;
     order: number;
     enabled: boolean;
+    pageBreakBefore?: boolean;
   }
 
   interface FragmentContent {
@@ -194,6 +195,10 @@
 
   function toggleFragment(index: number) {
     fragments[index].enabled = !fragments[index].enabled;
+  }
+
+  function togglePageBreak(index: number) {
+    fragments[index].pageBreakBefore = !fragments[index].pageBreakBefore;
   }
 
   function handleDragStart(e: DragEvent, index: number) {
@@ -723,6 +728,23 @@
 
               {#if editMode}
                 <div class="flex items-center gap-1">
+                  <!-- Page break toggle (not for first fragment) -->
+                  {#if index > 0}
+                    <button
+                      type="button"
+                      onclick={() => togglePageBreak(index)}
+                      title={fragment.pageBreakBefore ? 'Remove page break before' : 'Add page break before'}
+                      class="p-1.5 rounded-md transition-colors text-xs font-medium
+                             {fragment.pageBreakBefore
+                        ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                        : 'bg-gray-100 text-gray-400 hover:bg-gray-200'}"
+                    >
+                      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M4 4h16v5H4zm0 11h16v5H4z" opacity="0.3" />
+                        <path d="M2 10h20v2H2z" />
+                      </svg>
+                    </button>
+                  {/if}
                   <!-- Edit fragment link -->
                   <a
                     href="/fragments/{fragment.id}"
