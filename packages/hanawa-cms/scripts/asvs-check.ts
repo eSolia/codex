@@ -32,7 +32,7 @@ const PROJECT_CONFIG = {
   corsOrigins: ['esolia.co.jp', 'codex.esolia.co.jp'],
   extensions: ['.ts', '.tsx', '.js', '.svelte'],
   configExtensions: ['.json', '.jsonc', '.toml', '.yaml', '.yml'],
-  skipDirs: ['node_modules', '.svelte-kit', 'dist', '.git', 'build', '.wrangler']
+  skipDirs: ['node_modules', '.svelte-kit', 'dist', '.git', 'build', '.wrangler'],
 };
 
 // ============================================================================
@@ -50,13 +50,13 @@ const ASVS_SCOPE = {
     'Runtime behavior cannot be verified statically',
     'Cryptographic strength requires runtime testing',
     'Access control edge cases need penetration testing',
-    'Third-party service configurations are not verified'
+    'Third-party service configurations are not verified',
   ],
   recommendations: [
     'Conduct periodic manual security reviews',
     'Perform penetration testing annually',
     'Review third-party dependencies regularly',
-    'Maintain security documentation'
+    'Maintain security documentation',
   ],
   level: 'L1-partial',
   levelDescription: 'Partial Level 1 and Level 2 coverage through automated checks',
@@ -67,8 +67,8 @@ const ASVS_SCOPE = {
   totalAsvsControls: {
     L1: 50, // ~50 L1-only controls
     L2: 150, // ~100 additional L2-only controls (150 total)
-    L3: 286 // ~136 additional L3-only controls (286 total)
-  }
+    L3: 286, // ~136 additional L3-only controls (286 total)
+  },
 };
 
 // ============================================================================
@@ -139,7 +139,7 @@ const colors = {
   cyan: '\x1b[36m',
   magenta: '\x1b[35m',
   bold: '\x1b[1m',
-  dim: '\x1b[2m'
+  dim: '\x1b[2m',
 };
 
 // ============================================================================
@@ -186,7 +186,7 @@ function searchPattern(
           results.push({
             file: relative(process.cwd(), file),
             line: i + 1,
-            snippet: lines[i].trim().slice(0, 100)
+            snippet: lines[i].trim().slice(0, 100),
           });
         }
       }
@@ -260,7 +260,7 @@ function runChecks(): CheckResult[] {
     asvsRef: 'V1.2.1',
     automatable: true,
     level: 'L1',
-    top10: ['A04'] // Insecure Design
+    top10: ['A04'], // Insecure Design
   });
 
   // V1.5.1 - Input Validation Architecture
@@ -275,7 +275,7 @@ function runChecks(): CheckResult[] {
     asvsRef: 'V1.5.1',
     automatable: true,
     level: 'L1',
-    top10: ['A03', 'A04'] // Injection, Insecure Design
+    top10: ['A03', 'A04'], // Injection, Insecure Design
   });
 
   // ===========================================================================
@@ -302,7 +302,7 @@ function runChecks(): CheckResult[] {
     asvsRef: 'V2.1.1',
     automatable: true,
     level: 'L1',
-    top10: ['A02', 'A07'] // Cryptographic Failures, Auth Failures
+    top10: ['A02', 'A07'], // Cryptographic Failures, Auth Failures
   });
 
   // V2.1.5 - Password Salt
@@ -316,7 +316,7 @@ function runChecks(): CheckResult[] {
     locations: saltLocations.slice(0, 3),
     asvsRef: 'V2.1.5',
     automatable: true,
-    level: 'L1'
+    level: 'L1',
   });
 
   // V2.1.9 - Password Policy
@@ -333,7 +333,7 @@ function runChecks(): CheckResult[] {
     locations: passwordPolicyLocations.slice(0, 3),
     asvsRef: 'V2.1.9',
     automatable: true,
-    level: 'L1'
+    level: 'L1',
   });
 
   // V2.2.1 - Token Entropy (exclude documentation/comment mentions of Math.random)
@@ -366,7 +366,7 @@ function runChecks(): CheckResult[] {
         : undefined,
     asvsRef: 'V2.2.1',
     automatable: true,
-    level: 'L1'
+    level: 'L1',
   });
 
   // V2.5.1 - Account Lockout
@@ -383,7 +383,7 @@ function runChecks(): CheckResult[] {
     locations: lockoutLocations.slice(0, 3),
     asvsRef: 'V2.5.1',
     automatable: true,
-    level: 'L1'
+    level: 'L1',
   });
 
   // V2.8.1 - MFA Implementation
@@ -397,7 +397,7 @@ function runChecks(): CheckResult[] {
     locations: mfaLocations.slice(0, 3),
     asvsRef: 'V2.8.1',
     automatable: true,
-    level: 'L2'
+    level: 'L2',
   });
 
   // V2.1.6 - Password Strength Estimation (L2)
@@ -414,7 +414,7 @@ function runChecks(): CheckResult[] {
     locations: passwordStrengthLocations.slice(0, 3),
     asvsRef: 'V2.1.6',
     automatable: true,
-    level: 'L2'
+    level: 'L2',
   });
 
   // V2.9.1 - Hardware Token / WebAuthn Support (L2)
@@ -431,7 +431,7 @@ function runChecks(): CheckResult[] {
     locations: webauthnLocations.slice(0, 3),
     asvsRef: 'V2.9.1',
     automatable: true,
-    level: 'L2'
+    level: 'L2',
   });
 
   // ===========================================================================
@@ -452,7 +452,7 @@ function runChecks(): CheckResult[] {
     locations: sessionTokenLocations.slice(0, 3),
     asvsRef: 'V3.2.1',
     automatable: true,
-    level: 'L1'
+    level: 'L1',
   });
 
   // V3.3.1 - Session Expiration
@@ -466,13 +466,15 @@ function runChecks(): CheckResult[] {
     locations: sessionLocations.slice(0, 5),
     asvsRef: 'V3.3.1',
     automatable: true,
-    level: 'L1'
+    level: 'L1',
   });
 
   // V3.4.1 - Secure Cookie Attributes
   // Check if app uses API key authentication instead of cookies
-  const usesApiKeyAuth = searchPattern(apiFiles, /Bearer|API.?key|x-api-key|Authorization.*header/i).length > 0;
-  const usesCookies = searchPattern(apiFiles, /cookies\.set|setCookie|document\.cookie/i).length > 0;
+  const usesApiKeyAuth =
+    searchPattern(apiFiles, /Bearer|API.?key|x-api-key|Authorization.*header/i).length > 0;
+  const usesCookies =
+    searchPattern(apiFiles, /cookies\.set|setCookie|document\.cookie/i).length > 0;
   const httpOnlyLocations = searchPattern(apiFiles, /httpOnly/i);
   const secureLocations = searchPattern(apiFiles, /secure:\s*true|Secure/i);
   const sameSiteLocations = searchPattern(apiFiles, /sameSite/i);
@@ -485,17 +487,23 @@ function runChecks(): CheckResult[] {
   // XSS token theft and CSRF attacks on browser-based sessions. Headless APIs using
   // Bearer tokens in Authorization headers are not vulnerable to these attack vectors
   // because tokens are never automatically sent by browsers (unlike cookies).
-  const cookieCheckStatus = usesApiKeyAuth && !usesCookies
-    ? 'notApplicable'
-    : cookieScore >= 3 ? 'pass' : cookieScore >= 1 ? 'warning' : 'fail';
+  const cookieCheckStatus =
+    usesApiKeyAuth && !usesCookies
+      ? 'notApplicable'
+      : cookieScore >= 3
+        ? 'pass'
+        : cookieScore >= 1
+          ? 'warning'
+          : 'fail';
   results.push({
     id: 'V3.4.1',
     category: 'V3 Session Management',
     name: 'Secure Cookie Attributes',
     status: cookieCheckStatus,
-    description: usesApiKeyAuth && !usesCookies
-      ? 'N/A - Headless API using Bearer token auth. No cookies set, so cookie security attributes do not apply. Tokens sent via Authorization header are not vulnerable to CSRF or automatic browser transmission.'
-      : `Cookie attributes: HttpOnly(${httpOnlyLocations.length > 0 ? '✓' : '✗'}) Secure(${secureLocations.length > 0 ? '✓' : '✗'}) SameSite(${sameSiteLocations.length > 0 ? '✓' : '✗'})`,
+    description:
+      usesApiKeyAuth && !usesCookies
+        ? 'N/A - Headless API using Bearer token auth. No cookies set, so cookie security attributes do not apply. Tokens sent via Authorization header are not vulnerable to CSRF or automatic browser transmission.'
+        : `Cookie attributes: HttpOnly(${httpOnlyLocations.length > 0 ? '✓' : '✗'}) Secure(${secureLocations.length > 0 ? '✓' : '✗'}) SameSite(${sameSiteLocations.length > 0 ? '✓' : '✗'})`,
     locations: [...httpOnlyLocations, ...secureLocations, ...sameSiteLocations].slice(0, 5),
     remediation:
       cookieCheckStatus === 'warning' || cookieCheckStatus === 'fail'
@@ -503,7 +511,7 @@ function runChecks(): CheckResult[] {
         : undefined,
     asvsRef: 'V3.4.1',
     automatable: true,
-    level: 'L1'
+    level: 'L1',
   });
 
   // V3.5.1 - Session Invalidation on Logout
@@ -517,7 +525,7 @@ function runChecks(): CheckResult[] {
     locations: logoutLocations.slice(0, 3),
     asvsRef: 'V3.5.1',
     automatable: true,
-    level: 'L1'
+    level: 'L1',
   });
 
   // V3.3.3 - Idle Session Timeout (L2)
@@ -534,7 +542,7 @@ function runChecks(): CheckResult[] {
     locations: idleTimeoutLocations.slice(0, 3),
     asvsRef: 'V3.3.3',
     automatable: true,
-    level: 'L2'
+    level: 'L2',
   });
 
   // V3.5.2 - Terminate All Sessions (L2)
@@ -551,7 +559,7 @@ function runChecks(): CheckResult[] {
     locations: terminateAllLocations.slice(0, 3),
     asvsRef: 'V3.5.2',
     automatable: true,
-    level: 'L2'
+    level: 'L2',
   });
 
   // V3.7.1 - Concurrent Session Limits (L2)
@@ -568,7 +576,7 @@ function runChecks(): CheckResult[] {
     locations: concurrentSessionLocations.slice(0, 3),
     asvsRef: 'V3.7.1',
     automatable: true,
-    level: 'L2'
+    level: 'L2',
   });
 
   // ===========================================================================
@@ -589,7 +597,7 @@ function runChecks(): CheckResult[] {
     locations: rbacLocations.slice(0, 5),
     asvsRef: 'V4.1.1',
     automatable: true,
-    level: 'L1'
+    level: 'L1',
   });
 
   // V4.1.3 - Client/Tenant Data Isolation
@@ -603,7 +611,7 @@ function runChecks(): CheckResult[] {
     locations: clientIdLocations.slice(0, 5),
     asvsRef: 'V4.1.3',
     automatable: true,
-    level: 'L1'
+    level: 'L1',
   });
 
   // V4.2.1 - Server-Side Authorization
@@ -624,7 +632,7 @@ function runChecks(): CheckResult[] {
     locations: authCheckLocations.slice(0, 5),
     asvsRef: 'V4.2.1',
     automatable: true,
-    level: 'L1'
+    level: 'L1',
   });
 
   // V4.3.1 - Direct Object Reference Prevention
@@ -641,10 +649,15 @@ function runChecks(): CheckResult[] {
   // CMS, all content belongs to one organization - there are no "other users' data" to
   // protect against. API key authentication ensures only authorized clients can access
   // any content, and all authenticated requests have full access by design.
-  const hasApiKeyAuth = searchPattern(apiFiles, /validateApiKey|verifyApiKey|API.?key.*valid/i).length > 0;
+  const hasApiKeyAuth =
+    searchPattern(apiFiles, /validateApiKey|verifyApiKey|API.?key.*valid/i).length > 0;
   const idorStatus = isMultiTenant
-    ? (idorLocations.length > 0 && idorCheckLocations.length > 0 ? 'pass' : 'warning')
-    : (hasApiKeyAuth ? 'pass' : 'warning');
+    ? idorLocations.length > 0 && idorCheckLocations.length > 0
+      ? 'pass'
+      : 'warning'
+    : hasApiKeyAuth
+      ? 'pass'
+      : 'warning';
   results.push({
     id: 'V4.3.1',
     category: 'V4 Access Control',
@@ -656,7 +669,7 @@ function runChecks(): CheckResult[] {
     locations: idorCheckLocations.slice(0, 3),
     asvsRef: 'V4.3.1',
     automatable: true,
-    level: 'L1'
+    level: 'L1',
   });
 
   // V4.3.3 - Re-authentication for Sensitive Operations (L2)
@@ -673,7 +686,7 @@ function runChecks(): CheckResult[] {
     locations: stepUpAuthLocations.slice(0, 3),
     asvsRef: 'V4.3.3',
     automatable: true,
-    level: 'L2'
+    level: 'L2',
   });
 
   // ===========================================================================
@@ -694,7 +707,7 @@ function runChecks(): CheckResult[] {
     locations: inputValidationLocations.slice(0, 5),
     asvsRef: 'V5.1.1',
     automatable: true,
-    level: 'L1'
+    level: 'L1',
   });
 
   // V5.2.1 - HTML Encoding
@@ -708,7 +721,7 @@ function runChecks(): CheckResult[] {
     locations: htmlEncodingLocations.slice(0, 3),
     asvsRef: 'V5.2.1',
     automatable: true,
-    level: 'L1'
+    level: 'L1',
   });
 
   // V5.3.3 - XSS Prevention
@@ -731,7 +744,7 @@ function runChecks(): CheckResult[] {
         : undefined,
     asvsRef: 'V5.3.3',
     automatable: true,
-    level: 'L1'
+    level: 'L1',
   });
 
   // V5.3.4 - SQL Injection Prevention
@@ -767,7 +780,7 @@ function runChecks(): CheckResult[] {
         : undefined,
     asvsRef: 'V5.3.4',
     automatable: true,
-    level: 'L1'
+    level: 'L1',
   });
 
   // V5.3.7 - Command Injection Prevention
@@ -805,7 +818,7 @@ function runChecks(): CheckResult[] {
         : undefined,
     asvsRef: 'V5.3.7',
     automatable: true,
-    level: 'L1'
+    level: 'L1',
   });
 
   // V5.3.8 - Path Traversal Prevention
@@ -826,7 +839,7 @@ function runChecks(): CheckResult[] {
     locations: pathValidationLocations.slice(0, 3),
     asvsRef: 'V5.3.8',
     automatable: true,
-    level: 'L1'
+    level: 'L1',
   });
 
   // V5.1.5 - URL Redirect Validation (L2)
@@ -848,7 +861,7 @@ function runChecks(): CheckResult[] {
         : redirectLocations.slice(0, 3),
     asvsRef: 'V5.1.5',
     automatable: true,
-    level: 'L2'
+    level: 'L2',
   });
 
   // ===========================================================================
@@ -882,7 +895,7 @@ function runChecks(): CheckResult[] {
         : undefined,
     asvsRef: 'V6.2.1',
     automatable: true,
-    level: 'L1'
+    level: 'L1',
   });
 
   // V6.2.2 - Authenticated Encryption
@@ -896,7 +909,7 @@ function runChecks(): CheckResult[] {
     locations: authenticatedEncryption.slice(0, 3),
     asvsRef: 'V6.2.2',
     automatable: true,
-    level: 'L2'
+    level: 'L2',
   });
 
   // V6.3.1 - Secure Random Generation
@@ -932,7 +945,7 @@ function runChecks(): CheckResult[] {
         : undefined,
     asvsRef: 'V6.3.1',
     automatable: true,
-    level: 'L1'
+    level: 'L1',
   });
 
   // V6.4.1 - Key Management
@@ -958,7 +971,7 @@ function runChecks(): CheckResult[] {
     locations: keyManagementLocations.slice(0, 3),
     asvsRef: 'V6.4.1',
     automatable: true,
-    level: 'L2'
+    level: 'L2',
   });
 
   // V6.2.3 - HMAC for Message Integrity (L2)
@@ -972,7 +985,7 @@ function runChecks(): CheckResult[] {
     locations: hmacLocations.slice(0, 3),
     asvsRef: 'V6.2.3',
     automatable: true,
-    level: 'L2'
+    level: 'L2',
   });
 
   // V6.2.4 - Random IV/Nonce (L2)
@@ -991,7 +1004,7 @@ function runChecks(): CheckResult[] {
       randomIvLocations.length > 0 ? randomIvLocations.slice(0, 3) : ivLocations.slice(0, 3),
     asvsRef: 'V6.2.4',
     automatable: true,
-    level: 'L2'
+    level: 'L2',
   });
 
   // ===========================================================================
@@ -1012,7 +1025,7 @@ function runChecks(): CheckResult[] {
     locations: errorHandlerLocations.slice(0, 5),
     asvsRef: 'V7.1.1',
     automatable: true,
-    level: 'L1'
+    level: 'L1',
   });
 
   // V7.1.2 - No Stack Traces in Production
@@ -1030,7 +1043,7 @@ function runChecks(): CheckResult[] {
     locations: prodCheckLocations.slice(0, 3),
     asvsRef: 'V7.1.2',
     automatable: true,
-    level: 'L1'
+    level: 'L1',
   });
 
   // V7.2.1 - Security Event Logging
@@ -1054,7 +1067,7 @@ function runChecks(): CheckResult[] {
         : loggingLocations.slice(0, 3),
     asvsRef: 'V7.2.1',
     automatable: true,
-    level: 'L1'
+    level: 'L1',
   });
 
   // V7.2.2 - No Sensitive Data in Logs (improved to reduce false positives)
@@ -1074,7 +1087,7 @@ function runChecks(): CheckResult[] {
       sensitiveLogLocations.length > 0 ? 'Remove sensitive data from log statements' : undefined,
     asvsRef: 'V7.2.2',
     automatable: true,
-    level: 'L1'
+    level: 'L1',
   });
 
   // V7.3.1 - Structured Logging (L2)
@@ -1091,7 +1104,7 @@ function runChecks(): CheckResult[] {
     locations: structuredLogLocations.slice(0, 3),
     asvsRef: 'V7.3.1',
     automatable: true,
-    level: 'L2'
+    level: 'L2',
   });
 
   // V7.4.1 - Log Injection Prevention (L2)
@@ -1108,7 +1121,7 @@ function runChecks(): CheckResult[] {
     locations: logInjectionPreventionLocations.slice(0, 3),
     asvsRef: 'V7.4.1',
     automatable: true,
-    level: 'L2'
+    level: 'L2',
   });
 
   // ===========================================================================
@@ -1126,7 +1139,7 @@ function runChecks(): CheckResult[] {
     locations: encryptionLocations.slice(0, 5),
     asvsRef: 'V8.1.1',
     automatable: true,
-    level: 'L1'
+    level: 'L1',
   });
 
   // V8.3.1 - Secrets Management
@@ -1159,7 +1172,7 @@ function runChecks(): CheckResult[] {
       hardcodedSecrets.length > 0 ? 'Move hardcoded secrets to environment variables' : undefined,
     asvsRef: 'V8.3.1',
     automatable: true,
-    level: 'L1'
+    level: 'L1',
   });
 
   // V8.3.4 - Backup Security
@@ -1180,7 +1193,7 @@ function runChecks(): CheckResult[] {
         : backupLocations.slice(0, 3),
     asvsRef: 'V8.3.4',
     automatable: true,
-    level: 'L2'
+    level: 'L2',
   });
 
   // V8.2.2 - Privacy Controls (L2)
@@ -1197,7 +1210,7 @@ function runChecks(): CheckResult[] {
     locations: privacyLocations.slice(0, 3),
     asvsRef: 'V8.2.2',
     automatable: true,
-    level: 'L2'
+    level: 'L2',
   });
 
   // ===========================================================================
@@ -1230,7 +1243,7 @@ function runChecks(): CheckResult[] {
       httpLocations.length > 0 ? 'Replace http:// with https:// for external URLs' : undefined,
     asvsRef: 'V9.1.1',
     automatable: true,
-    level: 'L1'
+    level: 'L1',
   });
 
   // V9.1.2 - Security Headers
@@ -1240,7 +1253,7 @@ function runChecks(): CheckResult[] {
     { name: 'Content-Security-Policy', pattern: /Content-Security-Policy/i },
     { name: 'Strict-Transport-Security', pattern: /Strict-Transport-Security|HSTS/i },
     { name: 'Referrer-Policy', pattern: /Referrer-Policy/i },
-    { name: 'Permissions-Policy', pattern: /Permissions-Policy|Feature-Policy/i }
+    { name: 'Permissions-Policy', pattern: /Permissions-Policy|Feature-Policy/i },
   ];
   const foundHeaders = headerPatterns.filter((h) => patternExists(allFiles, h.pattern));
   results.push({
@@ -1257,7 +1270,7 @@ function runChecks(): CheckResult[] {
       foundHeaders.length < 4 ? 'Add missing security headers in hooks.server.ts' : undefined,
     asvsRef: 'V9.1.2',
     automatable: true,
-    level: 'L1'
+    level: 'L1',
   });
 
   // V9.2.1 - CORS Configuration
@@ -1305,7 +1318,7 @@ function runChecks(): CheckResult[] {
         : undefined,
     asvsRef: 'V9.2.1',
     automatable: true,
-    level: 'L1'
+    level: 'L1',
   });
 
   // V9.1.3 - Certificate Pinning (L2)
@@ -1333,7 +1346,7 @@ function runChecks(): CheckResult[] {
     locations: certPinningLocations.slice(0, 3),
     asvsRef: 'V9.1.3',
     automatable: true,
-    level: 'L2'
+    level: 'L2',
   });
 
   // V9.2.3 - TLS Configuration (L2)
@@ -1350,7 +1363,7 @@ function runChecks(): CheckResult[] {
     locations: tlsConfigLocations.slice(0, 3),
     asvsRef: 'V9.2.3',
     automatable: true,
-    level: 'L2'
+    level: 'L2',
   });
 
   // ===========================================================================
@@ -1378,7 +1391,7 @@ function runChecks(): CheckResult[] {
         : undefined,
     asvsRef: 'V10.2.1',
     automatable: true,
-    level: 'L1'
+    level: 'L1',
   });
 
   // V10.3.1 - Dependency Audit
@@ -1416,7 +1429,7 @@ function runChecks(): CheckResult[] {
         : undefined,
     asvsRef: 'V10.3.1',
     automatable: true,
-    level: 'L1'
+    level: 'L1',
   });
 
   // V10.3.2 - Outdated Dependencies
@@ -1451,7 +1464,7 @@ function runChecks(): CheckResult[] {
     description: outdatedInfo,
     asvsRef: 'V10.3.2',
     automatable: true,
-    level: 'L2'
+    level: 'L2',
   });
 
   // ===========================================================================
@@ -1484,7 +1497,7 @@ function runChecks(): CheckResult[] {
         : uploadLocations.slice(0, 3),
     asvsRef: 'V12.1.1',
     automatable: true,
-    level: 'L1'
+    level: 'L1',
   });
 
   // ===========================================================================
@@ -1505,7 +1518,7 @@ function runChecks(): CheckResult[] {
     locations: rateLimitLocations.slice(0, 3),
     asvsRef: 'V13.1.1',
     automatable: true,
-    level: 'L1'
+    level: 'L1',
   });
 
   // V13.2.1 - API Authentication
@@ -1522,7 +1535,7 @@ function runChecks(): CheckResult[] {
     locations: apiAuthLocations.slice(0, 3),
     asvsRef: 'V13.2.1',
     automatable: true,
-    level: 'L1'
+    level: 'L1',
   });
 
   // V13.4.1 - CSRF Protection
@@ -1540,7 +1553,7 @@ function runChecks(): CheckResult[] {
     locations: csrfLocations.length > 0 ? csrfLocations.slice(0, 3) : svelteKitForms.slice(0, 3),
     asvsRef: 'V13.4.1',
     automatable: true,
-    level: 'L1'
+    level: 'L1',
   });
 
   // ===========================================================================
@@ -1563,7 +1576,7 @@ function runChecks(): CheckResult[] {
       debugLocations.length > 0 ? 'Ensure debug mode is disabled in production' : undefined,
     asvsRef: 'V14.2.1',
     automatable: true,
-    level: 'L1'
+    level: 'L1',
   });
 
   // V14.3.1 - Default Credentials (improved to reduce false positives)
@@ -1608,7 +1621,7 @@ function runChecks(): CheckResult[] {
       defaultCredLocations.length > 0 ? 'Remove or change default credentials' : undefined,
     asvsRef: 'V14.3.1',
     automatable: true,
-    level: 'L1'
+    level: 'L1',
   });
 
   return results;
@@ -1644,7 +1657,7 @@ function generateReport(checks: CheckResult[]): Report {
         L1: {
           checked: l1Checks.length,
           total: ASVS_SCOPE.totalAsvsControls.L1,
-          percentage: Math.round((l1Checks.length / ASVS_SCOPE.totalAsvsControls.L1) * 100)
+          percentage: Math.round((l1Checks.length / ASVS_SCOPE.totalAsvsControls.L1) * 100),
         },
         L2: {
           checked: l2Checks.length,
@@ -1653,11 +1666,11 @@ function generateReport(checks: CheckResult[]): Report {
             (l2Checks.length /
               (ASVS_SCOPE.totalAsvsControls.L2 - ASVS_SCOPE.totalAsvsControls.L1)) *
               100
-          )
-        }
-      }
+          ),
+        },
+      },
     },
-    checks
+    checks,
   };
 }
 

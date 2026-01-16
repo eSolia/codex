@@ -162,12 +162,7 @@ const slashCommands: SlashCommandItem[] = [
     keywords: ['page', 'break', 'newpage', 'pagebreak'],
     command: ({ editor, range }) => {
       // Insert a div marker that the PDF renderer recognizes
-      editor
-        .chain()
-        .focus()
-        .deleteRange(range)
-        .insertContent('<p><!-- pagebreak --></p>')
-        .run();
+      editor.chain().focus().deleteRange(range).insertContent('<p><!-- pagebreak --></p>').run();
     },
   },
   {

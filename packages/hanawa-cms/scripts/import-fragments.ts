@@ -3,14 +3,14 @@
  * Run with: npx tsx scripts/import-fragments.ts
  */
 
-import { readFileSync, readdirSync, statSync } from "fs";
-import { join, basename, dirname } from "path";
-import { fileURLToPath } from "url";
-import { parse } from "yaml";
+import { readFileSync, readdirSync, statSync } from 'fs';
+import { join, basename, dirname } from 'path';
+import { fileURLToPath } from 'url';
+import { parse } from 'yaml';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const FRAGMENTS_DIR = "../../../content/fragments";
+const FRAGMENTS_DIR = '../../../content/fragments';
 
 interface YamlFragment {
   id: string;
@@ -39,22 +39,22 @@ interface DbFragment {
   status: string;
 }
 
-function walkDir(dir: string, category = ""): { path: string; category: string }[] {
+function walkDir(dir: string, category = ''): { path: string; category: string }[] {
   const results: { path: string; category: string }[] = [];
 
   try {
     const items = readdirSync(dir);
 
     for (const item of items) {
-      if (item.startsWith(".") || item.startsWith("_")) continue;
+      if (item.startsWith('.') || item.startsWith('_')) continue;
 
       const fullPath = join(dir, item);
       const stat = statSync(fullPath);
 
       if (stat.isDirectory()) {
         results.push(...walkDir(fullPath, item));
-      } else if (item.endsWith(".yaml") || item.endsWith(".yml")) {
-        results.push({ path: fullPath, category: category || "general" });
+      } else if (item.endsWith('.yaml') || item.endsWith('.yml')) {
+        results.push({ path: fullPath, category: category || 'general' });
       }
     }
   } catch (err) {
@@ -66,10 +66,10 @@ function walkDir(dir: string, category = ""): { path: string; category: string }
 
 function parseFragment(filePath: string, category: string): DbFragment | null {
   try {
-    const content = readFileSync(filePath, "utf-8");
+    const content = readFileSync(filePath, 'utf-8');
     const yaml = parse(content) as YamlFragment;
 
-    const slug = basename(filePath, ".yaml").replace(".yml", "");
+    const slug = basename(filePath, '.yaml').replace('.yml', '');
     const name = yaml.title?.en || yaml.title?.ja || slug;
 
     return {
@@ -82,8 +82,8 @@ function parseFragment(filePath: string, category: string): DbFragment | null {
       content_ja: yaml.content?.ja || null,
       is_bilingual: yaml.content?.en && yaml.content?.ja ? 1 : 0,
       tags: JSON.stringify(yaml.metadata?.tags || []),
-      version: yaml.versions?.current || "1.0",
-      status: "active",
+      version: yaml.versions?.current || '1.0',
+      status: 'active',
     };
   } catch (err) {
     console.error(`Error parsing ${filePath}:`, err);
@@ -104,7 +104,9 @@ async function main() {
     const fragment = parseFragment(path, category);
     if (fragment) {
       fragments.push(fragment);
-      console.log(`✓ ${fragment.category}/${fragment.slug} (${fragment.is_bilingual ? "EN/JA" : "single lang"})`);
+      console.log(
+        `✓ ${fragment.category}/${fragment.slug} (${fragment.is_bilingual ? 'EN/JA' : 'single lang'})`
+      );
     }
   }
 
@@ -112,7 +114,8 @@ async function main() {
 
   const sqlStatements: string[] = [];
   for (const f of fragments) {
-    const sql = `INSERT OR REPLACE INTO fragments (id, name, slug, category, description, content_en, content_ja, is_bilingual, tags, version, status, created_at, updated_at) VALUES ('${f.id}', '${f.name.replace(/'/g, "''")}', '${f.slug}', '${f.category}', ${f.description ? `'${f.description}'` : "NULL"}, '${(f.content_en || "").replace(/'/g, "''").replace(/\n/g, "\\n")}', '${(f.content_ja || "").replace(/'/g, "''").replace(/\n/g, "\\n")}', ${f.is_bilingual}, '${f.tags}', '${f.version}', '${f.status}', datetime('now'), datetime('now'));`;
+    // SQLite can handle actual newlines in strings - don't escape them
+    const sql = `INSERT OR REPLACE INTO fragments (id, name, slug, category, description, content_en, content_ja, is_bilingual, tags, version, status, created_at, updated_at) VALUES ('${f.id}', '${f.name.replace(/'/g, "''")}', '${f.slug}', '${f.category}', ${f.description ? `'${f.description}'` : 'NULL'}, '${(f.content_en || '').replace(/'/g, "''")}', '${(f.content_ja || '').replace(/'/g, "''")}', ${f.is_bilingual}, '${f.tags}', '${f.version}', '${f.status}', datetime('now'), datetime('now'));`;
 
     sqlStatements.push(sql);
     console.log(sql);
@@ -120,15 +123,15 @@ async function main() {
   }
 
   // Write to file for D1 import
-  const { writeFileSync } = await import("fs");
-  const outputPath = join(__dirname, "../fragments-import.sql");
-  writeFileSync(outputPath, sqlStatements.join("\n\n"));
+  const { writeFileSync } = await import('fs');
+  const outputPath = join(__dirname, '../fragments-import.sql');
+  writeFileSync(outputPath, sqlStatements.join('\n\n'));
   console.log(`\nSQL written to: ${outputPath}`);
 
   console.log(`\n--- Summary ---`);
   console.log(`Total fragments: ${fragments.length}`);
-  console.log(`Bilingual: ${fragments.filter(f => f.is_bilingual).length}`);
-  console.log(`Categories: ${[...new Set(fragments.map(f => f.category))].join(", ")}`);
+  console.log(`Bilingual: ${fragments.filter((f) => f.is_bilingual).length}`);
+  console.log(`Categories: ${[...new Set(fragments.map((f) => f.category))].join(', ')}`);
 }
 
 main().catch(console.error);

@@ -153,10 +153,7 @@
   // Add fragment function
   function addFragment(fragmentId: string) {
     const maxOrder = Math.max(0, ...fragments.map((f) => f.order));
-    fragments = [
-      ...fragments,
-      { id: fragmentId, order: maxOrder + 1, enabled: true },
-    ];
+    fragments = [...fragments, { id: fragmentId, order: maxOrder + 1, enabled: true }];
     showAddFragment = false;
   }
 
@@ -380,7 +377,9 @@
               />
             </div>
             <div>
-              <label for="language_mode" class="block text-sm font-medium text-gray-700">Language Mode</label>
+              <label for="language_mode" class="block text-sm font-medium text-gray-700"
+                >Language Mode</label
+              >
               <select
                 id="language_mode"
                 name="language_mode"
@@ -679,7 +678,9 @@
                 </button>
 
                 {#if showAddFragment}
-                  <div class="absolute right-0 top-full mt-1 w-64 bg-white rounded-lg shadow-lg border z-10 max-h-64 overflow-y-auto">
+                  <div
+                    class="absolute right-0 top-full mt-1 w-64 bg-white rounded-lg shadow-lg border z-10 max-h-64 overflow-y-auto"
+                  >
                     {#each unusedFragments as frag (frag.id)}
                       <button
                         type="button"
@@ -733,7 +734,9 @@
                     <button
                       type="button"
                       onclick={() => togglePageBreak(index)}
-                      title={fragment.pageBreakBefore ? 'Remove page break before' : 'Add page break before'}
+                      title={fragment.pageBreakBefore
+                        ? 'Remove page break before'
+                        : 'Add page break before'}
                       class="p-1.5 rounded-md transition-colors text-xs font-medium
                              {fragment.pageBreakBefore
                         ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
@@ -822,7 +825,6 @@
                 </section>
               {/if}
             {/each}
-
           </div>
         </div>
       {/if}
@@ -912,7 +914,9 @@
               {#if proposal.pdf_r2_key_en && proposal.pdf_r2_key_ja}
                 <!-- Bilingual: Show all 3 PDFs -->
                 <a
-                  href="/api/documents/{proposal.id}/pdf?v={new Date(proposal.pdf_generated_at).getTime()}"
+                  href="/api/documents/{proposal.id}/pdf?v={new Date(
+                    proposal.pdf_generated_at
+                  ).getTime()}"
                   target="_blank"
                   rel="noopener noreferrer"
                   class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-esolia-navy text-white rounded-lg hover:bg-opacity-90 transition-colors"
@@ -922,7 +926,9 @@
                   Combined
                 </a>
                 <a
-                  href="/api/documents/{proposal.id}/pdf?lang=en&v={new Date(proposal.pdf_generated_at).getTime()}"
+                  href="/api/documents/{proposal.id}/pdf?lang=en&v={new Date(
+                    proposal.pdf_generated_at
+                  ).getTime()}"
                   target="_blank"
                   rel="noopener noreferrer"
                   class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
@@ -932,7 +938,9 @@
                   English
                 </a>
                 <a
-                  href="/api/documents/{proposal.id}/pdf?lang=ja&v={new Date(proposal.pdf_generated_at).getTime()}"
+                  href="/api/documents/{proposal.id}/pdf?lang=ja&v={new Date(
+                    proposal.pdf_generated_at
+                  ).getTime()}"
                   target="_blank"
                   rel="noopener noreferrer"
                   class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
@@ -944,7 +952,9 @@
               {:else}
                 <!-- Single language: Just one PDF -->
                 <a
-                  href="/api/documents/{proposal.id}/pdf?v={new Date(proposal.pdf_generated_at).getTime()}"
+                  href="/api/documents/{proposal.id}/pdf?v={new Date(
+                    proposal.pdf_generated_at
+                  ).getTime()}"
                   target="_blank"
                   rel="noopener noreferrer"
                   class="inline-flex items-center gap-2 px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
@@ -1109,12 +1119,14 @@
               </div>
               {#if recipients.length > 0}
                 <div class="text-gray-600">
-                  <span class="font-medium">Recipients:</span> {recipients.join(', ')}
+                  <span class="font-medium">Recipients:</span>
+                  {recipients.join(', ')}
                 </div>
               {/if}
               {#if sharedPdfs.length > 0}
                 <div class="text-gray-600">
-                  <span class="font-medium">PDFs:</span> {sharedPdfs.join(', ')}
+                  <span class="font-medium">PDFs:</span>
+                  {sharedPdfs.join(', ')}
                 </div>
               {/if}
             </div>

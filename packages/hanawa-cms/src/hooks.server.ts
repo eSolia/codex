@@ -112,7 +112,7 @@ export const handle: Handle = async ({ event, resolve }) => {
       name: emailName,
       // Default to admin for CF Access authenticated users
       // TODO: Implement role lookup from D1 users table
-      role: 'admin'
+      role: 'admin',
     };
   }
 

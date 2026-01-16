@@ -21,7 +21,7 @@
     Prohibit,
     WarningCircle,
     Lock,
-    SignIn
+    SignIn,
   } from 'phosphor-svelte';
 
   let { data } = $props();
@@ -128,13 +128,13 @@
     'V10 Malicious Code',
     'V12 Files',
     'V13 API',
-    'V14 Configuration'
+    'V14 Configuration',
   ];
 
   const formattedDate = lastUpdated.toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
-    day: 'numeric'
+    day: 'numeric',
   });
 </script>
 
@@ -190,7 +190,8 @@
             Automatable Subset Only
           </h3>
           <p class="text-sm text-amber-700 dark:text-amber-300">
-            This assessment checks controls that can be reliably verified through static code analysis.
+            This assessment checks controls that can be reliably verified through static code
+            analysis.
           </p>
 
           <button
@@ -243,7 +244,9 @@
     <div class="mb-6 rounded-xl bg-white p-6 shadow-lg dark:bg-zinc-800">
       <div class="mb-4 flex items-center gap-2">
         <Shield size={20} class="text-rose-500" />
-        <h2 class="text-lg font-semibold text-zinc-900 dark:text-white">Understanding This Report</h2>
+        <h2 class="text-lg font-semibold text-zinc-900 dark:text-white">
+          Understanding This Report
+        </h2>
       </div>
 
       <p class="mb-4 text-sm text-zinc-600 dark:text-zinc-400">
@@ -256,27 +259,39 @@
         >
           <div class="mb-1 flex items-center gap-2">
             <span class="level-badge level-L1">L1</span>
-            <span class="text-sm font-medium text-green-700 dark:text-green-300">Level 1 (Baseline)</span>
+            <span class="text-sm font-medium text-green-700 dark:text-green-300"
+              >Level 1 (Baseline)</span
+            >
           </div>
-          <p class="text-xs text-green-600 dark:text-green-400">50 controls - Basic security for all applications</p>
+          <p class="text-xs text-green-600 dark:text-green-400">
+            50 controls - Basic security for all applications
+          </p>
         </div>
         <div
           class="rounded-lg border border-blue-200 bg-blue-50 p-3 dark:border-blue-800 dark:bg-blue-900/20"
         >
           <div class="mb-1 flex items-center gap-2">
             <span class="level-badge level-L2">L2</span>
-            <span class="text-sm font-medium text-blue-700 dark:text-blue-300">Level 2 (Standard)</span>
+            <span class="text-sm font-medium text-blue-700 dark:text-blue-300"
+              >Level 2 (Standard)</span
+            >
           </div>
-          <p class="text-xs text-blue-600 dark:text-blue-400">100 additional controls - For apps handling sensitive data</p>
+          <p class="text-xs text-blue-600 dark:text-blue-400">
+            100 additional controls - For apps handling sensitive data
+          </p>
         </div>
         <div
           class="rounded-lg border border-purple-200 bg-purple-50 p-3 dark:border-purple-800 dark:bg-purple-900/20"
         >
           <div class="mb-1 flex items-center gap-2">
             <span class="level-badge level-L3">L3</span>
-            <span class="text-sm font-medium text-purple-700 dark:text-purple-300">Level 3 (Advanced)</span>
+            <span class="text-sm font-medium text-purple-700 dark:text-purple-300"
+              >Level 3 (Advanced)</span
+            >
           </div>
-          <p class="text-xs text-purple-600 dark:text-purple-400">136 additional controls - For critical/high-risk applications</p>
+          <p class="text-xs text-purple-600 dark:text-purple-400">
+            136 additional controls - For critical/high-risk applications
+          </p>
         </div>
       </div>
 
@@ -293,7 +308,9 @@
         <div class="mt-4">
           <div class="mb-2 flex items-center gap-2">
             <ChartBar size={16} class="text-zinc-500" />
-            <span class="text-sm font-medium text-zinc-700 dark:text-zinc-300">Coverage Visualization</span>
+            <span class="text-sm font-medium text-zinc-700 dark:text-zinc-300"
+              >Coverage Visualization</span
+            >
           </div>
           <div class="flex h-6 overflow-hidden rounded-md bg-zinc-100 dark:bg-zinc-700">
             <div
@@ -341,17 +358,27 @@
         </div>
 
         <!-- What We Check & What This Means -->
-        <div class="mt-5 grid gap-4 border-t border-zinc-100 pt-5 md:grid-cols-2 dark:border-zinc-700">
+        <div
+          class="mt-5 grid gap-4 border-t border-zinc-100 pt-5 md:grid-cols-2 dark:border-zinc-700"
+        >
           <div>
-            <h4 class="mb-2 text-sm font-semibold text-zinc-800 dark:text-zinc-200">What We Actually Check</h4>
+            <h4 class="mb-2 text-sm font-semibold text-zinc-800 dark:text-zinc-200">
+              What We Actually Check
+            </h4>
             <p class="text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
-              This automated assessment covers {l1Coverage.checked} of {l1Coverage.total} L1 controls ({l1Coverage.percentage}%) and {l2Coverage.checked} of {l2Coverage.total} L2 controls ({l2Coverage.percentage}%). These are controls that can be reliably verified through static code analysis.
+              This automated assessment covers {l1Coverage.checked} of {l1Coverage.total} L1 controls
+              ({l1Coverage.percentage}%) and {l2Coverage.checked} of {l2Coverage.total} L2 controls ({l2Coverage.percentage}%).
+              These are controls that can be reliably verified through static code analysis.
             </p>
           </div>
           <div>
-            <h4 class="mb-2 text-sm font-semibold text-zinc-800 dark:text-zinc-200">What The Pass Rate Means</h4>
+            <h4 class="mb-2 text-sm font-semibold text-zinc-800 dark:text-zinc-200">
+              What The Pass Rate Means
+            </h4>
             <p class="text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
-              The {score}% pass rate shown above means {summary.passed} of our {applicableChecks} automated checks passed. This is NOT {score}% ASVS compliant. Full compliance requires manual review and penetration testing.
+              The {score}% pass rate shown above means {summary.passed} of our {applicableChecks} automated
+              checks passed. This is NOT {score}% ASVS compliant. Full compliance requires manual
+              review and penetration testing.
             </p>
           </div>
         </div>
@@ -362,7 +389,11 @@
     <div class="mb-8 grid grid-cols-2 gap-4 md:grid-cols-6">
       <!-- Pass Rate Card -->
       <div class="rounded-xl bg-white p-5 text-center shadow-lg dark:bg-zinc-800">
-        <div class="mb-1 text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Pass Rate</div>
+        <div
+          class="mb-1 text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400"
+        >
+          Pass Rate
+        </div>
         <div
           class="mb-1 text-3xl font-bold"
           class:text-green-600={score >= 80}
@@ -377,31 +408,53 @@
       <!-- L1 Coverage Card -->
       {#if summary.coverage}
         <div class="rounded-xl bg-white p-5 text-center shadow-lg dark:bg-zinc-800">
-          <div class="mb-1 text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">L1 Coverage</div>
-          <div class="mb-1 text-3xl font-bold text-green-600">{summary.coverage.L1.percentage}%</div>
-          <div class="text-xs text-zinc-400 dark:text-zinc-500">{summary.coverage.L1.checked}/{summary.coverage.L1.total}</div>
+          <div
+            class="mb-1 text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400"
+          >
+            L1 Coverage
+          </div>
+          <div class="mb-1 text-3xl font-bold text-green-600">
+            {summary.coverage.L1.percentage}%
+          </div>
+          <div class="text-xs text-zinc-400 dark:text-zinc-500">
+            {summary.coverage.L1.checked}/{summary.coverage.L1.total}
+          </div>
         </div>
       {/if}
 
       <!-- L2 Coverage Card -->
       {#if summary.coverage?.L2}
         <div class="rounded-xl bg-white p-5 text-center shadow-lg dark:bg-zinc-800">
-          <div class="mb-1 text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">L2 Coverage</div>
+          <div
+            class="mb-1 text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400"
+          >
+            L2 Coverage
+          </div>
           <div class="mb-1 text-3xl font-bold text-blue-600">{summary.coverage.L2.percentage}%</div>
-          <div class="text-xs text-zinc-400 dark:text-zinc-500">{summary.coverage.L2.checked}/{summary.coverage.L2.total}</div>
+          <div class="text-xs text-zinc-400 dark:text-zinc-500">
+            {summary.coverage.L2.checked}/{summary.coverage.L2.total}
+          </div>
         </div>
       {/if}
 
       <!-- Passed Card -->
       <div class="rounded-xl bg-white p-5 text-center shadow-lg dark:bg-zinc-800">
-        <div class="mb-1 text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Passed</div>
+        <div
+          class="mb-1 text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400"
+        >
+          Passed
+        </div>
         <div class="mb-1 text-3xl font-bold text-green-600">{summary.passed}</div>
         <div class="text-xs text-zinc-400 dark:text-zinc-500">checks</div>
       </div>
 
       <!-- Failed Card -->
       <div class="rounded-xl bg-white p-5 text-center shadow-lg dark:bg-zinc-800">
-        <div class="mb-1 text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">Failed</div>
+        <div
+          class="mb-1 text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400"
+        >
+          Failed
+        </div>
         <div class="mb-1 text-3xl font-bold text-red-600">{summary.failed}</div>
         <div class="text-xs text-zinc-400 dark:text-zinc-500">checks</div>
       </div>
@@ -432,129 +485,133 @@
       </h2>
 
       {#each categoryOrder as category}
-      {#if checksByCategory[category]}
-        <div class="mb-6">
-          <h3
-            class="mb-3 text-sm font-semibold uppercase tracking-wide text-rose-600 dark:text-rose-400"
-          >
-            {category}
-          </h3>
-          <div class="space-y-2">
-            {#each checksByCategory[category] as check}
-              <div
-                class="overflow-hidden rounded-lg border-l-4 bg-white shadow-sm dark:bg-zinc-800"
-                class:border-green-500={check.status === 'pass'}
-                class:border-red-500={check.status === 'fail'}
-                class:border-yellow-500={check.status === 'warning'}
-                class:border-blue-500={check.status === 'info'}
-                class:border-zinc-300={check.status === 'not-applicable'}
-              >
-                <button
-                  class="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-700/50"
-                  onclick={() => toggleCheck(check.id)}
-                  aria-expanded={expandedChecks.has(check.id)}
+        {#if checksByCategory[category]}
+          <div class="mb-6">
+            <h3
+              class="mb-3 text-sm font-semibold uppercase tracking-wide text-rose-600 dark:text-rose-400"
+            >
+              {category}
+            </h3>
+            <div class="space-y-2">
+              {#each checksByCategory[category] as check}
+                <div
+                  class="overflow-hidden rounded-lg border-l-4 bg-white shadow-sm dark:bg-zinc-800"
+                  class:border-green-500={check.status === 'pass'}
+                  class:border-red-500={check.status === 'fail'}
+                  class:border-yellow-500={check.status === 'warning'}
+                  class:border-blue-500={check.status === 'info'}
+                  class:border-zinc-300={check.status === 'not-applicable'}
                 >
-                  {#if check.status === 'pass'}
-                    <CheckCircle size={20} class="flex-shrink-0 text-green-500" weight="fill" />
-                  {:else if check.status === 'fail'}
-                    <XCircle size={20} class="flex-shrink-0 text-red-500" weight="fill" />
-                  {:else if check.status === 'warning'}
-                    <Warning size={20} class="flex-shrink-0 text-yellow-500" weight="fill" />
-                  {:else if check.status === 'not-applicable'}
-                    <Prohibit size={20} class="flex-shrink-0 text-zinc-400" />
-                  {:else}
-                    <Info size={20} class="flex-shrink-0 text-blue-500" weight="fill" />
-                  {/if}
+                  <button
+                    class="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-700/50"
+                    onclick={() => toggleCheck(check.id)}
+                    aria-expanded={expandedChecks.has(check.id)}
+                  >
+                    {#if check.status === 'pass'}
+                      <CheckCircle size={20} class="flex-shrink-0 text-green-500" weight="fill" />
+                    {:else if check.status === 'fail'}
+                      <XCircle size={20} class="flex-shrink-0 text-red-500" weight="fill" />
+                    {:else if check.status === 'warning'}
+                      <Warning size={20} class="flex-shrink-0 text-yellow-500" weight="fill" />
+                    {:else if check.status === 'not-applicable'}
+                      <Prohibit size={20} class="flex-shrink-0 text-zinc-400" />
+                    {:else}
+                      <Info size={20} class="flex-shrink-0 text-blue-500" weight="fill" />
+                    {/if}
 
-                  <span class="font-mono text-xs text-zinc-500 dark:text-zinc-400">{check.id}</span>
-
-                  <!-- Level Badge -->
-                  {#if check.level}
-                    <span class="level-badge level-{check.level}">{check.level}</span>
-                  {/if}
-
-                  <span class="flex-1 font-medium text-zinc-900 dark:text-white">{check.name}</span>
-
-                  <!-- OWASP Top 10 Badges -->
-                  {#if check.top10 && check.top10.length > 0}
-                    {#each check.top10 as t10}
-                      <span class="owasp-badge" title="OWASP Top 10 2021">{t10}</span>
-                    {/each}
-                  {/if}
-
-                  {#if check.locations && check.locations.length > 0}
-                    <span
-                      class="inline-flex items-center gap-1 rounded bg-zinc-100 px-2 py-0.5 text-xs text-zinc-600 dark:bg-zinc-700 dark:text-zinc-400"
+                    <span class="font-mono text-xs text-zinc-500 dark:text-zinc-400"
+                      >{check.id}</span
                     >
-                      <Code size={12} />
-                      {check.locations.length}
-                    </span>
-                  {/if}
+
+                    <!-- Level Badge -->
+                    {#if check.level}
+                      <span class="level-badge level-{check.level}">{check.level}</span>
+                    {/if}
+
+                    <span class="flex-1 font-medium text-zinc-900 dark:text-white"
+                      >{check.name}</span
+                    >
+
+                    <!-- OWASP Top 10 Badges -->
+                    {#if check.top10 && check.top10.length > 0}
+                      {#each check.top10 as t10}
+                        <span class="owasp-badge" title="OWASP Top 10 2021">{t10}</span>
+                      {/each}
+                    {/if}
+
+                    {#if check.locations && check.locations.length > 0}
+                      <span
+                        class="inline-flex items-center gap-1 rounded bg-zinc-100 px-2 py-0.5 text-xs text-zinc-600 dark:bg-zinc-700 dark:text-zinc-400"
+                      >
+                        <Code size={12} />
+                        {check.locations.length}
+                      </span>
+                    {/if}
+
+                    {#if expandedChecks.has(check.id)}
+                      <CaretUp size={16} class="text-zinc-400" />
+                    {:else}
+                      <CaretDown size={16} class="text-zinc-400" />
+                    {/if}
+                  </button>
+
+                  <p class="-mt-1 ml-8 px-4 pb-3 text-sm text-zinc-500 dark:text-zinc-400">
+                    {check.description}
+                  </p>
 
                   {#if expandedChecks.has(check.id)}
-                    <CaretUp size={16} class="text-zinc-400" />
-                  {:else}
-                    <CaretDown size={16} class="text-zinc-400" />
-                  {/if}
-                </button>
-
-                <p class="-mt-1 ml-8 px-4 pb-3 text-sm text-zinc-500 dark:text-zinc-400">
-                  {check.description}
-                </p>
-
-                {#if expandedChecks.has(check.id)}
-                  {#if check.locations && check.locations.length > 0}
-                    <div class="mx-4 mb-3 rounded-lg bg-zinc-50 p-3 dark:bg-zinc-700/50">
-                      <div
-                        class="mb-2 flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-rose-600 dark:text-rose-400"
-                      >
-                        <FileCode size={14} />
-                        Evidence ({check.locations.length} locations)
-                      </div>
-                      <ul class="space-y-1">
-                        {#each check.locations.slice(0, 10) as loc}
-                          <li class="text-xs">
-                            <span class="font-mono text-rose-600 dark:text-rose-400"
-                              >{loc.file}:{loc.line}</span
-                            >
-                            {#if loc.snippet}
-                              <code
-                                class="mt-0.5 block truncate rounded bg-white px-2 py-1 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
+                    {#if check.locations && check.locations.length > 0}
+                      <div class="mx-4 mb-3 rounded-lg bg-zinc-50 p-3 dark:bg-zinc-700/50">
+                        <div
+                          class="mb-2 flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-rose-600 dark:text-rose-400"
+                        >
+                          <FileCode size={14} />
+                          Evidence ({check.locations.length} locations)
+                        </div>
+                        <ul class="space-y-1">
+                          {#each check.locations.slice(0, 10) as loc}
+                            <li class="text-xs">
+                              <span class="font-mono text-rose-600 dark:text-rose-400"
+                                >{loc.file}:{loc.line}</span
                               >
-                                {loc.snippet}
-                              </code>
-                            {/if}
-                          </li>
-                        {/each}
-                        {#if check.locations.length > 10}
-                          <li class="pt-1 text-xs italic text-zinc-500 dark:text-zinc-400">
-                            ... and {check.locations.length - 10} more locations
-                          </li>
-                        {/if}
-                      </ul>
-                    </div>
-                  {/if}
-
-                  {#if check.remediation}
-                    <div
-                      class="mx-4 mb-3 rounded-lg border-l-2 border-yellow-500 bg-yellow-50 p-3 dark:bg-yellow-900/20"
-                    >
-                      <div
-                        class="mb-2 flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-yellow-700 dark:text-yellow-400"
-                      >
-                        <Lightbulb size={14} />
-                        Remediation
+                              {#if loc.snippet}
+                                <code
+                                  class="mt-0.5 block truncate rounded bg-white px-2 py-1 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
+                                >
+                                  {loc.snippet}
+                                </code>
+                              {/if}
+                            </li>
+                          {/each}
+                          {#if check.locations.length > 10}
+                            <li class="pt-1 text-xs italic text-zinc-500 dark:text-zinc-400">
+                              ... and {check.locations.length - 10} more locations
+                            </li>
+                          {/if}
+                        </ul>
                       </div>
-                      <pre
-                        class="whitespace-pre-wrap font-mono text-xs text-zinc-700 dark:text-zinc-300">{check.remediation}</pre>
-                    </div>
+                    {/if}
+
+                    {#if check.remediation}
+                      <div
+                        class="mx-4 mb-3 rounded-lg border-l-2 border-yellow-500 bg-yellow-50 p-3 dark:bg-yellow-900/20"
+                      >
+                        <div
+                          class="mb-2 flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-yellow-700 dark:text-yellow-400"
+                        >
+                          <Lightbulb size={14} />
+                          Remediation
+                        </div>
+                        <pre
+                          class="whitespace-pre-wrap font-mono text-xs text-zinc-700 dark:text-zinc-300">{check.remediation}</pre>
+                      </div>
+                    {/if}
                   {/if}
-                {/if}
-              </div>
-            {/each}
+                </div>
+              {/each}
+            </div>
           </div>
-        </div>
-      {/if}
+        {/if}
       {/each}
     {:else}
       <!-- Public Login Prompt -->
@@ -568,7 +625,8 @@
           Detailed Report Available
         </h3>
         <p class="mx-auto mb-4 max-w-md text-zinc-600 dark:text-zinc-400">
-          The full ASVS assessment report with individual check results, code locations, and remediation guidance is available to authenticated clients.
+          The full ASVS assessment report with individual check results, code locations, and
+          remediation guidance is available to authenticated clients.
         </p>
         <p class="mb-6 text-sm text-zinc-500 dark:text-zinc-400">
           Sign in to view the complete security assessment.
@@ -588,7 +646,9 @@
       class="mt-8 border-t border-zinc-200 pt-6 text-center text-sm text-zinc-500 dark:border-zinc-700 dark:text-zinc-400"
     >
       <p>This assessment is generated automatically by our security scanning pipeline.</p>
-      <p class="mt-1">Full ASVS compliance requires manual security review and penetration testing.</p>
+      <p class="mt-1">
+        Full ASVS compliance requires manual security review and penetration testing.
+      </p>
       <p class="mt-2">
         <a href="/security" class="text-rose-600 hover:underline dark:text-rose-400">
           Back to Security

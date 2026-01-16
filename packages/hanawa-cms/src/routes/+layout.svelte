@@ -131,11 +131,7 @@
         <!-- eSolia Brand -->
         <div>
           <div class="flex items-center gap-2 mb-3">
-            <img
-              src="/esolia-logo-white.svg"
-              alt="eSolia Inc."
-              class="h-12 w-auto"
-            />
+            <img src="/esolia-logo-white.svg" alt="eSolia Inc." class="h-12 w-auto" />
           </div>
           <p class="text-sm text-zinc-400">
             Enterprise content management for compliance documentation and knowledge sharing.
@@ -170,10 +166,7 @@
             </li>
           </ul>
           <div class="mt-3">
-            <a
-              href="/security"
-              class="text-xs text-zinc-400 hover:text-rose-400 transition-colors"
-            >
+            <a href="/security" class="text-xs text-zinc-400 hover:text-rose-400 transition-colors">
               Security
             </a>
           </div>
@@ -185,11 +178,10 @@
             <RocketLaunch size={18} weight="duotone" />
             Hanawa CMS
           </h3>
-          <p class="text-sm text-zinc-400 mb-2">
-            Part of the eSolia Codex knowledge platform.
-          </p>
+          <p class="text-sm text-zinc-400 mb-2">Part of the eSolia Codex knowledge platform.</p>
           <p class="text-xs text-zinc-500">
-            Named after Hanawa Hokiichi (塙保己一), the blind scholar who compiled 1,273 classical texts.
+            Named after Hanawa Hokiichi (塙保己一), the blind scholar who compiled 1,273 classical
+            texts.
           </p>
           <div class="mt-3 flex items-center gap-3">
             <a

@@ -33,8 +33,8 @@ export const load: PageServerLoad = async ({ locals }) => {
         score,
         coverage: report.summary.coverage,
         timestamp: report.timestamp,
-        version: report.version
-      }
+        version: report.version,
+      },
     };
   }
 
@@ -51,7 +51,7 @@ export const load: PageServerLoad = async ({ locals }) => {
       score,
       coverage: report.summary.coverage,
       timestamp: report.timestamp,
-      version: report.version
-    }
+      version: report.version,
+    },
   };
 };

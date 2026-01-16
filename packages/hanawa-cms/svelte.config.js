@@ -1,8 +1,8 @@
-import adapter from "@sveltejs/adapter-cloudflare";
-import { vitePreprocess } from "@sveltejs/vite-plugin-svelte";
+import adapter from '@sveltejs/adapter-cloudflare';
+import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 
 // InfoSec: Disable remote platform proxy in CI to avoid auth requirement during build
-const isCI = process.env.CI === "true";
+const isCI = process.env.CI === 'true';
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
@@ -11,30 +11,30 @@ const config = {
   kit: {
     adapter: adapter({
       routes: {
-        include: ["/*"],
-        exclude: ["<all>"],
+        include: ['/*'],
+        exclude: ['<all>'],
       },
       // In CI, use minimal config without bindings to avoid remote auth requirement
       platformProxy: isCI
         ? {
-            configPath: "wrangler.ci.jsonc",
+            configPath: 'wrangler.ci.jsonc',
             experimentalJsonConfig: true,
-            persist: { path: ".wrangler/state" },
+            persist: { path: '.wrangler/state' },
           }
         : {
-            configPath: "wrangler.jsonc",
+            configPath: 'wrangler.jsonc',
             experimentalJsonConfig: true,
             persist: true,
           },
     }),
     alias: {
-      $lib: "./src/lib",
-      $components: "./src/lib/components",
-      $server: "./src/lib/server",
+      $lib: './src/lib',
+      $components: './src/lib/components',
+      $server: './src/lib/server',
     },
     // Disable prerendering in CI to avoid platform proxy auth requirement
     prerender: {
-      entries: isCI ? [] : ["*"],
+      entries: isCI ? [] : ['*'],
     },
   },
 };

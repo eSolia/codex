@@ -87,9 +87,7 @@
   const selectedTemplate = $derived(templates.find((t) => t.id === selectedTemplateId) || null);
 
   // Build fragment lookup map from available fragments
-  const fragmentMap = $derived(
-    new Map(availableFragments.map((f) => [f.id, f]))
-  );
+  const fragmentMap = $derived(new Map(availableFragments.map((f) => [f.id, f])));
 
   function selectTemplate(templateId: string) {
     selectedTemplateId = templateId;
@@ -276,11 +274,7 @@
                 : 'border-gray-200 hover:border-gray-300'}"
             >
               {#if template.is_default}
-                <Star
-                  size={16}
-                  weight="fill"
-                  class="absolute top-2 right-2 text-yellow-500"
-                />
+                <Star size={16} weight="fill" class="absolute top-2 right-2 text-yellow-500" />
               {/if}
               <div class="flex items-center gap-2 mb-2">
                 <FileText
@@ -459,7 +453,9 @@
               <!-- Order Number -->
               <span
                 class="w-6 h-6 flex items-center justify-center rounded-full text-xs font-medium
-                       {fragment.enabled ? 'bg-esolia-navy text-white' : 'bg-gray-200 text-gray-500'}"
+                       {fragment.enabled
+                  ? 'bg-esolia-navy text-white'
+                  : 'bg-gray-200 text-gray-500'}"
               >
                 {fragment.order}
               </span>

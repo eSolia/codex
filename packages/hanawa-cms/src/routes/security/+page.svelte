@@ -10,59 +10,82 @@
     CloudCheck,
     ArrowSquareOut,
     CheckCircle,
-    ShieldWarning
+    ShieldWarning,
   } from 'phosphor-svelte';
 
   const securityFeatures = [
     {
       icon: UserCircleCheck,
       title: 'Cloudflare Access',
-      desc: 'Zero-trust authentication protects all routes. Every user verified before access.'
+      desc: 'Zero-trust authentication protects all routes. Every user verified before access.',
     },
     {
       icon: LockKey,
       title: 'Content Encryption',
-      desc: 'AES-256-GCM encryption for sensitive content at rest. Per-content sensitivity levels.'
+      desc: 'AES-256-GCM encryption for sensitive content at rest. Per-content sensitivity levels.',
     },
     {
       icon: FileText,
       title: 'Comprehensive Audit Trail',
-      desc: 'Every action logged with actor, IP, timestamp. SOC 2 and ISO 27001 aligned controls.'
+      desc: 'Every action logged with actor, IP, timestamp. SOC 2 and ISO 27001 aligned controls.',
     },
     {
       icon: Eye,
       title: 'Preview Token Security',
-      desc: 'Cryptographic tokens with expiry, view limits, and IP restrictions for secure sharing.'
+      desc: 'Cryptographic tokens with expiry, view limits, and IP restrictions for secure sharing.',
     },
     {
       icon: ShieldWarning,
       title: 'XSS Prevention',
-      desc: 'Comprehensive HTML sanitization with tag/attribute whitelist. All user content sanitized.'
+      desc: 'Comprehensive HTML sanitization with tag/attribute whitelist. All user content sanitized.',
     },
     {
       icon: Database,
       title: 'SQL Injection Prevention',
-      desc: 'Parameterized queries via Cloudflare D1. No raw SQL concatenation.'
-    }
+      desc: 'Parameterized queries via Cloudflare D1. No raw SQL concatenation.',
+    },
   ];
 
   const owaspItems = [
-    { id: 'A01', name: 'Broken Access Control', desc: 'Cloudflare Access, sensitivity levels', status: 'pass' },
-    { id: 'A02', name: 'Cryptographic Failures', desc: 'AES-256-GCM, secure tokens', status: 'pass' },
+    {
+      id: 'A01',
+      name: 'Broken Access Control',
+      desc: 'Cloudflare Access, sensitivity levels',
+      status: 'pass',
+    },
+    {
+      id: 'A02',
+      name: 'Cryptographic Failures',
+      desc: 'AES-256-GCM, secure tokens',
+      status: 'pass',
+    },
     { id: 'A03', name: 'Injection', desc: 'D1 parameterized, HTML sanitization', status: 'pass' },
     { id: 'A04', name: 'Insecure Design', desc: 'Defense-in-depth architecture', status: 'pass' },
-    { id: 'A05', name: 'Security Misconfiguration', desc: 'Security headers, CSP policy', status: 'pass' },
-    { id: 'A06', name: 'Vulnerable Components', desc: 'Dependency auditing, updates', status: 'pass' },
+    {
+      id: 'A05',
+      name: 'Security Misconfiguration',
+      desc: 'Security headers, CSP policy',
+      status: 'pass',
+    },
+    {
+      id: 'A06',
+      name: 'Vulnerable Components',
+      desc: 'Dependency auditing, updates',
+      status: 'pass',
+    },
     { id: 'A07', name: 'Auth Failures', desc: 'Zero-trust, CSRF protection', status: 'pass' },
     { id: 'A08', name: 'Data Integrity', desc: 'Audit checksums, versioning', status: 'pass' },
     { id: 'A09', name: 'Logging Failures', desc: 'Comprehensive audit logging', status: 'pass' },
-    { id: 'A10', name: 'SSRF', desc: 'Controlled external requests', status: 'pass' }
+    { id: 'A10', name: 'SSRF', desc: 'Controlled external requests', status: 'pass' },
   ];
 </script>
 
 <svelte:head>
   <title>Security - Hanawa CMS</title>
-  <meta name="description" content="Security practices and compliance information for eSolia Codex (Hanawa CMS)" />
+  <meta
+    name="description"
+    content="Security practices and compliance information for eSolia Codex (Hanawa CMS)"
+  />
 </svelte:head>
 
 <div class="min-h-screen bg-zinc-50 dark:bg-zinc-900">
@@ -98,7 +121,9 @@
             >
               <feature.icon size={24} class="text-rose-600 dark:text-rose-400" weight="duotone" />
             </div>
-            <h3 class="mb-2 text-lg font-semibold text-zinc-900 dark:text-white">{feature.title}</h3>
+            <h3 class="mb-2 text-lg font-semibold text-zinc-900 dark:text-white">
+              {feature.title}
+            </h3>
             <p class="text-sm text-zinc-600 dark:text-zinc-400">{feature.desc}</p>
           </div>
         {/each}

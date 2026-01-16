@@ -38,7 +38,9 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
       {#if data.site.domain}
         <div class="flex items-center gap-3">
-          <div class="flex-shrink-0 w-10 h-10 bg-esolia-navy/10 rounded-lg flex items-center justify-center">
+          <div
+            class="flex-shrink-0 w-10 h-10 bg-esolia-navy/10 rounded-lg flex items-center justify-center"
+          >
             <Globe size={20} class="text-esolia-navy" />
           </div>
           <div>
@@ -56,7 +58,9 @@
       {/if}
 
       <div class="flex items-center gap-3">
-        <div class="flex-shrink-0 w-10 h-10 bg-esolia-navy/10 rounded-lg flex items-center justify-center">
+        <div
+          class="flex-shrink-0 w-10 h-10 bg-esolia-navy/10 rounded-lg flex items-center justify-center"
+        >
           <Folder size={20} class="text-esolia-navy" />
         </div>
         <div>
@@ -66,7 +70,9 @@
       </div>
 
       <div class="flex items-center gap-3">
-        <div class="flex-shrink-0 w-10 h-10 bg-esolia-navy/10 rounded-lg flex items-center justify-center">
+        <div
+          class="flex-shrink-0 w-10 h-10 bg-esolia-navy/10 rounded-lg flex items-center justify-center"
+        >
           <Translate size={20} class="text-esolia-navy" />
         </div>
         <div>
@@ -131,10 +137,7 @@
     {#if data.recentContent.length > 0}
       <div class="divide-y">
         {#each data.recentContent as doc}
-          <a
-            href="/content/{doc.id}"
-            class="block px-6 py-4 hover:bg-gray-50 transition-colors"
-          >
+          <a href="/content/{doc.id}" class="block px-6 py-4 hover:bg-gray-50 transition-colors">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-3">
                 <Article size={20} class="text-gray-400" />

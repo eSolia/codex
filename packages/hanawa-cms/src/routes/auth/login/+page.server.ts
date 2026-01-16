@@ -28,6 +28,6 @@ export const load: PageServerLoad = async ({ url, locals }) => {
 
   return {
     returnTo: safeReturnTo,
-    cfAccessLoginUrl
+    cfAccessLoginUrl,
   };
 };

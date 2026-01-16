@@ -19,14 +19,69 @@ function markdownToHtml(markdown: string, imageResolver?: Map<string, string>): 
   // If content already looks like HTML (starts with < tag), process as HTML
   // InfoSec: Fragment HTML is authored in CMS (trusted), sanitized on save
   const trimmed = html.trim();
-  if (trimmed.startsWith('<') && (trimmed.startsWith('<p') || trimmed.startsWith('<h') || trimmed.startsWith('<div') || trimmed.startsWith('<ul') || trimmed.startsWith('<ol') || trimmed.startsWith('<table'))) {
+  if (
+    trimmed.startsWith('<') &&
+    (trimmed.startsWith('<p') ||
+      trimmed.startsWith('<h') ||
+      trimmed.startsWith('<div') ||
+      trimmed.startsWith('<ul') ||
+      trimmed.startsWith('<ol') ||
+      trimmed.startsWith('<table'))
+  ) {
     let processed = html;
+
+    // Handle Tiptap Mermaid blocks - use R2 SVG, show placeholder if not exported
+    // Matches: <div data-type="mermaidBlock" data-source="..." data-svg-path="..." ...>...</div>
+    processed = processed.replace(
+      /<div[^>]*data-type=["']mermaidBlock["'][^>]*>[\s\S]*?<\/div>/gi,
+      (match) => {
+        // Extract svgPath attribute if present
+        const svgPathMatch = match.match(/data-svg-path=["']([^"']+)["']/i);
+        if (svgPathMatch && svgPathMatch[1]) {
+          const svgPath = svgPathMatch[1];
+          // Use the R2-stored SVG - will be resolved by imageResolver
+          const svgUrl = `/api/diagrams/${svgPath.replace('diagrams/', '').replace('.svg', '')}`;
+          console.log('[PDF] Using R2 SVG:', svgUrl);
+          return `<div class="mermaid-diagram" style="margin: 20px 0; text-align: center;"><img src="${svgUrl}" alt="Mermaid diagram" style="max-width: 100%; height: auto;"></div>`;
+        }
+
+        // No R2 export - show warning placeholder
+        // InfoSec: No fallback to external services - all diagrams must be exported to R2
+        console.log('[PDF] Mermaid block without R2 export - showing placeholder');
+        return `<div class="mermaid-placeholder" style="margin: 20px 0; padding: 20px; border: 2px dashed #f59e0b; border-radius: 8px; text-align: center; color: #92400e; background: #fef3c7;">
+          <strong>Diagram not exported</strong><br>
+          <span style="font-size: 0.875em;">Export this Mermaid diagram to R2 before generating PDF.</span>
+        </div>`;
+      }
+    );
+
+    // Resolve HTML img tags with imageResolver (for Mermaid SVGs from R2)
+    // Replace <img src="/api/diagrams/..."> with inline SVG content
+    if (imageResolver && imageResolver.size > 0) {
+      processed = processed.replace(
+        /<img[^>]*src=["'](\/api\/diagrams\/[^"']+)["'][^>]*>/gi,
+        (match, url) => {
+          if (imageResolver.has(url)) {
+            const svgContent = imageResolver.get(url)!;
+            console.log('[PDF] Resolved HTML img to inline SVG:', url);
+            return svgContent;
+          }
+          // No resolver match - convert to absolute URL for external fetch
+          console.log('[PDF] No inline SVG for:', url);
+          return match.replace(url, `https://hanawa.esolia.co.jp${url}`);
+        }
+      );
+    }
+
     // Tiptap wraps list item content in <p> tags - remove them for cleaner PDF
     // Handle <p> with or without attributes: <li><p class="...">text</p></li> → <li>text</li>
     processed = processed.replace(/<li>\s*<p[^>]*>([\s\S]*?)<\/p>\s*<\/li>/g, '<li>$1</li>');
     // Remove any remaining <p> tags inside <li> (handles multiple <p> in one <li>)
     processed = processed.replace(/<li>([\s\S]*?)<\/li>/g, (match, content) => {
-      const stripped = content.replace(/<\/?p[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+      const stripped = content
+        .replace(/<\/?p[^>]*>/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
       return `<li>${stripped}</li>`;
     });
     // Remove empty paragraphs
@@ -39,7 +94,17 @@ function markdownToHtml(markdown: string, imageResolver?: Map<string, string>): 
   // Handle fenced code blocks FIRST (before any other processing)
   // Preserves content exactly as-is, prevents other rules from mangling code
   html = html.replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) => {
-    // Escape HTML entities in code content
+    // Mermaid code blocks in markdown - show placeholder (must use Tiptap MermaidBlock + Export)
+    // InfoSec: No fallback to external services - all diagrams must be exported to R2
+    if (lang === 'mermaid') {
+      console.log('[PDF] Markdown mermaid code block - showing placeholder');
+      return `<div class="mermaid-placeholder" style="margin: 20px 0; padding: 20px; border: 2px dashed #f59e0b; border-radius: 8px; text-align: center; color: #92400e; background: #fef3c7;">
+        <strong>Diagram not exported</strong><br>
+        <span style="font-size: 0.875em;">Use the Mermaid block in the editor and export to R2 before generating PDF.</span>
+      </div>`;
+    }
+
+    // Regular code blocks - escape HTML entities
     const escapedCode = code
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
@@ -460,9 +525,7 @@ export const actions: Actions = {
 
       // Load fragment contents
       // Keep full fragment objects for pageBreakBefore support
-      const enabledFragments = fragments
-        .filter((f) => f.enabled)
-        .sort((a, b) => a.order - b.order);
+      const enabledFragments = fragments.filter((f) => f.enabled).sort((a, b) => a.order - b.order);
       const enabledFragmentIds = enabledFragments.map((f) => f.id);
 
       let fragmentContents: FragmentContent[] = [];
@@ -487,19 +550,82 @@ export const actions: Actions = {
       // This resolves /api/diagrams/* URLs to actual SVG content
       const imageResolver = new Map<string, string>();
       if (platform.env.R2) {
-        const diagramUrlRegex = /!\[[^\]]*\]\((\/api\/diagrams\/([^)]+))\)/g;
+        // Regex for markdown images: ![alt](/api/diagrams/id)
+        const markdownDiagramRegex = /!\[[^\]]*\]\((\/api\/diagrams\/([^)]+))\)/g;
+        // Regex for HTML img tags: <img src="/api/diagrams/id" ...>
+        const htmlImgRegex = /<img[^>]*src=["'](\/api\/diagrams\/([^"']+))["'][^>]*>/gi;
         const diagramIds = new Set<string>();
 
-        // Scan all fragment content for diagram URLs
+        // Scan all fragment content for diagram URLs and Mermaid blocks
         for (const frag of fragmentContents) {
           const contentToScan = [frag.content_en, frag.content_ja].filter(Boolean).join('\n');
+
+          // Scan for markdown diagram links
           let match;
-          while ((match = diagramUrlRegex.exec(contentToScan)) !== null) {
+          while ((match = markdownDiagramRegex.exec(contentToScan)) !== null) {
             const url = match[1]; // /api/diagrams/some-id
-            const id = match[2];  // some-id (may or may not have .svg)
+            const id = match[2]; // some-id (may or may not have .svg)
             diagramIds.add(JSON.stringify({ url, id }));
           }
+
+          // Scan for HTML img tags in fragments
+          let htmlMatch;
+          while ((htmlMatch = htmlImgRegex.exec(contentToScan)) !== null) {
+            const url = htmlMatch[1];
+            const id = htmlMatch[2];
+            diagramIds.add(JSON.stringify({ url, id }));
+          }
+
+          // Scan for Mermaid block data-svg-path in fragments
+          const mermaidRegex = /data-svg-path=["']([^"']+)["']/gi;
+          let mermaidMatch;
+          while ((mermaidMatch = mermaidRegex.exec(contentToScan)) !== null) {
+            const svgPath = mermaidMatch[1];
+            const id = svgPath.replace('diagrams/', '').replace('.svg', '');
+            const url = `/api/diagrams/${id}`;
+            diagramIds.add(JSON.stringify({ url, id }));
+            console.log(`PDF: Found Mermaid svgPath in fragment ${frag.id}: ${svgPath}`);
+          }
         }
+
+        // Also scan cover letters (contain HTML with Mermaid blocks)
+        const coverLettersToScan = [proposal.cover_letter_en, proposal.cover_letter_ja]
+          .filter(Boolean)
+          .join('\n');
+
+        // Scan for HTML img tags in cover letters
+        let htmlMatch;
+        while ((htmlMatch = htmlImgRegex.exec(coverLettersToScan)) !== null) {
+          const url = htmlMatch[1]; // /api/diagrams/some-id
+          const id = htmlMatch[2]; // some-id (may or may not have .svg)
+          diagramIds.add(JSON.stringify({ url, id }));
+        }
+
+        // Scan for Mermaid block data-svg-path attributes (before conversion to img tags)
+        // These are Tiptap mermaid blocks: <div data-type="mermaidBlock" data-svg-path="diagrams/xxx">
+        const mermaidSvgPathRegex = /data-svg-path=["']([^"']+)["']/gi;
+        let svgPathMatch;
+
+        // Debug: Log cover letter content to see if it has mermaid blocks
+        console.log(`PDF: Cover letter EN length: ${proposal.cover_letter_en?.length || 0}`);
+        console.log(`PDF: Cover letter JA length: ${proposal.cover_letter_ja?.length || 0}`);
+        if (coverLettersToScan.includes('mermaidBlock')) {
+          console.log('PDF: Found mermaidBlock in cover letters');
+          console.log('PDF: Cover letter snippet:', coverLettersToScan.substring(0, 500));
+        } else {
+          console.log('PDF: No mermaidBlock found in cover letters');
+        }
+
+        while ((svgPathMatch = mermaidSvgPathRegex.exec(coverLettersToScan)) !== null) {
+          const svgPath = svgPathMatch[1]; // diagrams/mermaid-xxx.svg
+          // Convert svgPath to the URL format that markdownToHtml will generate
+          const id = svgPath.replace('diagrams/', '').replace('.svg', '');
+          const url = `/api/diagrams/${id}`;
+          diagramIds.add(JSON.stringify({ url, id }));
+          console.log(`PDF: Found Mermaid svgPath: ${svgPath} -> ${url}`);
+        }
+
+        console.log(`PDF: Total diagram IDs to fetch: ${diagramIds.size}`);
 
         // Fetch each diagram from R2
         for (const entry of diagramIds) {
@@ -530,7 +656,9 @@ export const actions: Actions = {
       const primaryLang = isBilingual ? firstLang : langMode === 'ja' ? 'ja' : 'en';
 
       // DEBUG: Return debug info so we can see what's happening
-      console.log(`PDF Generation: langMode="${langMode}", isBilingual=${isBilingual}, raw="${proposal.language_mode}"`);
+      console.log(
+        `PDF Generation: langMode="${langMode}", isBilingual=${isBilingual}, raw="${proposal.language_mode}"`
+      );
 
       // Get current date formatted for JST
       const now = new Date();
@@ -569,7 +697,8 @@ export const actions: Actions = {
 
         // Scope (use language-specific scope)
         // Wrapped in scope-section class to ensure it starts on a new page
-        const scopeContent = lang === 'ja' ? (proposalData.scope_ja || proposalData.scope) : proposalData.scope;
+        const scopeContent =
+          lang === 'ja' ? proposalData.scope_ja || proposalData.scope : proposalData.scope;
         if (scopeContent) {
           section += `<div class="scope-section">\n<h2>${lang === 'ja' ? 'スコープ' : 'Scope'}</h2>\n<p>${scopeContent}</p>\n</div>\n`;
         }
@@ -687,9 +816,16 @@ export const actions: Actions = {
 
       // Helper: Build complete single-language HTML document
       function buildSingleLanguageHtml(lang: 'en' | 'ja'): string {
-        const contactName = lang === 'ja' ? (proposalData.contact_name_ja || proposalData.contact_name) : proposalData.contact_name;
-        const clientName = lang === 'ja' ? (proposalData.client_name_ja || proposalData.client_name) : proposalData.client_name;
-        const title = lang === 'ja' && proposalData.title_ja ? proposalData.title_ja : proposalData.title;
+        const contactName =
+          lang === 'ja'
+            ? proposalData.contact_name_ja || proposalData.contact_name
+            : proposalData.contact_name;
+        const clientName =
+          lang === 'ja'
+            ? proposalData.client_name_ja || proposalData.client_name
+            : proposalData.client_name;
+        const title =
+          lang === 'ja' && proposalData.title_ja ? proposalData.title_ja : proposalData.title;
         const dateFormatted = lang === 'ja' ? dateFormattedJa : dateFormattedEn;
         const confidential = lang === 'ja' ? '機密' : 'Confidential';
 
@@ -745,8 +881,16 @@ export const actions: Actions = {
             toc: {
               title: proposal.title,
               titleJa: proposal.title_ja,
-              clientNameEn: [proposal.contact_name, proposal.client_name].filter(Boolean).join(', ') || undefined,
-              clientNameJa: [proposal.contact_name_ja || proposal.contact_name, proposal.client_name_ja || proposal.client_name].filter(Boolean).join(', ') || undefined,
+              clientNameEn:
+                [proposal.contact_name, proposal.client_name].filter(Boolean).join(', ') ||
+                undefined,
+              clientNameJa:
+                [
+                  proposal.contact_name_ja || proposal.contact_name,
+                  proposal.client_name_ja || proposal.client_name,
+                ]
+                  .filter(Boolean)
+                  .join(', ') || undefined,
               dateEn: dateFormattedEn,
               dateJa: dateFormattedJa,
             },
@@ -767,11 +911,16 @@ export const actions: Actions = {
         }
 
         // Parse response (base64 encoded PDFs)
-        const bilingualResult = await bilingualResponse.json() as {
+        const bilingualResult = (await bilingualResponse.json()) as {
           combined: string;
           english: string;
           japanese: string;
-          pageInfo: { tocPages: number; englishPages: number; japanesePages: number; totalPages: number };
+          pageInfo: {
+            tocPages: number;
+            englishPages: number;
+            japanesePages: number;
+            totalPages: number;
+          };
         };
 
         // Decode base64 to ArrayBuffer
@@ -846,8 +995,14 @@ export const actions: Actions = {
         };
       } else {
         // Single language mode
-        const contactName = primaryLang === 'ja' ? (proposal.contact_name_ja || proposal.contact_name) : proposal.contact_name;
-        const clientName = primaryLang === 'ja' ? (proposal.client_name_ja || proposal.client_name) : proposal.client_name;
+        const contactName =
+          primaryLang === 'ja'
+            ? proposal.contact_name_ja || proposal.contact_name
+            : proposal.contact_name;
+        const clientName =
+          primaryLang === 'ja'
+            ? proposal.client_name_ja || proposal.client_name
+            : proposal.client_name;
 
         bodyContent = `
   <div class="header">
@@ -970,7 +1125,7 @@ export const actions: Actions = {
     const formData = await request.formData();
 
     // Get selected PDFs (checkboxes with name="share_pdfs")
-    const sharePdfs = formData.getAll('share_pdfs').map(v => v.toString());
+    const sharePdfs = formData.getAll('share_pdfs').map((v) => v.toString());
     if (sharePdfs.length === 0) {
       return fail(400, { error: 'Select at least one PDF to share' });
     }
@@ -982,8 +1137,8 @@ export const actions: Actions = {
     // Parse emails: split by newlines and commas, trim whitespace, filter empty
     const recipientEmails = recipientEmailsRaw
       .split(/[\n,]+/)
-      .map(e => e.trim())
-      .filter(e => e.length > 0);
+      .map((e) => e.trim())
+      .filter((e) => e.length > 0);
 
     if (recipientEmails.length === 0) {
       return fail(400, { error: 'At least one recipient email is required' });
@@ -991,7 +1146,7 @@ export const actions: Actions = {
 
     // InfoSec: Validate all email addresses (OWASP A03)
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const invalidEmails = recipientEmails.filter(e => !emailRegex.test(e));
+    const invalidEmails = recipientEmails.filter((e) => !emailRegex.test(e));
     if (invalidEmails.length > 0) {
       return fail(400, { error: `Invalid email address(es): ${invalidEmails.join(', ')}` });
     }
@@ -1039,7 +1194,10 @@ export const actions: Actions = {
       // Generate share ID using crypto
       const idArray = new Uint8Array(8);
       crypto.getRandomValues(idArray);
-      const shareId = `share_${Date.now()}_${Array.from(idArray).map(b => b.toString(16).padStart(2, '0')).join('').substring(0, 8)}`;
+      const shareId = `share_${Date.now()}_${Array.from(idArray)
+        .map((b) => b.toString(16).padStart(2, '0'))
+        .join('')
+        .substring(0, 8)}`;
 
       // Build share URL (Courier format)
       const shareUrl = `https://courier.esolia.co.jp/s/${shareId}`;
@@ -1069,7 +1227,7 @@ export const actions: Actions = {
           shareUrl,
           pin,
           JSON.stringify(recipientEmails), // Store as JSON array
-          JSON.stringify(pdfKeys.map(p => p.type)), // Store selected PDF types
+          JSON.stringify(pdfKeys.map((p) => p.type)), // Store selected PDF types
           expiresAt.toISOString(),
           params.id
         )
@@ -1081,7 +1239,7 @@ export const actions: Actions = {
         shareUrl,
         pin,
         recipients: recipientEmails,
-        pdfs: pdfKeys.map(p => p.type),
+        pdfs: pdfKeys.map((p) => p.type),
         expiresAt: expiresAt.toISOString(),
       };
     } catch (err) {

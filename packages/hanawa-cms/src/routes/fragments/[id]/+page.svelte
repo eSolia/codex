@@ -8,6 +8,9 @@
   import { onMount, tick } from 'svelte';
   import mermaid from 'mermaid';
   import { sanitizeHtml } from '$lib/sanitize';
+  import Image from 'phosphor-svelte/lib/Image';
+  import ChartBar from 'phosphor-svelte/lib/ChartBar';
+  import Warning from 'phosphor-svelte/lib/Warning';
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
 
@@ -15,6 +18,208 @@
   let showVersionPanel = $state(false);
   let useRichEditor = $state(true);
   let isEditing = $state(false);
+
+  // Diagram preview state
+  let diagramSvg = $state<string | null>(null);
+  let diagramLoading = $state(false);
+  let diagramError = $state<string | null>(null);
+  let diagramFetchAttempted = $state(false);
+
+  // R2 export metadata state
+  interface DiagramMeta {
+    exists: boolean;
+    id: string;
+    path: string;
+    size?: number;
+    uploaded?: string;
+    uploadedAt?: string;
+    source?: string;
+  }
+  let diagramMetas = $state<Map<string, DiagramMeta>>(new Map());
+  let metaLoading = $state(false);
+
+  // Check if this is a diagram fragment (SVG stored in R2)
+  const isDiagramFragment = $derived(data.fragment.category === 'diagrams');
+
+  // Check if fragment has Mermaid diagram source
+  const hasDiagramSource = $derived(!!data.fragment.diagram_source);
+
+  // Get list of exported diagrams with metadata (for view mode display)
+  const exportedDiagrams = $derived(() => {
+    const results: Array<{ id: string; meta: DiagramMeta }> = [];
+    for (const [id, meta] of diagramMetas) {
+      if (meta.exists) {
+        results.push({ id, meta });
+      }
+    }
+    return results;
+  });
+
+  // Check if fragment content contains inline Mermaid code
+  const hasInlineMermaid = $derived(() => {
+    // First check for dedicated diagram_source field
+    if (data.fragment.diagram_source) return true;
+
+    const contentEn = data.fragment.content_en || '';
+    const contentJa = data.fragment.content_ja || '';
+    const combined = contentEn + contentJa;
+    // Check for markdown mermaid blocks or Tiptap mermaid blocks
+    return (
+      combined.includes('```mermaid') ||
+      combined.includes('data-type="mermaidBlock"') ||
+      combined.includes("data-type='mermaidBlock'")
+    );
+  });
+
+  // Mermaid diagram rendering state
+  let mermaidSvg = $state<string | null>(null);
+  let mermaidError = $state<string | null>(null);
+  let mermaidRendering = $state(false);
+
+  // Render Mermaid from diagram_source
+  async function renderDiagramSource() {
+    if (!data.fragment.diagram_source || !browser) return;
+
+    mermaidRendering = true;
+    mermaidError = null;
+
+    try {
+      const id = `diagram-${data.fragment.id}-${Date.now()}`;
+      const { svg } = await mermaid.render(id, data.fragment.diagram_source);
+      mermaidSvg = svg;
+    } catch (err) {
+      console.error('[Mermaid] Render error:', err);
+      mermaidError = err instanceof Error ? err.message : 'Failed to render diagram';
+    } finally {
+      mermaidRendering = false;
+    }
+  }
+
+  // Render diagram source on load
+  $effect(() => {
+    if (browser && hasDiagramSource && !mermaidSvg && !mermaidRendering) {
+      renderDiagramSource();
+    }
+  });
+
+  // Fetch diagram metadata from R2
+  async function fetchDiagramMeta(diagramId: string): Promise<DiagramMeta | null> {
+    try {
+      const response = await fetch(`/api/diagrams/${diagramId}/meta`);
+      if (response.ok) {
+        return await response.json();
+      }
+      return null;
+    } catch (err) {
+      console.warn(`[Diagram Meta] Failed to fetch metadata for ${diagramId}:`, err);
+      return null;
+    }
+  }
+
+  // Extract diagram IDs from content (Mermaid data-svg-path attributes)
+  function extractDiagramIds(content: string | null): string[] {
+    if (!content) return [];
+    const ids: string[] = [];
+    // Match data-svg-path="diagrams/xxx.svg"
+    const regex = /data-svg-path=["']diagrams\/([^"']+)\.svg["']/gi;
+    let match;
+    while ((match = regex.exec(content)) !== null) {
+      ids.push(match[1]);
+    }
+    return ids;
+  }
+
+  // Load metadata for all diagrams in fragment content
+  async function loadDiagramMetadata() {
+    if (!browser) return;
+
+    metaLoading = true;
+    const allIds = new Set<string>();
+
+    // Get diagram IDs from both language contents
+    extractDiagramIds(data.fragment.content_en).forEach((id) => allIds.add(id));
+    extractDiagramIds(data.fragment.content_ja).forEach((id) => allIds.add(id));
+
+    // Also add fragment ID if it's a diagram fragment
+    if (isDiagramFragment) {
+      allIds.add(data.fragment.id);
+    }
+
+    // Fetch metadata for all diagrams
+    const newMetas = new Map<string, DiagramMeta>();
+    for (const id of allIds) {
+      const meta = await fetchDiagramMeta(id);
+      if (meta) {
+        newMetas.set(id, meta);
+      }
+    }
+
+    diagramMetas = newMetas;
+    metaLoading = false;
+  }
+
+  // Load diagram metadata on mount and when content changes
+  $effect(() => {
+    // Track content to reload metadata when it changes
+    const _contentEn = data.fragment.content_en;
+    const _contentJa = data.fragment.content_ja;
+
+    if (browser) {
+      loadDiagramMetadata();
+    }
+  });
+
+  // Load diagram SVG from R2 on mount if this is a diagram fragment
+  $effect(() => {
+    // Guard: only try once per fragment
+    if (browser && isDiagramFragment && !diagramFetchAttempted) {
+      diagramFetchAttempted = true;
+      loadDiagramSvg();
+    }
+  });
+
+  async function loadDiagramSvg() {
+    diagramLoading = true;
+    diagramError = null;
+    try {
+      // Add timeout to prevent infinite loading
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+      const response = await fetch(`/api/diagrams/${data.fragment.id}`, {
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+
+      console.log(
+        `[Diagram] Response status: ${response.status}, type: ${response.headers.get('content-type')}`
+      );
+
+      if (response.ok) {
+        const contentType = response.headers.get('content-type');
+        if (contentType?.includes('svg') || contentType?.includes('xml')) {
+          diagramSvg = await response.text();
+        } else {
+          diagramError = `Not an SVG file (got ${contentType || 'unknown'})`;
+        }
+      } else if (response.status === 404) {
+        diagramError = 'not-in-r2'; // Special marker for no R2 file
+      } else if (response.status === 503) {
+        diagramError = 'R2 storage service unavailable';
+      } else {
+        const errorText = await response.text().catch(() => '');
+        diagramError = `Failed to load: ${response.status}${errorText ? ` - ${errorText}` : ''}`;
+      }
+    } catch (err) {
+      if (err instanceof Error && err.name === 'AbortError') {
+        diagramError = 'Request timed out - R2 may be unavailable';
+      } else {
+        diagramError = err instanceof Error ? err.message : 'Failed to load diagram';
+      }
+    } finally {
+      diagramLoading = false;
+    }
+  }
 
   // Configure marked for safe rendering
   marked.setOptions({
@@ -59,11 +264,11 @@
   async function renderMermaidDiagrams() {
     console.log('[Mermaid] renderMermaidDiagrams called');
 
-    // Find all mermaid blocks - try both new and legacy format
+    // Find all mermaid blocks - try both Tiptap format and markdown code blocks
     const mermaidBlocks = document.querySelectorAll(
       "[data-type='mermaidBlock'], [data-type='mermaid']"
     );
-    console.log('[Mermaid] Found blocks:', mermaidBlocks.length);
+    console.log('[Mermaid] Found Tiptap blocks:', mermaidBlocks.length);
 
     for (const block of mermaidBlocks) {
       const source = block.getAttribute('data-source');
@@ -89,6 +294,40 @@
           console.error('[Mermaid] Render error:', err);
           diagramContainer.innerHTML = `<div class="text-red-500 text-sm">Diagram error: ${err instanceof Error ? err.message : 'Unknown error'}</div>`;
         }
+      }
+    }
+
+    // Also handle markdown-style mermaid code blocks (from marked.parse())
+    const codeBlocks = document.querySelectorAll('code.language-mermaid');
+    console.log('[Mermaid] Found code blocks:', codeBlocks.length);
+
+    for (const codeBlock of codeBlocks) {
+      const source = codeBlock.textContent;
+      const preElement = codeBlock.parentElement;
+      if (!source || !preElement || preElement.tagName !== 'PRE') continue;
+
+      // Skip if already processed
+      if (preElement.classList.contains('mermaid-processed')) continue;
+      preElement.classList.add('mermaid-processed');
+
+      try {
+        const id = `mermaid-${Math.random().toString(36).substring(2, 9)}`;
+        console.log('[Mermaid] Rendering code block with id:', id);
+        const { svg } = await mermaid.render(id, source);
+
+        // Replace the pre/code with rendered SVG
+        const diagramContainer = document.createElement('div');
+        diagramContainer.className = 'mermaid-rendered';
+        diagramContainer.innerHTML = svg;
+        preElement.replaceWith(diagramContainer);
+        console.log('[Mermaid] Code block render success');
+      } catch (err) {
+        console.error('[Mermaid] Code block render error:', err);
+        // Keep original code block but add error message
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'text-red-500 text-sm mt-2';
+        errorDiv.textContent = `Diagram error: ${err instanceof Error ? err.message : 'Unknown error'}`;
+        preElement.after(errorDiv);
       }
     }
   }
@@ -406,6 +645,178 @@
         </dl>
       {/if}
     </div>
+
+    <!-- R2 Export Status (shown in view mode for fragments with Mermaid) -->
+    {#if !isEditing && hasInlineMermaid() && exportedDiagrams().length > 0}
+      <div class="bg-white rounded-lg shadow mt-6 p-6">
+        <h2 class="text-lg font-semibold text-gray-900 flex items-center gap-2 mb-4">
+          <Image size={20} weight="duotone" class="text-emerald-600" />
+          R2 Export Status
+        </h2>
+        <div class="space-y-3">
+          {#each exportedDiagrams() as { id, meta }}
+            <div
+              class="flex items-center justify-between p-3 bg-emerald-50 border border-emerald-200 rounded-lg"
+            >
+              <div class="flex items-center gap-3">
+                <span
+                  class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-800"
+                >
+                  Exported
+                </span>
+                <code class="font-mono text-sm text-gray-700">{meta.path}</code>
+              </div>
+              <div class="text-sm text-gray-600">
+                {#if meta.uploadedAt}
+                  <span title="Export timestamp from custom metadata">
+                    {new Date(meta.uploadedAt).toLocaleString()}
+                  </span>
+                {:else if meta.uploaded}
+                  <span title="R2 object upload time">
+                    {new Date(meta.uploaded).toLocaleString()}
+                  </span>
+                {:else}
+                  <span class="text-gray-400">Unknown date</span>
+                {/if}
+                {#if meta.size}
+                  <span class="ml-2 text-gray-400">({(meta.size / 1024).toFixed(1)} KB)</span>
+                {/if}
+              </div>
+            </div>
+          {/each}
+        </div>
+      </div>
+    {:else if !isEditing && hasInlineMermaid() && !metaLoading}
+      <!-- Has Mermaid but nothing exported yet -->
+      <div class="bg-white rounded-lg shadow mt-6 p-6">
+        <h2 class="text-lg font-semibold text-gray-900 flex items-center gap-2 mb-4">
+          <Warning size={20} weight="duotone" class="text-amber-500" />
+          R2 Export Status
+        </h2>
+        <div class="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+          <p class="text-amber-800 text-sm">
+            This fragment contains Mermaid diagrams that have not been exported to R2. Edit the
+            fragment and use the export button to save SVG versions for PDF generation.
+          </p>
+        </div>
+      </div>
+    {/if}
+
+    <!-- Diagram Preview (for SVG diagrams stored in R2) -->
+    {#if isDiagramFragment}
+      <div class="bg-white rounded-lg shadow mt-6 p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            <Image size={20} weight="duotone" class="text-esolia-orange" />
+            Diagram Preview
+          </h2>
+          <!-- Dynamic badge based on actual status -->
+          {#if diagramSvg}
+            <span
+              class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800"
+            >
+              SVG from R2
+            </span>
+          {:else if mermaidSvg || hasDiagramSource}
+            <span
+              class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800"
+            >
+              Mermaid Source
+            </span>
+          {:else if hasInlineMermaid()}
+            <span
+              class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800"
+            >
+              Inline Mermaid
+            </span>
+          {:else if diagramError === 'not-in-r2'}
+            <span
+              class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800"
+            >
+              No R2 SVG
+            </span>
+          {:else}
+            <span
+              class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600"
+            >
+              Checking...
+            </span>
+          {/if}
+        </div>
+
+        {#if diagramLoading || mermaidRendering}
+          <div class="flex items-center justify-center py-12 text-gray-500">
+            <svg class="animate-spin h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24">
+              <circle
+                class="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                stroke-width="4"
+              ></circle>
+              <path
+                class="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
+            </svg>
+            Loading diagram...
+          </div>
+        {:else if mermaidSvg}
+          <!-- Rendered Mermaid diagram from diagram_source -->
+          <div class="border border-gray-200 rounded-lg p-4 bg-white overflow-auto max-h-[600px]">
+            {@html mermaidSvg}
+          </div>
+        {:else if mermaidError}
+          <div class="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
+            <p class="font-medium">Mermaid render error</p>
+            <p class="text-sm mt-1">{mermaidError}</p>
+          </div>
+        {:else if diagramError === 'not-in-r2' && hasInlineMermaid()}
+          <!-- Inline Mermaid - no R2 SVG needed -->
+          <div class="bg-purple-50 border border-purple-200 rounded-lg p-4 text-purple-800">
+            <p class="font-medium flex items-center gap-2">
+              <ChartBar size={20} weight="duotone" />
+              Inline Mermaid Diagram
+            </p>
+            <p class="text-sm mt-2">
+              This fragment contains Mermaid code that renders in the content area below. The
+              diagram is defined inline, not stored as SVG in R2.
+            </p>
+          </div>
+        {:else if diagramError === 'not-in-r2'}
+          <!-- No R2 SVG and no inline Mermaid - likely draw.io not synced -->
+          <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 text-amber-800">
+            <p class="font-medium flex items-center gap-2">
+              <Warning size={20} weight="duotone" />
+              No SVG in R2 Storage
+            </p>
+            <p class="text-sm mt-2">
+              Expected path: <code class="font-mono bg-amber-100 px-1 rounded"
+                >diagrams/{data.fragment.id}.svg</code
+              >
+            </p>
+            <p class="text-sm mt-1">
+              If this is a draw.io diagram, run the sync script to export it to R2.
+            </p>
+          </div>
+        {:else if diagramError}
+          <div class="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
+            <p class="font-medium">Could not load diagram preview</p>
+            <p class="text-sm mt-1">{diagramError}</p>
+          </div>
+        {:else if diagramSvg}
+          <div class="border border-gray-200 rounded-lg p-4 bg-white overflow-auto max-h-[600px]">
+            {@html diagramSvg}
+          </div>
+        {:else}
+          <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 text-gray-500 text-center">
+            No diagram preview available
+          </div>
+        {/if}
+      </div>
+    {/if}
 
     <!-- Content Tabs -->
     <div class="bg-white rounded-lg shadow mt-6">

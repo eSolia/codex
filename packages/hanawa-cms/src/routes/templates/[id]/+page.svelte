@@ -71,7 +71,6 @@
 
   const fragmentsJson = $derived(JSON.stringify(fragments));
 
-
   // Build fragment lookup map
   const fragmentMap = $derived(new Map(availableFragments.map((f) => [f.id, f])));
 
@@ -189,7 +188,8 @@
           {/if}
         </h1>
         <p class="mt-1 text-gray-600">
-          {documentTypes.find((t) => t.value === template.document_type)?.label || template.document_type}
+          {documentTypes.find((t) => t.value === template.document_type)?.label ||
+            template.document_type}
           template
         </p>
       </div>
@@ -231,21 +231,26 @@
     </div>
   {/if}
 
-  <form method="POST" action="?/update" use:enhance={() => {
-    return async ({ result, update }) => {
-      if (result.type === 'success') {
-        // Show success message without resetting form state
-        saveMessage = result.data?.message || 'Template updated';
-        setTimeout(() => {
-          saveMessage = null;
-        }, 3000);
-        // Don't call update() - preserve current form values
-      } else {
-        // For errors, use default behavior
-        await update();
-      }
-    };
-  }} class="space-y-6">
+  <form
+    method="POST"
+    action="?/update"
+    use:enhance={() => {
+      return async ({ result, update }) => {
+        if (result.type === 'success') {
+          // Show success message without resetting form state
+          saveMessage = result.data?.message || 'Template updated';
+          setTimeout(() => {
+            saveMessage = null;
+          }, 3000);
+          // Don't call update() - preserve current form values
+        } else {
+          // For errors, use default behavior
+          await update();
+        }
+      };
+    }}
+    class="space-y-6"
+  >
     <!-- Hidden fields -->
     <input type="hidden" name="fragments" value={fragmentsJson} />
     <input type="hidden" name="is_default" value={isDefault.toString()} />
@@ -381,7 +386,9 @@
 
               <span
                 class="w-6 h-6 flex items-center justify-center rounded-full text-xs font-medium
-                       {fragment.enabled ? 'bg-esolia-navy text-white' : 'bg-gray-200 text-gray-500'}"
+                       {fragment.enabled
+                  ? 'bg-esolia-navy text-white'
+                  : 'bg-gray-200 text-gray-500'}"
               >
                 {fragment.order}
               </span>

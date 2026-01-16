@@ -224,7 +224,7 @@
     <button
       type="button"
       onclick={() => editor?.chain().focus().toggleBold().run()}
-      disabled={disabled}
+      {disabled}
       title={labels.bold}
       class="p-1.5 rounded hover:bg-gray-200 transition-colors {isActive.bold
         ? 'bg-gray-200 text-esolia-navy'
@@ -236,7 +236,7 @@
     <button
       type="button"
       onclick={() => editor?.chain().focus().toggleItalic().run()}
-      disabled={disabled}
+      {disabled}
       title={labels.italic}
       class="p-1.5 rounded hover:bg-gray-200 transition-colors {isActive.italic
         ? 'bg-gray-200 text-esolia-navy'
@@ -248,7 +248,7 @@
     <button
       type="button"
       onclick={addLink}
-      disabled={disabled}
+      {disabled}
       title={labels.link}
       class="p-1.5 rounded hover:bg-gray-200 transition-colors {isActive.link
         ? 'bg-gray-200 text-esolia-navy'
@@ -265,7 +265,7 @@
         <button
           type="button"
           onclick={() => (showBoilerplateMenu = !showBoilerplateMenu)}
-          disabled={disabled}
+          {disabled}
           class="flex items-center gap-1 px-2 py-1 text-sm text-gray-600 hover:bg-gray-200 rounded transition-colors"
         >
           <ClipboardText size={16} />

@@ -86,7 +86,9 @@ export const actions: Actions = {
       // If this is marked as default, unset other defaults for this type
       if (isDefault) {
         await db
-          .prepare('UPDATE templates SET is_default = FALSE WHERE document_type = ? AND is_default = TRUE')
+          .prepare(
+            'UPDATE templates SET is_default = FALSE WHERE document_type = ? AND is_default = TRUE'
+          )
           .bind(documentType)
           .run();
       }
@@ -99,16 +101,7 @@ export const actions: Actions = {
             document_type, default_fragments, is_default, is_active
           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, TRUE)`
         )
-        .bind(
-          id,
-          name,
-          nameJa,
-          description,
-          descriptionJa,
-          documentType,
-          fragmentsJson,
-          isDefault
-        )
+        .bind(id, name, nameJa, description, descriptionJa, documentType, fragmentsJson, isDefault)
         .run();
 
       // Redirect to the template editor

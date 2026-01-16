@@ -24,6 +24,7 @@ interface FragmentRow {
   updated_at: string;
   created_by: string | null;
   updated_by: string | null;
+  diagram_source: string | null;
 }
 
 export const load: PageServerLoad = async ({ platform, params, locals }) => {

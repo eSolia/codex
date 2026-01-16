@@ -273,7 +273,8 @@
           </button>
           <label class="text-sm font-medium text-gray-700 flex items-center gap-2">
             <Star size={16} weight={isDefault ? 'fill' : 'regular'} class="text-yellow-500" />
-            Set as default for {documentTypes.find((t) => t.value === documentType)?.label || 'this type'}
+            Set as default for {documentTypes.find((t) => t.value === documentType)?.label ||
+              'this type'}
           </label>
         </div>
       </div>
@@ -301,7 +302,9 @@
 
               <span
                 class="w-6 h-6 flex items-center justify-center rounded-full text-xs font-medium
-                       {fragment.enabled ? 'bg-esolia-navy text-white' : 'bg-gray-200 text-gray-500'}"
+                       {fragment.enabled
+                  ? 'bg-esolia-navy text-white'
+                  : 'bg-gray-200 text-gray-500'}"
               >
                 {fragment.order}
               </span>

@@ -45,10 +45,8 @@
       'bg-gray-100 text-gray-900 hover:bg-gray-200 focus-visible:ring-gray-500 disabled:bg-gray-100 disabled:text-gray-400',
     outline:
       'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus-visible:ring-rose-500 disabled:bg-gray-50 disabled:text-gray-400',
-    ghost:
-      'text-gray-700 hover:bg-gray-100 focus-visible:ring-rose-500 disabled:text-gray-400',
-    danger:
-      'bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-500 disabled:bg-red-300',
+    ghost: 'text-gray-700 hover:bg-gray-100 focus-visible:ring-rose-500 disabled:text-gray-400',
+    danger: 'bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-500 disabled:bg-red-300',
   };
 
   const sizeClasses: Record<Size, string> = {
@@ -66,20 +64,8 @@
 {#if href && !disabled}
   <a {href} class={classes} {...restProps}>
     {#if loading}
-      <svg
-        class="animate-spin h-4 w-4"
-        fill="none"
-        viewBox="0 0 24 24"
-        aria-hidden="true"
-      >
-        <circle
-          class="opacity-25"
-          cx="12"
-          cy="12"
-          r="10"
-          stroke="currentColor"
-          stroke-width="4"
-        />
+      <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
         <path
           class="opacity-75"
           fill="currentColor"
@@ -90,27 +76,10 @@
     {@render children()}
   </a>
 {:else}
-  <button
-    type="button"
-    class={classes}
-    disabled={disabled || loading}
-    {...restProps}
-  >
+  <button type="button" class={classes} disabled={disabled || loading} {...restProps}>
     {#if loading}
-      <svg
-        class="animate-spin h-4 w-4"
-        fill="none"
-        viewBox="0 0 24 24"
-        aria-hidden="true"
-      >
-        <circle
-          class="opacity-25"
-          cx="12"
-          cy="12"
-          r="10"
-          stroke="currentColor"
-          stroke-width="4"
-        />
+      <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
         <path
           class="opacity-75"
           fill="currentColor"

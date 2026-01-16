@@ -33,7 +33,9 @@ export const GET: RequestHandler = async ({ params, platform, url }) => {
 
   // InfoSec: Verify document exists and user has access (OWASP A01)
   const proposal = await db
-    .prepare('SELECT id, client_code, title, title_ja, pdf_r2_key, pdf_r2_key_en, pdf_r2_key_ja, language_mode, updated_at FROM proposals WHERE id = ?')
+    .prepare(
+      'SELECT id, client_code, title, title_ja, pdf_r2_key, pdf_r2_key_en, pdf_r2_key_ja, language_mode, updated_at FROM proposals WHERE id = ?'
+    )
     .bind(params.id)
     .first<Proposal>();
 
@@ -77,7 +79,9 @@ export const GET: RequestHandler = async ({ params, platform, url }) => {
   // Generate filename: eSolia_ClientCode_Title_YYYYMMDD_lang.pdf
   const title = lang === 'ja' && proposal.title_ja ? proposal.title_ja : proposal.title;
   // Sanitize title: keep alphanumeric, hyphens, and CJK characters
-  const safeTitle = title.replace(/[^a-zA-Z0-9-\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/g, '_').substring(0, 50);
+  const safeTitle = title
+    .replace(/[^a-zA-Z0-9-\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/g, '_')
+    .substring(0, 50);
   const filename = `eSolia_${proposal.client_code}_${safeTitle}_${dateStr}_${langSuffix}.pdf`;
 
   // Return PDF with appropriate headers

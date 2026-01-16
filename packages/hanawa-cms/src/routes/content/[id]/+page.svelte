@@ -162,7 +162,9 @@
         if (result.type === 'success') {
           // Show success message without resetting form state
           const data = result.data as { published?: boolean } | undefined;
-          saveMessage = data?.published ? 'Content published successfully!' : 'Content saved successfully!';
+          saveMessage = data?.published
+            ? 'Content published successfully!'
+            : 'Content saved successfully!';
           setTimeout(() => {
             saveMessage = null;
           }, 3000);

@@ -56,9 +56,7 @@
       "asvsRef": "V1.2.1",
       "automatable": true,
       "level": "L1",
-      "top10": [
-        "A04"
-      ]
+      "top10": ["A04"]
     },
     {
       "id": "V1.5.1",
@@ -96,10 +94,7 @@
       "asvsRef": "V1.5.1",
       "automatable": true,
       "level": "L1",
-      "top10": [
-        "A03",
-        "A04"
-      ]
+      "top10": ["A03", "A04"]
     },
     {
       "id": "V2.1.1",
@@ -127,10 +122,7 @@
       "asvsRef": "V2.1.1",
       "automatable": true,
       "level": "L1",
-      "top10": [
-        "A02",
-        "A07"
-      ]
+      "top10": ["A02", "A07"]
     },
     {
       "id": "V2.1.5",

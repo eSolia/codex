@@ -91,7 +91,6 @@
     if (score >= 0.7) return 'bg-blue-100 text-blue-700';
     return 'bg-gray-100 text-gray-600';
   }
-
 </script>
 
 <div class="semantic-search">

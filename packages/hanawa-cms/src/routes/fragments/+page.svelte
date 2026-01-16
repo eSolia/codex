@@ -106,10 +106,7 @@
         Filter
       </button>
       {#if data.currentCategory || data.currentTag || data.currentSearch}
-        <a
-          href="/fragments"
-          class="px-4 py-2 text-gray-500 hover:text-gray-700 transition-colors"
-        >
+        <a href="/fragments" class="px-4 py-2 text-gray-500 hover:text-gray-700 transition-colors">
           Clear
         </a>
       {/if}
@@ -173,7 +170,11 @@
                 {/if}
                 {#if clientTag}
                   <div class="mt-2">
-                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium {getTagStyle(clientTag)}">
+                    <span
+                      class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium {getTagStyle(
+                        clientTag
+                      )}"
+                    >
                       {clientTag}
                     </span>
                   </div>

@@ -14,54 +14,54 @@ import type { RequestHandler } from './$types';
 const R2_PREFIX = 'diagrams';
 
 interface DiagramInfo {
-	id: string;
-	url: string;
-	size: number;
-	uploaded: string;
-	etag: string;
+  id: string;
+  url: string;
+  size: number;
+  uploaded: string;
+  etag: string;
 }
 
 /**
  * GET /api/diagrams - List available diagrams
  */
 export const GET: RequestHandler = async ({ platform, url }) => {
-	const r2 = platform?.env?.R2;
-	if (!r2) {
-		throw error(503, 'Storage service unavailable');
-	}
+  const r2 = platform?.env?.R2;
+  if (!r2) {
+    throw error(503, 'Storage service unavailable');
+  }
 
-	// Optional limit parameter
-	const limit = Math.min(parseInt(url.searchParams.get('limit') || '100'), 1000);
+  // Optional limit parameter
+  const limit = Math.min(parseInt(url.searchParams.get('limit') || '100'), 1000);
 
-	try {
-		// List objects in diagrams/ prefix
-		const listed = await r2.list({
-			prefix: `${R2_PREFIX}/`,
-			limit,
-		});
+  try {
+    // List objects in diagrams/ prefix
+    const listed = await r2.list({
+      prefix: `${R2_PREFIX}/`,
+      limit,
+    });
 
-		const diagrams: DiagramInfo[] = listed.objects
-			.filter((obj) => obj.key.endsWith('.svg'))
-			.map((obj) => {
-				// Extract ID from key (diagrams/foo.svg -> foo)
-				const id = obj.key.replace(`${R2_PREFIX}/`, '').replace('.svg', '');
+    const diagrams: DiagramInfo[] = listed.objects
+      .filter((obj) => obj.key.endsWith('.svg'))
+      .map((obj) => {
+        // Extract ID from key (diagrams/foo.svg -> foo)
+        const id = obj.key.replace(`${R2_PREFIX}/`, '').replace('.svg', '');
 
-				return {
-					id,
-					url: `/api/diagrams/${id}.svg`,
-					size: obj.size,
-					uploaded: obj.uploaded.toISOString(),
-					etag: obj.etag,
-				};
-			});
+        return {
+          id,
+          url: `/api/diagrams/${id}.svg`,
+          size: obj.size,
+          uploaded: obj.uploaded.toISOString(),
+          etag: obj.etag,
+        };
+      });
 
-		return json({
-			diagrams,
-			count: diagrams.length,
-			truncated: listed.truncated,
-		});
-	} catch (err) {
-		console.error('Failed to list diagrams:', err);
-		throw error(500, 'Failed to list diagrams');
-	}
+    return json({
+      diagrams,
+      count: diagrams.length,
+      truncated: listed.truncated,
+    });
+  } catch (err) {
+    console.error('Failed to list diagrams:', err);
+    throw error(500, 'Failed to list diagrams');
+  }
 };

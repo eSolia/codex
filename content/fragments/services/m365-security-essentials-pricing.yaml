@@ -9,35 +9,40 @@ type: pricing-table
 category: services
 tags: ["m365", "security", "cloudflare", "pricing", "timeline", "smb"]
 versions:
-  current: "2025-01-v2"
+  current: "2025-01-v4"
   history:
     - version: "2025-01"
       changes: "Initial version"
     - version: "2025-01-v2"
       changes: "Replace ASCII timeline with Mermaid diagram"
+    - version: "2025-01-v3"
+      changes: "Fix Mermaid timeline syntax (events require colon prefix)"
+    - version: "2025-01-v4"
+      changes: "Add eSolia branding colors (navy, orange, emerald)"
 
 content:
   en: |
     ## Implementation Timeline
 
     ```mermaid
+    %%{init: {'theme': 'base', 'themeVariables': { 'cScale0': '#2D2F63', 'cScale1': '#FFBC68', 'cScale2': '#10b981', 'cScaleLabel0': '#ffffff', 'cScaleLabel1': '#2D2F63', 'cScaleLabel2': '#ffffff'}}}%%
     timeline
         title M365 Security Essentials Implementation
-        section Week 1 : Foundation
-            M365 admin account hardening
-            MFA enrollment (all users)
-            Defender for Office 365 configuration
-            DNS zone audit and Cloudflare preparation
-        section Week 2 : Email & DNS
-            Cloudflare DNS migration
-            SPF/DKIM configuration
-            DMARC p=none deployment
-            Periodic monitoring setup
-        section Week 3 : Zero Trust & Validation
-            Cloudflare Zero Trust policies
-            WARP client deployment
-            Full security validation
-            User documentation and training
+        section Week 1
+            Foundation : M365 admin account hardening
+                       : MFA enrollment (all users)
+                       : Defender for Office 365 configuration
+                       : DNS zone audit and Cloudflare preparation
+        section Week 2
+            Email & DNS : Cloudflare DNS migration
+                        : SPF/DKIM configuration
+                        : DMARC p=none deployment
+                        : Periodic monitoring setup
+        section Week 3
+            Zero Trust & Validation : Cloudflare Zero Trust policies
+                                    : WARP client deployment
+                                    : Full security validation
+                                    : User documentation and training
     ```
 
     ---
@@ -61,23 +66,24 @@ content:
     ## 導入スケジュール
 
     ```mermaid
+    %%{init: {'theme': 'base', 'themeVariables': { 'cScale0': '#2D2F63', 'cScale1': '#FFBC68', 'cScale2': '#10b981', 'cScaleLabel0': '#ffffff', 'cScaleLabel1': '#2D2F63', 'cScaleLabel2': '#ffffff'}}}%%
     timeline
         title M365セキュリティ・エッセンシャルズ導入
-        section 第1週 : 基盤構築
-            M365管理者アカウントの強化
-            MFA登録（全ユーザー）
-            Defender for Office 365の設定
-            DNSゾーン監査とCloudflare準備
-        section 第2週 : メール & DNS
-            Cloudflare DNS移行
-            SPF/DKIM設定
-            DMARC p=none展開
-            Periodic監視のセットアップ
-        section 第3週 : Zero Trust & 検証
-            Cloudflare Zero Trustポリシー
-            WARPクライアント展開
-            完全なセキュリティ検証
-            ユーザードキュメントとトレーニング
+        section 第1週
+            基盤構築 : M365管理者アカウントの強化
+                     : MFA登録（全ユーザー）
+                     : Defender for Office 365の設定
+                     : DNSゾーン監査とCloudflare準備
+        section 第2週
+            メール & DNS : Cloudflare DNS移行
+                         : SPF/DKIM設定
+                         : DMARC p=none展開
+                         : Periodic監視のセットアップ
+        section 第3週
+            Zero Trust & 検証 : Cloudflare Zero Trustポリシー
+                              : WARPクライアント展開
+                              : 完全なセキュリティ検証
+                              : ユーザードキュメントとトレーニング
     ```
 
     ---

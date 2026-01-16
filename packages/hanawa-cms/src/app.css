@@ -160,8 +160,28 @@
   @apply flex items-center gap-2;
 }
 
+.mermaid-export-btn {
+  @apply px-3 py-1 text-xs font-medium text-white bg-esolia-navy border border-esolia-navy rounded hover:bg-esolia-navy/90 transition-colors;
+}
+
+.mermaid-export-btn:disabled {
+  @apply opacity-50 cursor-not-allowed;
+}
+
 .mermaid-edit-btn {
   @apply px-3 py-1 text-xs font-medium text-esolia-navy bg-white border border-gray-200 rounded hover:bg-gray-50 transition-colors;
+}
+
+.mermaid-status {
+  @apply ml-2 px-1.5 py-0.5 text-[10px] font-medium rounded;
+}
+
+.mermaid-status-pending {
+  @apply bg-amber-100 text-amber-700;
+}
+
+.mermaid-status-exported {
+  @apply bg-emerald-100 text-emerald-700;
 }
 
 .mermaid-delete-btn {
@@ -184,7 +204,12 @@
   @apply mx-4 mb-4 p-3 text-sm text-red-700 bg-red-50 border border-red-200 rounded;
 }
 
-.mermaid-error.hidden {
+.mermaid-success {
+  @apply mx-4 mb-4 p-3 text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded;
+}
+
+.mermaid-error.hidden,
+.mermaid-success.hidden {
   @apply hidden;
 }
 

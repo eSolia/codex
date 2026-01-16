@@ -77,14 +77,23 @@ class MermaidNodeView implements NodeView {
     // Header
     const header = document.createElement('div');
     header.className = 'mermaid-header';
+    const svgPath = node.attrs.svgPath;
+    const statusBadge = svgPath
+      ? '<span class="mermaid-status mermaid-status-exported" title="SVG exported to R2">✓ R2</span>'
+      : '<span class="mermaid-status mermaid-status-pending" title="Not yet exported to R2">Local</span>';
     header.innerHTML = `
-      <span class="mermaid-type-label">Mermaid Diagram</span>
+      <span class="mermaid-type-label">Mermaid Diagram ${statusBadge}</span>
       <div class="mermaid-actions">
+        <button type="button" class="mermaid-export-btn" title="Export SVG to R2 for PDF">Export</button>
         <button type="button" class="mermaid-edit-btn">Edit</button>
         <button type="button" class="mermaid-delete-btn">×</button>
       </div>
     `;
     this.dom.appendChild(header);
+
+    // Export button handler
+    const exportBtn = header.querySelector('.mermaid-export-btn') as HTMLButtonElement;
+    exportBtn.addEventListener('click', () => this.exportToR2());
 
     // Edit button handler
     const editBtn = header.querySelector('.mermaid-edit-btn') as HTMLButtonElement;
@@ -273,6 +282,87 @@ class MermaidNodeView implements NodeView {
     this.view.dispatch(tr);
   }
 
+  private async exportToR2() {
+    const pos = this.getPos();
+    if (pos === undefined) return;
+
+    // Get the rendered SVG from the diagram container
+    const svgElement = this.diagramContainer.querySelector('svg');
+    if (!svgElement) {
+      this.errorDisplay.textContent = 'No diagram to export. Please render the diagram first.';
+      this.errorDisplay.classList.remove('hidden');
+      return;
+    }
+
+    // Clone and clean up the SVG
+    const svgClone = svgElement.cloneNode(true) as SVGElement;
+    // Add XML declaration and namespace if missing
+    if (!svgClone.getAttribute('xmlns')) {
+      svgClone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    }
+    const svgString = new XMLSerializer().serializeToString(svgClone);
+
+    // Generate a unique ID for this diagram
+    const diagramId = `mermaid-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+
+    // Update button to show loading state
+    const exportBtn = this.dom.querySelector('.mermaid-export-btn') as HTMLButtonElement;
+    const originalText = exportBtn.textContent;
+    exportBtn.textContent = 'Exporting...';
+    exportBtn.disabled = true;
+
+    try {
+      // Upload SVG to R2 via API
+      const response = await fetch('/api/diagrams/upload', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id: diagramId,
+          svg: svgString,
+          source: this.node.attrs.source,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(error || 'Upload failed');
+      }
+
+      const result = (await response.json()) as { success: boolean; path: string; url: string };
+      const svgPath = result.path; // e.g., "diagrams/mermaid-xxx.svg"
+
+      // Update the node's svgPath attribute
+      const tr = this.view.state.tr.setNodeMarkup(pos, undefined, {
+        ...this.node.attrs,
+        svgPath,
+      });
+      this.view.dispatch(tr);
+
+      // Update the status badge
+      const statusSpan = this.dom.querySelector('.mermaid-status');
+      if (statusSpan) {
+        statusSpan.className = 'mermaid-status mermaid-status-exported';
+        statusSpan.textContent = '✓ R2';
+        statusSpan.setAttribute('title', `Exported to ${svgPath}`);
+      }
+
+      // Show success message with save reminder
+      this.errorDisplay.className = 'mermaid-success';
+      this.errorDisplay.textContent = '✓ Exported! Save the document to use in PDF.';
+      this.errorDisplay.classList.remove('hidden');
+      console.log('[Mermaid] Exported to R2:', svgPath);
+    } catch (err) {
+      console.error('[Mermaid] Export error:', err);
+      this.errorDisplay.textContent = `Export failed: ${err instanceof Error ? err.message : 'Unknown error'}`;
+      this.errorDisplay.classList.remove('hidden');
+    } finally {
+      exportBtn.textContent = originalText;
+      exportBtn.disabled = false;
+    }
+  }
+
   update(node: ProseMirrorNode): boolean {
     if (node.type !== this.node.type) return false;
     this.node = node;
@@ -280,6 +370,29 @@ class MermaidNodeView implements NodeView {
     // Sync textarea if not focused
     if (document.activeElement !== this.textarea) {
       this.textarea.value = node.attrs.source;
+    }
+
+    // Sync status badge with current svgPath
+    const statusSpan = this.dom.querySelector('.mermaid-status');
+    if (statusSpan) {
+      const svgPath = node.attrs.svgPath;
+      if (svgPath) {
+        statusSpan.className = 'mermaid-status mermaid-status-exported';
+        statusSpan.textContent = '✓ R2';
+        statusSpan.setAttribute('title', `Exported to ${svgPath}`);
+      } else {
+        statusSpan.className = 'mermaid-status mermaid-status-pending';
+        statusSpan.textContent = 'Local';
+        statusSpan.setAttribute('title', 'Not yet exported to R2');
+      }
+    }
+
+    // Sync caption inputs if not focused
+    if (document.activeElement !== this.captionEnInput) {
+      this.captionEnInput.value = node.attrs.caption || '';
+    }
+    if (document.activeElement !== this.captionJaInput) {
+      this.captionJaInput.value = node.attrs.caption_ja || '';
     }
 
     return true;
@@ -346,6 +459,12 @@ export const MermaidBlock = Node.create<MermaidBlockOptions>({
         parseHTML: (element) => element.getAttribute('data-caption-ja') || '',
         renderHTML: (attributes) =>
           attributes.caption_ja ? { 'data-caption-ja': attributes.caption_ja } : {},
+      },
+      svgPath: {
+        default: '',
+        parseHTML: (element) => element.getAttribute('data-svg-path') || '',
+        renderHTML: (attributes) =>
+          attributes.svgPath ? { 'data-svg-path': attributes.svgPath } : {},
       },
     };
   },

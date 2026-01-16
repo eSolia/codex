@@ -31,11 +31,11 @@ npm run version:check       # Verify version consistency
 
 ### Version Locations
 
-| File | Field | Purpose |
-|------|-------|---------|
-| `package.json` | `version` | npm package version |
-| `package-lock.json` | `version` | Synced automatically |
-| `wrangler.jsonc` | `APP_VERSION` | Runtime version |
+| File                | Field         | Purpose              |
+| ------------------- | ------------- | -------------------- |
+| `package.json`      | `version`     | npm package version  |
+| `package-lock.json` | `version`     | Synced automatically |
+| `wrangler.jsonc`    | `APP_VERSION` | Runtime version      |
 
 ### Release Process
 
@@ -127,4 +127,4 @@ src/
 
 ---
 
-*See root `/CLAUDE.md` for full monorepo context*
+_See root `/CLAUDE.md` for full monorepo context_

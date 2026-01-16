@@ -23,110 +23,110 @@ const R2_PREFIX = 'diagrams';
  * InfoSec: Path traversal prevention - only allows alphanumeric, hyphen, underscore in ID
  */
 export const GET: RequestHandler = async ({ params, platform }) => {
-	// Strip .svg extension if present
-	let id = params.id;
-	if (id.endsWith('.svg')) {
-		id = id.slice(0, -4);
-	}
+  // Strip .svg extension if present
+  let id = params.id;
+  if (id.endsWith('.svg')) {
+    id = id.slice(0, -4);
+  }
 
-	// InfoSec: Validate ID format to prevent path traversal (OWASP A03)
-	if (!id || !/^[a-zA-Z0-9_-]+$/.test(id)) {
-		throw error(400, 'Invalid diagram ID');
-	}
+  // InfoSec: Validate ID format to prevent path traversal (OWASP A03)
+  if (!id || !/^[a-zA-Z0-9_-]+$/.test(id)) {
+    throw error(400, 'Invalid diagram ID');
+  }
 
-	// Get R2 bucket from platform
-	const r2 = platform?.env?.R2;
-	if (!r2) {
-		console.error('R2 bucket not available');
-		throw error(503, 'Storage service unavailable');
-	}
+  // Get R2 bucket from platform
+  const r2 = platform?.env?.R2;
+  if (!r2) {
+    console.error('R2 bucket not available');
+    throw error(503, 'Storage service unavailable');
+  }
 
-	// Construct R2 key - InfoSec: Restricted to diagrams/ prefix only
-	const r2Key = `${R2_PREFIX}/${id}.svg`;
+  // Construct R2 key - InfoSec: Restricted to diagrams/ prefix only
+  const r2Key = `${R2_PREFIX}/${id}.svg`;
 
-	try {
-		// Fetch from R2
-		const object = await r2.get(r2Key);
+  try {
+    // Fetch from R2
+    const object = await r2.get(r2Key);
 
-		if (!object) {
-			throw error(404, `Diagram not found: ${id}`);
-		}
+    if (!object) {
+      throw error(404, `Diagram not found: ${id}`);
+    }
 
-		// Get the SVG content
-		const svgContent = await object.text();
+    // Get the SVG content
+    const svgContent = await object.text();
 
-		// Return SVG with appropriate headers
-		return new Response(svgContent, {
-			status: 200,
-			headers: {
-				'Content-Type': 'image/svg+xml',
-				'Cache-Control': CACHE_CONTROL,
-				// InfoSec: Prevent SVG from executing scripts when served
-				'Content-Security-Policy': "default-src 'none'; style-src 'unsafe-inline'",
-				'X-Content-Type-Options': 'nosniff',
-				// Allow embedding in documents
-				'Access-Control-Allow-Origin': '*',
-				// ETag for conditional requests
-				ETag: object.etag,
-			},
-		});
-	} catch (err) {
-		// Re-throw SvelteKit errors
-		if (err instanceof Response) {
-			throw err;
-		}
+    // Return SVG with appropriate headers
+    return new Response(svgContent, {
+      status: 200,
+      headers: {
+        'Content-Type': 'image/svg+xml',
+        'Cache-Control': CACHE_CONTROL,
+        // InfoSec: Prevent SVG from executing scripts when served
+        'Content-Security-Policy': "default-src 'none'; style-src 'unsafe-inline'",
+        'X-Content-Type-Options': 'nosniff',
+        // Allow embedding in documents
+        'Access-Control-Allow-Origin': '*',
+        // ETag for conditional requests
+        ETag: object.etag,
+      },
+    });
+  } catch (err) {
+    // Re-throw SvelteKit HttpError (has status property)
+    if (typeof err === 'object' && err !== null && 'status' in err) {
+      throw err;
+    }
 
-		// Check if it's a "not found" type error
-		if (err instanceof Error) {
-			if (err.message.includes('not found') || err.message.includes('NoSuchKey')) {
-				throw error(404, `Diagram not found: ${id}`);
-			}
-		}
+    // Check if it's a "not found" type error from R2
+    if (err instanceof Error) {
+      if (err.message.includes('not found') || err.message.includes('NoSuchKey')) {
+        throw error(404, `Diagram not found: ${id}`);
+      }
+    }
 
-		console.error(`Failed to fetch diagram ${id}:`, err);
-		throw error(500, 'Failed to retrieve diagram');
-	}
+    console.error(`Failed to fetch diagram ${id}:`, err);
+    throw error(500, 'Failed to retrieve diagram');
+  }
 };
 
 /**
  * HEAD /api/diagrams/:id - Check if diagram exists
  */
 export const HEAD: RequestHandler = async ({ params, platform }) => {
-	let id = params.id;
-	if (id.endsWith('.svg')) {
-		id = id.slice(0, -4);
-	}
+  let id = params.id;
+  if (id.endsWith('.svg')) {
+    id = id.slice(0, -4);
+  }
 
-	// InfoSec: Validate ID format (OWASP A03)
-	if (!id || !/^[a-zA-Z0-9_-]+$/.test(id)) {
-		throw error(400, 'Invalid diagram ID');
-	}
+  // InfoSec: Validate ID format (OWASP A03)
+  if (!id || !/^[a-zA-Z0-9_-]+$/.test(id)) {
+    throw error(400, 'Invalid diagram ID');
+  }
 
-	const r2 = platform?.env?.R2;
-	if (!r2) {
-		throw error(503, 'Storage service unavailable');
-	}
+  const r2 = platform?.env?.R2;
+  if (!r2) {
+    throw error(503, 'Storage service unavailable');
+  }
 
-	const r2Key = `${R2_PREFIX}/${id}.svg`;
+  const r2Key = `${R2_PREFIX}/${id}.svg`;
 
-	try {
-		const head = await r2.head(r2Key);
+  try {
+    const head = await r2.head(r2Key);
 
-		if (!head) {
-			throw error(404, `Diagram not found: ${id}`);
-		}
+    if (!head) {
+      throw error(404, `Diagram not found: ${id}`);
+    }
 
-		return new Response(null, {
-			status: 200,
-			headers: {
-				'Content-Type': 'image/svg+xml',
-				'Content-Length': String(head.size),
-				'Cache-Control': CACHE_CONTROL,
-				ETag: head.etag,
-			},
-		});
-	} catch (err) {
-		if (err instanceof Response) throw err;
-		throw error(404, `Diagram not found: ${id}`);
-	}
+    return new Response(null, {
+      status: 200,
+      headers: {
+        'Content-Type': 'image/svg+xml',
+        'Content-Length': String(head.size),
+        'Cache-Control': CACHE_CONTROL,
+        ETag: head.etag,
+      },
+    });
+  } catch (err) {
+    if (err instanceof Response) throw err;
+    throw error(404, `Diagram not found: ${id}`);
+  }
 };
