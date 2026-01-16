@@ -41,7 +41,8 @@
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
 
-  const template = data.template as Template;
+  // Use $derived for reactivity to data changes
+  const template = $derived(data.template as Template);
   const availableFragments = $derived((data.availableFragments as AvailableFragment[]) || []);
 
   // Template form state (initialized from data)
@@ -340,13 +341,15 @@
           <button
             type="button"
             onclick={() => (isDefault = !isDefault)}
+            aria-label={isDefault ? 'Unset as default template' : 'Set as default template'}
+            aria-pressed={isDefault}
             class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors
                    {isDefault ? 'bg-esolia-navy' : 'bg-gray-200'}"
           >
             <span
               class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform
                      {isDefault ? 'translate-x-6' : 'translate-x-1'}"
-            />
+            ></span>
           </button>
           <label class="text-sm font-medium text-gray-700 flex items-center gap-2">
             <Star size={16} weight={isDefault ? 'fill' : 'regular'} class="text-yellow-500" />
@@ -371,13 +374,15 @@
           removal.
         </p>
 
-        <div class="space-y-2">
+        <div class="space-y-2" role="list" aria-label="Template fragments">
           {#each fragments as fragment, index (fragment.id + '-' + index)}
             <div
               draggable="true"
               ondragstart={(e) => handleDragStart(e, index)}
               ondragover={(e) => handleDragOver(e, index)}
               ondragend={handleDragEnd}
+              role="listitem"
+              aria-label="Fragment: {getFragmentTitle(fragment.id)}"
               class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border cursor-move transition-all
                      {fragment.enabled ? 'border-gray-200' : 'border-gray-100 opacity-50'}
                      {draggedIndex === index ? 'ring-2 ring-esolia-navy ring-offset-2' : ''}"
@@ -495,9 +500,11 @@
     aria-modal="true"
     tabindex="-1"
   >
+    <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
     <div
       class="bg-white rounded-lg shadow-xl p-6 max-w-md mx-4"
       onclick={(e) => e.stopPropagation()}
+      onkeydown={(e) => e.stopPropagation()}
       role="document"
     >
       <h3 class="text-lg font-semibold text-gray-900 mb-2">Delete Template</h3>

@@ -14,8 +14,6 @@
     Tag,
     ListChecks,
     ArrowLeft,
-    Circle,
-    Question,
     ChartBar,
     Shield,
     Prohibit,
@@ -82,11 +80,12 @@
   }
 
   // Report data comes from server load function (null for unauthenticated)
-  const report = data.report as Report | null;
-  const summary = data.summary;
-  const score = summary.score;
-  const applicableChecks = summary.total - (summary.notApplicable || 0);
-  const lastUpdated = new Date(summary.timestamp);
+  // Use $derived for reactivity to data changes
+  const report = $derived(data.report as Report | null);
+  const summary = $derived(data.summary);
+  const score = $derived(summary.score);
+  const applicableChecks = $derived(summary.total - (summary.notApplicable || 0));
+  const lastUpdated = $derived(new Date(summary.timestamp));
 
   let expandedChecks = $state(new Set<string>());
   let scopeExpanded = $state(false);

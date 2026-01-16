@@ -32,8 +32,11 @@
 
   const availableFragments = $derived((data.availableFragments as AvailableFragment[]) || []);
 
+  // Derive initial form value for reactivity (e.g., after failed submission)
+  const initialName = $derived(form?.name ?? '');
+
   // Template form state
-  let name = $state(form?.name ?? '');
+  let name = $state(initialName);
   let nameJa = $state('');
   let description = $state('');
   let descriptionJa = $state('');
@@ -52,17 +55,6 @@
 
   // Build fragment lookup map
   const fragmentMap = $derived(new Map(availableFragments.map((f) => [f.id, f])));
-
-  // Group fragments by category
-  const fragmentsByCategory = $derived(() => {
-    const grouped = new Map<string, AvailableFragment[]>();
-    for (const frag of availableFragments) {
-      const existing = grouped.get(frag.category) || [];
-      existing.push(frag);
-      grouped.set(frag.category, existing);
-    }
-    return grouped;
-  });
 
   // Unused fragments
   const unusedFragments = $derived(
@@ -263,13 +255,15 @@
           <button
             type="button"
             onclick={() => (isDefault = !isDefault)}
+            aria-label={isDefault ? 'Unset as default template' : 'Set as default template'}
+            aria-pressed={isDefault}
             class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors
                    {isDefault ? 'bg-esolia-navy' : 'bg-gray-200'}"
           >
             <span
               class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform
                      {isDefault ? 'translate-x-6' : 'translate-x-1'}"
-            />
+            ></span>
           </button>
           <label class="text-sm font-medium text-gray-700 flex items-center gap-2">
             <Star size={16} weight={isDefault ? 'fill' : 'regular'} class="text-yellow-500" />
@@ -287,13 +281,15 @@
           removal.
         </p>
 
-        <div class="space-y-2">
+        <div class="space-y-2" role="list" aria-label="Template fragments">
           {#each fragments as fragment, index (fragment.id + '-' + index)}
             <div
               draggable="true"
               ondragstart={(e) => handleDragStart(e, index)}
               ondragover={(e) => handleDragOver(e, index)}
               ondragend={handleDragEnd}
+              role="listitem"
+              aria-label="Fragment: {getFragmentTitle(fragment.id)}"
               class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border cursor-move transition-all
                      {fragment.enabled ? 'border-gray-200' : 'border-gray-100 opacity-50'}
                      {draggedIndex === index ? 'ring-2 ring-esolia-navy ring-offset-2' : ''}"

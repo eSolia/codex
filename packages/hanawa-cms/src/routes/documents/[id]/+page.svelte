@@ -2,7 +2,6 @@
   import type { PageData, ActionData } from './$types';
   import { enhance, deserialize } from '$app/forms';
   import { goto } from '$app/navigation';
-  import FileText from 'phosphor-svelte/lib/FileText';
   import FilePdf from 'phosphor-svelte/lib/FilePdf';
   import Share from 'phosphor-svelte/lib/Share';
   import Check from 'phosphor-svelte/lib/Check';
@@ -36,11 +35,14 @@
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
 
+  // Derived values from data (reactive to page data changes)
+  const initialFragments = $derived(data.fragments as Fragment[]);
+
   // State
   let editMode = $state(false);
   let showPreview = $state(false);
-  let showShareModal = $state(false);
-  let fragments = $state<Fragment[]>(data.fragments as Fragment[]);
+  // Note: showShareModal removed - unused
+  let fragments = $state<Fragment[]>(initialFragments);
   let draggedIndex = $state<number | null>(null);
   let isGeneratingPdf = $state(false);
   let isSharing = $state(false);

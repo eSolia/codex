@@ -29,8 +29,8 @@
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
 
-  // Type the content data for safe access
-  const c = data.content as unknown as ContentData | null;
+  // Type the content data for safe access - use $derived for reactivity
+  const c = $derived(data.content as unknown as ContentData | null);
 
   // Form state
   let title = $state(c?.title || '');

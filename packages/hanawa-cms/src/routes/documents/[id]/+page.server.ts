@@ -652,7 +652,8 @@ export const actions: Actions = {
       const langMode = proposal.language_mode || 'en';
       const isBilingual = langMode.startsWith('both_');
       const firstLang = langMode === 'both_ja_first' ? 'ja' : 'en';
-      const secondLang = firstLang === 'en' ? 'ja' : 'en';
+      const _secondLang = firstLang === 'en' ? 'ja' : 'en'; // Reserved for future bilingual enhancements
+      void _secondLang; // Suppress unused warning
       const primaryLang = isBilingual ? firstLang : langMode === 'ja' ? 'ja' : 'en';
 
       // DEBUG: Return debug info so we can see what's happening
