@@ -4,6 +4,10 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+overrides:
+  cookie: ^0.7.0
+  undici: ^7.18.2
+
 importers:
   .:
     dependencies:
@@ -2430,19 +2434,12 @@ packages:
         integrity: sha512-RMtmw0iFkeR4YV+fUOSucriAQNb9g8zFR52MWCtl+cCZOFRNL6zeB395vPzFhEjjn4fMxXudmELnl/KF/WrK6w==,
       }
 
-  cookie@0.6.0:
+  cookie@0.7.2:
     resolution:
       {
-        integrity: sha512-U71cyTamuh1CRNCfpGY6to28lxvNwPG4Guz/EVjgf3Jmzv0vlDp1atT9eS5dDjMYHucpHbWns6Lwf3BKz6svdw==,
+        integrity: sha512-yki5XnKuf750l50uGTllt6kKILY4nQ1eNIQatoXEByZ5dWgnKqbnqmTrBE5B4N7lrMJKQ2ytWMiTO2o0v6Ew/w==,
       }
     engines: { node: '>= 0.6' }
-
-  cookie@1.1.1:
-    resolution:
-      {
-        integrity: sha512-ei8Aos7ja0weRpFzJnEA9UHJ/7XQmqglbRwnf2ATjcB9Wq874VKH9kfjjirM6UhU2/E5fFYadylyhFldcqSidQ==,
-      }
-    engines: { node: '>=18' }
 
   cose-base@1.0.3:
     resolution:
@@ -4337,10 +4334,10 @@ packages:
         integrity: sha512-yDJTmhydvl5lJzBmy/hyOAA0d+aqCBuwl818haVdYCRrWV84o7YyeVm4QlVHStqNrrJSTb6jKuFAVqAFsr+K3Q==,
       }
 
-  undici@7.14.0:
+  undici@7.18.2:
     resolution:
       {
-        integrity: sha512-Vqs8HTzjpQXZeXdpsfChQTlafcMQaaIwnGwLam1wudSSjlJeQ3bw1j+TLPePgrCnCpUXx7Ba5Pdpf5OBih62NQ==,
+        integrity: sha512-y+8YjDFzWdQlSE9N5nzKMT3g4a5UBX1HKowfdXh0uvAnTaqqwqB92Jt4UXBAeKekDs5IaDKyJFR4X1gYVCgXcw==,
       }
     engines: { node: '>=20.18.1' }
 
@@ -5122,7 +5119,7 @@ snapshots:
       '@sveltejs/vite-plugin-svelte': 6.2.4(svelte@5.46.4)(vite@7.3.1(jiti@2.6.1)(lightningcss@1.30.2)(yaml@2.8.2))
       '@types/cookie': 0.6.0
       acorn: 8.15.0
-      cookie: 0.6.0
+      cookie: 0.7.2
       devalue: 5.6.2
       esm-env: 1.2.2
       kleur: 4.1.5
@@ -5758,9 +5755,7 @@ snapshots:
 
   confbox@0.1.8: {}
 
-  cookie@0.6.0: {}
-
-  cookie@1.1.1: {}
+  cookie@0.7.2: {}
 
   cose-base@1.0.3:
     dependencies:
@@ -6465,7 +6460,7 @@ snapshots:
     dependencies:
       '@cspotcode/source-map-support': 0.8.1
       sharp: 0.34.5
-      undici: 7.14.0
+      undici: 7.18.2
       workerd: 1.20260114.0
       ws: 8.18.0
       youch: 4.1.0-beta.10
@@ -6974,7 +6969,7 @@ snapshots:
 
   ufo@1.6.3: {}
 
-  undici@7.14.0: {}
+  undici@7.18.2: {}
 
   unenv@2.0.0-rc.24:
     dependencies:
@@ -7085,7 +7080,7 @@ snapshots:
       '@poppinss/colors': 4.1.6
       '@poppinss/dumper': 0.6.5
       '@speed-highlight/core': 1.2.14
-      cookie: 1.1.1
+      cookie: 0.7.2
       youch-core: 0.3.3
 
   zimmerframe@1.1.4: {}
