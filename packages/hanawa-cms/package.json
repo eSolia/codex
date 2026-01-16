@@ -3,14 +3,18 @@
   "private": true,
   "version": "0.2.0",
   "type": "module",
+  "packageManager": "pnpm@10.28.0",
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
     "preview": "vite preview",
-    "prepare": "svelte-kit sync || echo ''",
+    "prepare": "cd ../.. && husky packages/hanawa-cms/.husky || true",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-    "deploy": "wrangler pages deploy",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "deploy": "pnpm run build && wrangler deploy",
     "cf-typegen": "wrangler types",
     "db:migrate": "wrangler d1 migrations apply hanawa-db",
     "db:migrate:local": "wrangler d1 migrations apply hanawa-db --local",
@@ -18,6 +22,7 @@
     "version:check": "echo \"package.json: $(node -p \"require('./package.json').version\")\" && echo \"wrangler.jsonc: $(grep APP_VERSION wrangler.jsonc | sed 's/.*: \"\\(.*\\)\".*/\\1/')\""
   },
   "devDependencies": {
+    "@eslint/js": "^9.17.0",
     "@cloudflare/workers-types": "^4.20241218.0",
     "@sveltejs/adapter-cloudflare": "^7.2.4",
     "@sveltejs/kit": "^2.49.1",
@@ -28,7 +33,14 @@
     "@tiptap/extension-placeholder": "^2.10.4",
     "@tiptap/pm": "^2.10.4",
     "@tiptap/starter-kit": "^2.10.4",
+    "eslint": "^9.17.0",
+    "eslint-plugin-svelte": "^2.46.0",
+    "globals": "^15.14.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
+    "prettier": "^3.4.2",
     "prettier-plugin-svelte": "^3.4.1",
+    "typescript-eslint": "^8.19.0",
     "svelte": "^5.45.6",
     "svelte-check": "^4.3.4",
     "tailwindcss": "^4.0.0",
@@ -48,7 +60,7 @@
     "@tiptap/extension-task-item": "^2.27.1",
     "@tiptap/extension-task-list": "^2.27.1",
     "@tiptap/extension-underline": "^2.27.1",
-    "@tiptap/suggestion": "^3.14.0",
+    "@tiptap/suggestion": "^2.11.0",
     "@types/marked": "^5.0.2",
     "bits-ui": "^1.0.0-next.98",
     "date-fns": "^4.1.0",
@@ -58,5 +70,12 @@
     "tippy.js": "^6.3.7",
     "yaml": "^2.8.2",
     "zod": "^3.25.76"
+  },
+  "lint-staged": {
+    "*.{js,ts,svelte}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,css,html,yaml,yml}": "prettier --write"
   }
 }

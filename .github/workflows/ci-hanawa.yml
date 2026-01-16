@@ -1,0 +1,55 @@
+name: CI - Hanawa CMS
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'packages/hanawa-cms/**'
+      - '.github/workflows/ci-hanawa.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'packages/hanawa-cms/**'
+      - '.github/workflows/ci-hanawa.yml'
+
+concurrency:
+  group: ci-hanawa-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    defaults:
+      run:
+        working-directory: packages/hanawa-cms
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+          cache-dependency-path: packages/hanawa-cms/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Format check
+        run: pnpm run format:check
+
+      - name: Lint
+        run: pnpm run lint
+
+      - name: Type check
+        run: pnpm run check
+
+      - name: Security audit
+        run: pnpm audit
+        continue-on-error: true
