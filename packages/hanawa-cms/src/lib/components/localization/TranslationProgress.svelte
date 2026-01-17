@@ -52,6 +52,53 @@
   }
 </script>
 
+{#snippet progressContent(lp: LocaleProgress)}
+  <div class="flex items-center justify-between mb-2">
+    <div class="flex items-center gap-2">
+      <span class="text-lg">{getLocaleFlag(lp.locale)}</span>
+      <span class="font-medium text-sm text-gray-900">{getLocaleLabel(lp.locale)}</span>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <span class="text-xs {getStatusColor(lp.status)} font-medium">
+        {lp.status.replace('_', ' ')}
+      </span>
+      <span class="text-xs text-gray-500">{lp.progressPercent}%</span>
+    </div>
+  </div>
+
+  <!-- Progress bar -->
+  <div class="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+    <div
+      class="h-full rounded-full transition-all duration-300 {getProgressColor(lp.status)}"
+      style="width: {lp.progressPercent}%"
+    ></div>
+  </div>
+
+  <!-- Field counts -->
+  <div class="mt-2 flex items-center gap-3 text-xs text-gray-500">
+    <span class="flex items-center gap-1">
+      <svg class="w-3 h-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+      </svg>
+      {lp.translatedFields.length} translated
+    </span>
+    {#if lp.pendingFields.length > 0}
+      <span class="flex items-center gap-1">
+        <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
+        </svg>
+        {lp.pendingFields.length} pending
+      </span>
+    {/if}
+  </div>
+{/snippet}
+
 {#if compact}
   <!-- Compact inline display -->
   <div class="flex items-center gap-2">
@@ -77,74 +124,19 @@
   <!-- Full progress display -->
   <div class="space-y-3">
     {#each locales as lp}
-      <div
-        class="p-3 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors"
-        class:cursor-pointer={onClick}
-        role={onClick ? 'button' : undefined}
-        tabindex={onClick ? 0 : undefined}
-        onclick={() => onClick?.(lp.locale)}
-        onkeydown={(e) => e.key === 'Enter' && onClick?.(lp.locale)}
-      >
-        <div class="flex items-center justify-between mb-2">
-          <div class="flex items-center gap-2">
-            <span class="text-lg">{getLocaleFlag(lp.locale)}</span>
-            <span class="font-medium text-sm text-gray-900">{getLocaleLabel(lp.locale)}</span>
-          </div>
-
-          <div class="flex items-center gap-2">
-            <span class="text-xs {getStatusColor(lp.status)} font-medium">
-              {lp.status.replace('_', ' ')}
-            </span>
-            <span class="text-xs text-gray-500">{lp.progressPercent}%</span>
-          </div>
+      {#if onClick}
+        <button
+          type="button"
+          class="w-full text-left p-3 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors cursor-pointer"
+          onclick={() => onClick?.(lp.locale)}
+        >
+          {@render progressContent(lp)}
+        </button>
+      {:else}
+        <div class="p-3 border border-gray-200 rounded-lg">
+          {@render progressContent(lp)}
         </div>
-
-        <!-- Progress bar -->
-        <div class="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-          <div
-            class="h-full rounded-full transition-all duration-300 {getProgressColor(lp.status)}"
-            style="width: {lp.progressPercent}%"
-          ></div>
-        </div>
-
-        <!-- Field counts -->
-        <div class="mt-2 flex items-center gap-3 text-xs text-gray-500">
-          <span class="flex items-center gap-1">
-            <svg
-              class="w-3 h-3 text-green-500"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M5 13l4 4L19 7"
-              />
-            </svg>
-            {lp.translatedFields.length} translated
-          </span>
-          {#if lp.pendingFields.length > 0}
-            <span class="flex items-center gap-1">
-              <svg
-                class="w-3 h-3 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              {lp.pendingFields.length} pending
-            </span>
-          {/if}
-        </div>
-      </div>
+      {/if}
     {/each}
   </div>
 {/if}

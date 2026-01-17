@@ -130,6 +130,7 @@
     role="dialog"
     aria-modal="true"
     aria-labelledby="schedule-title"
+    tabindex="-1"
   >
     <!-- Header -->
     <div class="p-4 border-b border-gray-200">
@@ -175,8 +176,8 @@
 
       <!-- Action selection -->
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2">Action</label>
-        <div class="grid grid-cols-2 gap-2">
+        <span id="action-label" class="block text-sm font-medium text-gray-700 mb-2">Action</span>
+        <div class="grid grid-cols-2 gap-2" role="group" aria-labelledby="action-label">
           <button
             type="button"
             onclick={() => (action = 'publish')}
@@ -229,8 +230,10 @@
 
       <!-- Quick select -->
       <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2">Quick Select</label>
-        <div class="flex flex-wrap gap-2">
+        <span id="quick-select-label" class="block text-sm font-medium text-gray-700 mb-2"
+          >Quick Select</span
+        >
+        <div class="flex flex-wrap gap-2" role="group" aria-labelledby="quick-select-label">
           <button
             type="button"
             onclick={() => setQuickTime(1)}

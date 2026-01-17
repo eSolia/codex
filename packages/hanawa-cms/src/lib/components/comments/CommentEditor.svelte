@@ -30,6 +30,7 @@
     onCancel,
   }: Props = $props();
 
+  // eslint-disable-next-line svelte/valid-compile -- Intentionally captures initial value for editing
   let content = $state(initialContent);
   let textarea: HTMLTextAreaElement;
   let showMentionMenu = $state(false);

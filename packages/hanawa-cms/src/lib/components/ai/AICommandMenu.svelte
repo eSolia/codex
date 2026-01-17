@@ -41,7 +41,8 @@
   let customPrompt = $state('');
   let showCustomInput = $state(false);
 
-  const actions: ActionItem[] = [
+  // Actions array derives from currentLocale to update translate label
+  const actions = $derived<ActionItem[]>([
     {
       id: 'continue',
       label: 'Continue writing',
@@ -84,7 +85,7 @@
       description: 'Enter your own instructions',
       shortcut: '/',
     },
-  ];
+  ]);
 
   function handleAction(action: AIAction) {
     if (action === 'custom') {
@@ -153,8 +154,11 @@
     {#if showCustomInput}
       <!-- Custom prompt input -->
       <div class="p-3">
-        <label class="block text-xs font-medium text-gray-700 mb-1.5"> Custom instruction </label>
+        <label for="ai-custom-prompt" class="block text-xs font-medium text-gray-700 mb-1.5">
+          Custom instruction
+        </label>
         <textarea
+          id="ai-custom-prompt"
           bind:value={customPrompt}
           placeholder="e.g., Rewrite in formal business tone..."
           rows="3"

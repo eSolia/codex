@@ -101,18 +101,20 @@
   }
 
   // Group checks by category (only when authenticated)
-  const checksByCategory = report
-    ? report.checks.reduce(
-        (acc, check) => {
-          if (!acc[check.category]) {
-            acc[check.category] = [];
-          }
-          acc[check.category].push(check);
-          return acc;
-        },
-        {} as Record<string, CheckResult[]>
-      )
-    : {};
+  const checksByCategory = $derived(
+    report
+      ? report.checks.reduce(
+          (acc, check) => {
+            if (!acc[check.category]) {
+              acc[check.category] = [];
+            }
+            acc[check.category].push(check);
+            return acc;
+          },
+          {} as Record<string, CheckResult[]>
+        )
+      : {}
+  );
 
   const categoryOrder = [
     'V1 Architecture',
@@ -130,11 +132,13 @@
     'V14 Configuration',
   ];
 
-  const formattedDate = lastUpdated.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
+  const formattedDate = $derived(
+    lastUpdated.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    })
+  );
 </script>
 
 <svelte:head>

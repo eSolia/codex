@@ -356,12 +356,16 @@
   {:else}
     <div class="assets-grid">
       {#each assets as asset (asset.id)}
-        <button
-          type="button"
+        <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+        <div
           class="asset-card"
           class:selected={selectedIds.has(asset.id)}
           class:selectable
           onclick={() => toggleSelect(asset)}
+          onkeydown={(e) => e.key === 'Enter' && toggleSelect(asset)}
+          role={selectable ? 'button' : undefined}
+          tabindex={selectable ? 0 : undefined}
+          aria-label={selectable ? asset.filename : undefined}
         >
           <div class="asset-preview">
             {#if isImage(asset.mime_type) && asset.url}
@@ -395,7 +399,7 @@
                     e.stopPropagation();
                     deleteAsset(asset.id);
                   }}
-                  title="Delete"
+                  aria-label="Delete {asset.filename}"
                 >
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
@@ -409,7 +413,7 @@
               {/if}
             </div>
           </div>
-        </button>
+        </div>
       {/each}
     </div>
 

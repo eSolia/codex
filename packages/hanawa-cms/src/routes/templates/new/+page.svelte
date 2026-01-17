@@ -35,7 +35,8 @@
   // Derive initial form value for reactivity (e.g., after failed submission)
   const initialName = $derived(form?.name ?? '');
 
-  // Template form state
+  // Template form state - initialized from derived for form restore
+  // eslint-disable-next-line svelte/valid-compile -- Form field intentionally captures initial value
   let name = $state(initialName);
   let nameJa = $state('');
   let description = $state('');

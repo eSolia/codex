@@ -216,6 +216,9 @@
     bind:this={editorElement}
     class="editor-content {isFocused ? 'ring-2 ring-esolia-navy ring-inset' : ''}"
     onkeydown={handleKeydown}
+    role="textbox"
+    aria-label="Rich text editor"
+    tabindex="0"
   ></div>
 
   <!-- Footer Stats -->

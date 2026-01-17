@@ -67,6 +67,7 @@
         <div
           class="prose prose-lg max-w-none prose-headings:text-esolia-navy prose-a:text-esolia-navy"
         >
+          <!-- eslint-disable-next-line svelte/no-at-html-tags -- Sanitized via sanitizeHtml (InfoSec: XSS prevention) -->
           {@html safeContent}
         </div>
       </article>

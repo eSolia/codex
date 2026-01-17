@@ -102,7 +102,7 @@ export interface AuditLogRow {
  * InfoSec: Ensures audit log integrity
  */
 async function computeChecksum(data: Record<string, unknown>): Promise<string> {
-  const { checksum, ...rest } = data;
+  const { checksum: _checksum, ...rest } = data;
   const json = JSON.stringify(rest, Object.keys(rest).sort());
   const buffer = new TextEncoder().encode(json);
   const hash = await crypto.subtle.digest('SHA-256', buffer);
@@ -148,7 +148,7 @@ export function createAuditService(db: D1Database) {
         metadata: entry.metadata ? JSON.stringify(entry.metadata) : null,
       };
 
-      // Compute integrity checksum
+      // Compute integrity checksum (reserved for future use)
       const checksum = await computeChecksum(rowData);
 
       await db

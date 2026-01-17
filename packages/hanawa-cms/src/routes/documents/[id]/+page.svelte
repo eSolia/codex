@@ -16,6 +16,7 @@
   import Plus from 'phosphor-svelte/lib/Plus';
   import Translate from 'phosphor-svelte/lib/Translate';
   import CoverLetterEditor from '$lib/components/editor/CoverLetterEditor.svelte';
+  import { sanitizeHtml } from '$lib/sanitize';
 
   interface Fragment {
     id: string;
@@ -42,15 +43,19 @@
   let editMode = $state(false);
   let showPreview = $state(false);
   // Note: showShareModal removed - unused
+  /* eslint-disable svelte/valid-compile -- Form fields intentionally capture initial values */
   let fragments = $state<Fragment[]>(initialFragments);
+  /* eslint-enable svelte/valid-compile */
   let draggedIndex = $state<number | null>(null);
   let isGeneratingPdf = $state(false);
   let isSharing = $state(false);
   let showAddFragment = $state(false);
 
   // Cover letter state
+  /* eslint-disable svelte/valid-compile -- Form fields intentionally capture initial values */
   let coverLetterEn = $state(data.proposal.cover_letter_en || '');
   let coverLetterJa = $state(data.proposal.cover_letter_ja || '');
+  /* eslint-enable svelte/valid-compile */
 
   // Format date to JST - use Intl.DateTimeFormat for consistent server/client formatting
   // SQLite datetime('now') stores UTC but without timezone indicator, so we append 'Z'
@@ -75,11 +80,13 @@
       return dateStr;
     }
   }
+  /* eslint-disable svelte/valid-compile -- Form fields intentionally capture initial values */
   let languageMode = $state(data.proposal.language_mode || 'en');
 
   // Scope state (for translation)
   let scopeEn = $state(data.proposal.scope || '');
   let scopeJa = $state(data.proposal.scope_ja || '');
+  /* eslint-enable svelte/valid-compile */
   let isTranslatingScopeEn = $state(false);
   let isTranslatingScopeJa = $state(false);
 
@@ -135,7 +142,6 @@
   // Derived
   const fragmentsJson = $derived(JSON.stringify(fragments));
   const proposal = $derived(data.proposal);
-  const fragmentContents = $derived(data.fragmentContents as FragmentContent[]);
   const availableFragments = $derived((data.availableFragments as FragmentContent[]) || []);
   const boilerplates = $derived((data.boilerplates as FragmentContent[]) || []);
 
@@ -549,9 +555,9 @@
 
           {#if showEnglish}
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
+              <span class="block text-sm font-medium text-gray-700 mb-2">
                 Cover Letter (English)
-              </label>
+              </span>
               <p class="text-xs text-gray-500 mb-2">
                 Client-specific introduction that appears before the standard fragments
               </p>
@@ -569,9 +575,9 @@
 
           {#if showJapanese}
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
+              <span class="block text-sm font-medium text-gray-700 mb-2">
                 Cover Letter (Japanese)
-              </label>
+              </span>
               <p class="text-xs text-gray-500 mb-2">
                 標準フラグメントの前に表示されるクライアント固有の紹介文
               </p>
@@ -644,7 +650,8 @@
             <div>
               <h3 class="text-sm font-medium text-gray-500">Cover Letter (EN)</h3>
               <div class="mt-1 text-sm bg-gray-50 p-3 rounded prose prose-sm max-w-none">
-                {@html proposal.cover_letter_en}
+                <!-- eslint-disable-next-line svelte/no-at-html-tags -- Sanitized via sanitizeHtml() -->
+                {@html sanitizeHtml(proposal.cover_letter_en)}
               </div>
             </div>
           {/if}
@@ -653,7 +660,8 @@
             <div>
               <h3 class="text-sm font-medium text-gray-500">Cover Letter (JA)</h3>
               <div class="mt-1 text-sm bg-gray-50 p-3 rounded prose prose-sm max-w-none">
-                {@html proposal.cover_letter_ja}
+                <!-- eslint-disable-next-line svelte/no-at-html-tags -- Sanitized via sanitizeHtml() -->
+                {@html sanitizeHtml(proposal.cover_letter_ja)}
               </div>
             </div>
           {/if}
@@ -700,13 +708,15 @@
           </div>
         </div>
 
-        <div class="space-y-2">
+        <div class="space-y-2" role="list" aria-label="Proposal fragments">
           {#each fragments as fragment, index (fragment.id)}
             <div
               draggable={editMode}
               ondragstart={(e) => editMode && handleDragStart(e, index)}
               ondragover={(e) => editMode && handleDragOver(e, index)}
               ondragend={() => editMode && handleDragEnd()}
+              role="listitem"
+              aria-label="Fragment: {getFragmentTitle(fragment.id)}"
               class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border transition-all
                      {fragment.enabled ? 'border-gray-200' : 'border-gray-100 opacity-50'}
                      {editMode ? 'cursor-move' : ''}
@@ -998,10 +1008,10 @@
           >
             <!-- PDF Selection -->
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
+              <span id="pdf-selection-label" class="block text-sm font-medium text-gray-700 mb-2">
                 Select PDFs to Share
-              </label>
-              <div class="space-y-2">
+              </span>
+              <div class="space-y-2" role="group" aria-labelledby="pdf-selection-label">
                 {#if proposal.pdf_r2_key_en && proposal.pdf_r2_key_ja}
                   <!-- Bilingual mode: show all 3 options -->
                   <label class="flex items-center gap-2 text-sm">

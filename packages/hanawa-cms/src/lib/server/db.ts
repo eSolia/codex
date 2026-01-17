@@ -1,6 +1,6 @@
 // Database utilities for Hanawa CMS
 
-import type { Site, ContentType, Content, Fragment, Asset, User } from '$lib/types';
+import type { Site, Content, Fragment } from '$lib/types';
 
 // Helper to parse JSON fields from D1
 function parseJson<T>(value: string | null, fallback: T): T {

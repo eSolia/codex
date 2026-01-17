@@ -3,9 +3,9 @@
  * InfoSec: Authorization checks, audit logging, CSRF protection
  */
 
-import { error, fail, redirect } from '@sveltejs/kit';
+import { error, fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
-import { logAuditEvent, securityLevels } from '$lib/server/security';
+import { logAuditEvent } from '$lib/server/security';
 import type { SensitivityLevel } from '$lib/server/security';
 
 export const load: PageServerLoad = async ({ params, platform, locals }) => {

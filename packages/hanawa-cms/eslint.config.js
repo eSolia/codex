@@ -24,6 +24,18 @@ export default ts.config(
     },
   },
   {
+    // Allow underscore-prefixed variables for intentional unused vars (dependency tracking)
+    rules: {
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+        },
+      ],
+    },
+  },
+  {
     ignores: ['build/', '.svelte-kit/', 'dist/', 'node_modules/', '.wrangler/'],
   }
 );

@@ -32,7 +32,8 @@
   // Type the content data for safe access - use $derived for reactivity
   const c = $derived(data.content as unknown as ContentData | null);
 
-  // Form state
+  // Form state - initialized from data, then independently editable
+  /* eslint-disable svelte/valid-compile -- Form fields intentionally capture initial values */
   let title = $state(c?.title || '');
   let titleJa = $state(c?.title_ja || '');
   let slug = $state(c?.slug || '');
@@ -43,6 +44,7 @@
   let sensitivity = $state<'normal' | 'confidential' | 'embargoed'>(c?.sensitivity || 'normal');
   let siteId = $state(c?.site_id || '');
   let contentTypeId = $state(c?.content_type_id || '');
+  /* eslint-enable svelte/valid-compile */
 
   // UI state
   let isSaving = $state(false);

@@ -310,7 +310,7 @@ export function createMediaService(db: D1Database, r2: R2Bucket, audit?: AuditSe
     /**
      * Get signed URL for private access (if needed)
      */
-    async getSignedUrl(id: string, expiresIn = 3600): Promise<string> {
+    async getSignedUrl(id: string, _expiresIn = 3600): Promise<string> {
       const asset = await this.get(id);
       // For public R2 bucket, just return the public URL
       // For private bucket, would use presigned URLs

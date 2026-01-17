@@ -42,7 +42,7 @@ interface TerminologyEntry {
   verified: boolean;
 }
 
-interface UsageRecord {
+interface _UsageRecord {
   id: string;
   userEmail: string;
   documentId?: string;

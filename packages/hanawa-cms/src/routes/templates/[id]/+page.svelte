@@ -45,12 +45,18 @@
   const template = $derived(data.template as Template);
   const availableFragments = $derived((data.availableFragments as AvailableFragment[]) || []);
 
-  // Template form state (initialized from data)
+  // Template form state - initialized from data, then independently editable
+  // eslint-disable-next-line svelte/valid-compile -- Form fields intentionally capture initial values
   let name = $state(template.name);
+  // eslint-disable-next-line svelte/valid-compile
   let nameJa = $state(template.name_ja || '');
+  // eslint-disable-next-line svelte/valid-compile
   let description = $state(template.description || '');
+  // eslint-disable-next-line svelte/valid-compile
   let descriptionJa = $state(template.description_ja || '');
+  // eslint-disable-next-line svelte/valid-compile
   let documentType = $state(template.document_type);
+  // eslint-disable-next-line svelte/valid-compile
   let isDefault = $state(template.is_default);
 
   // Parse fragments from template

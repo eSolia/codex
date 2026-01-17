@@ -179,6 +179,7 @@
 
           <!-- Excerpt -->
           <p class="text-sm text-gray-600 line-clamp-2">
+            <!-- eslint-disable-next-line svelte/no-at-html-tags -- Sanitized via highlightSearchMatch (InfoSec: XSS prevention) -->
             {@html highlightSearchMatch(result.content.slice(0, 200), query)}...
           </p>
 

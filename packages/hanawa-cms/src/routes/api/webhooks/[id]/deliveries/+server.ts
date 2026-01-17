@@ -44,7 +44,7 @@ export const GET: RequestHandler = async ({ params, url, platform, locals }) => 
 /**
  * POST /api/webhooks/[id]/deliveries - Retry a failed delivery
  */
-export const POST: RequestHandler = async ({ params, request, platform, locals }) => {
+export const POST: RequestHandler = async ({ params: _params, request, platform, locals }) => {
   if (!platform?.env?.DB) {
     throw error(500, 'Database not available');
   }

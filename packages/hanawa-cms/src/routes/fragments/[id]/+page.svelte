@@ -333,7 +333,7 @@
   }
 
   // Track content for triggering re-renders
-  let contentRendered = $state(false);
+  let _contentRendered = $state(false);
 
   // Re-render mermaid when exiting edit mode
   $effect(() => {
@@ -354,7 +354,7 @@
       // Use requestAnimationFrame to ensure DOM has updated
       requestAnimationFrame(() => {
         setTimeout(renderMermaidDiagrams, 100);
-        contentRendered = true;
+        _contentRendered = true;
       });
     }
   });
@@ -654,7 +654,7 @@
           R2 Export Status
         </h2>
         <div class="space-y-3">
-          {#each exportedDiagrams() as { id, meta }}
+          {#each exportedDiagrams() as { id: _id, meta }}
             <div
               class="flex items-center justify-between p-3 bg-emerald-50 border border-emerald-200 rounded-lg"
             >
@@ -766,6 +766,7 @@
         {:else if mermaidSvg}
           <!-- Rendered Mermaid diagram from diagram_source -->
           <div class="border border-gray-200 rounded-lg p-4 bg-white overflow-auto max-h-[600px]">
+            <!-- eslint-disable-next-line svelte/no-at-html-tags -- Sanitized Mermaid SVG from internal renderer -->
             {@html mermaidSvg}
           </div>
         {:else if mermaidError}
@@ -808,6 +809,7 @@
           </div>
         {:else if diagramSvg}
           <div class="border border-gray-200 rounded-lg p-4 bg-white overflow-auto max-h-[600px]">
+            <!-- eslint-disable-next-line svelte/no-at-html-tags -- Trusted SVG from R2 storage -->
             {@html diagramSvg}
           </div>
         {:else}
@@ -896,6 +898,7 @@
             <div
               class="bg-gray-50 p-4 rounded-lg overflow-x-auto text-sm text-gray-800 prose prose-sm max-w-none"
             >
+              <!-- eslint-disable-next-line svelte/no-at-html-tags -- Sanitized CMS content via sanitizeHtml -->
               {@html renderContent(data.fragment.content_en)}
             </div>
           {:else}
@@ -918,6 +921,7 @@
           <div
             class="bg-gray-50 p-4 rounded-lg overflow-x-auto text-sm text-gray-800 prose prose-sm max-w-none"
           >
+            <!-- eslint-disable-next-line svelte/no-at-html-tags -- Sanitized CMS content via sanitizeHtml -->
             {@html renderContent(data.fragment.content_ja)}
           </div>
         {:else}

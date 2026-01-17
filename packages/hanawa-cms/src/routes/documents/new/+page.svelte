@@ -1,7 +1,6 @@
 <script lang="ts">
   import type { PageData } from './$types';
   import { enhance } from '$app/forms';
-  import { goto } from '$app/navigation';
   import FileText from 'phosphor-svelte/lib/FileText';
   import DotsSixVertical from 'phosphor-svelte/lib/DotsSixVertical';
   import Check from 'phosphor-svelte/lib/Check';
@@ -63,9 +62,11 @@
   const filteredTemplates = $derived(
     typeFilter ? templates.filter((t) => t.document_type === typeFilter) : templates
   );
+  /* eslint-disable svelte/valid-compile -- Form fields intentionally capture initial values */
   let selectedTemplateId = $state<string | null>(
     (data.selectedTemplate as Template | null)?.id || null
   );
+  /* eslint-enable svelte/valid-compile */
 
   // Initialize fragments from selected template or defaults
   const defaultFragmentConfig: FragmentConfig[] = [
@@ -74,9 +75,11 @@
     { id: 'esolia-closing', order: 3, enabled: true, required: true },
   ];
 
+  /* eslint-disable svelte/valid-compile -- Form fields intentionally capture initial values */
   let fragments = $state<FragmentConfig[]>(
     (data.defaultFragments as FragmentConfig[]) || defaultFragmentConfig
   );
+  /* eslint-enable svelte/valid-compile */
 
   let language = $state('en');
   let draggedIndex = $state<number | null>(null);
@@ -190,8 +193,8 @@
     fragments = newFragments;
   }
 
-  // Group available fragments by category
-  const fragmentsByCategory = $derived(() => {
+  // Group available fragments by category (reserved for future fragment picker UI)
+  const _fragmentsByCategory = $derived(() => {
     const grouped = new Map<string, AvailableFragment[]>();
     for (const frag of availableFragments) {
       const existing = grouped.get(frag.category) || [];
@@ -436,13 +439,15 @@
           be disabled.
         </p>
 
-        <div class="space-y-2">
+        <div class="space-y-2" role="list" aria-label="Document fragments">
           {#each fragments as fragment, index (fragment.id + '-' + index)}
             <div
               draggable="true"
               ondragstart={(e) => handleDragStart(e, index)}
               ondragover={(e) => handleDragOver(e, index)}
               ondragend={handleDragEnd}
+              role="listitem"
+              aria-label="Fragment: {getFragmentTitle(fragment.id)}"
               class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border cursor-move transition-all
                      {fragment.enabled ? 'border-gray-200' : 'border-gray-100 opacity-50'}
                      {draggedIndex === index ? 'ring-2 ring-esolia-navy ring-offset-2' : ''}"

@@ -27,7 +27,8 @@
     Omit<HTMLButtonAttributes, 'class' | 'disabled'> &
     Omit<HTMLAnchorAttributes, 'class' | 'href'>;
 
-  // eslint-disable-next-line svelte/valid-compile -- rest props needed for flexible button attributes
+  // Rest props for flexible button attributes (not a custom element, so props identifier warning is irrelevant)
+  // svelte-ignore custom_element_props_identifier
   let {
     variant = 'primary',
     size = 'md',
@@ -60,7 +61,9 @@
     'inline-flex items-center justify-center font-medium rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:cursor-not-allowed';
 
   // Use $derived to make classes reactive to prop changes
-  const classes = $derived(`${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${className}`);
+  const classes = $derived(
+    `${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${className}`
+  );
 </script>
 
 {#if href && !disabled}

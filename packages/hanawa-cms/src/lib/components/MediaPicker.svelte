@@ -73,14 +73,16 @@
   <div
     class="modal-backdrop"
     onclick={handleBackdropClick}
+    onkeydown={handleKeydown}
     role="dialog"
     aria-modal="true"
     aria-labelledby="picker-title"
+    tabindex="-1"
   >
     <div class="modal-content">
       <div class="modal-header">
         <h2 id="picker-title">Select Media</h2>
-        <button type="button" class="close-button" onclick={handleClose}>
+        <button type="button" class="close-button" onclick={handleClose} aria-label="Close dialog">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               stroke-linecap="round"

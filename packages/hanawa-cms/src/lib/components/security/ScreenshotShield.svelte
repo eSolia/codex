@@ -25,8 +25,8 @@
   let viewStartTime = $state(Date.now());
   let elapsed = $state(0);
 
-  // Generate fingerprint for forensic watermarking
-  const fingerprint = btoa(`${viewerEmail}|${documentId}|${viewStartTime}`).slice(0, 20);
+  // Generate fingerprint for forensic watermarking - updates when props change
+  const fingerprint = $derived(btoa(`${viewerEmail}|${documentId}|${viewStartTime}`).slice(0, 20));
 
   onMount(() => {
     // Update elapsed time

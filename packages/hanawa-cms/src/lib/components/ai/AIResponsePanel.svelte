@@ -86,6 +86,7 @@
           type="button"
           onclick={onReject}
           class="p-1 text-gray-400 hover:text-gray-600 rounded"
+          aria-label="Close AI suggestion"
         >
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path

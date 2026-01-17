@@ -164,6 +164,7 @@
         {:else}
           <div class="mt-1 text-sm text-gray-700 prose prose-sm max-w-none">
             {#if thread.rootComment.contentHtml}
+              <!-- eslint-disable-next-line svelte/no-at-html-tags -- Sanitized via sanitizeComment (InfoSec: XSS prevention) -->
               {@html sanitizeComment(thread.rootComment.contentHtml)}
             {:else}
               {thread.rootComment.content}
@@ -318,6 +319,7 @@
 
                 <div class="mt-0.5 text-sm text-gray-700">
                   {#if reply.contentHtml}
+                    <!-- eslint-disable-next-line svelte/no-at-html-tags -- Sanitized via sanitizeComment (InfoSec: XSS prevention) -->
                     {@html sanitizeComment(reply.contentHtml)}
                   {:else}
                     {reply.content}

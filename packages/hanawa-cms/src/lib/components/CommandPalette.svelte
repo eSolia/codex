@@ -14,7 +14,7 @@
   // State
   let query = $state('');
   let selectedIndex = $state(0);
-  let inputElement: HTMLInputElement;
+  let inputElement = $state<HTMLInputElement | null>(null);
 
   // Command definitions
   interface Command {
@@ -142,7 +142,8 @@
 
   // Reset selection when query changes
   $effect(() => {
-    query; // Track query
+    const _query = query; // Track query for dependency
+    void _query; // Consume to avoid unused warning
     selectedIndex = 0;
   });
 

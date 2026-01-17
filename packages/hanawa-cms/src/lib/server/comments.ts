@@ -484,7 +484,7 @@ export function createCommentsService(db: D1Database, audit?: AuditService) {
      */
     async getCount(
       documentId: string,
-      options: { status?: CommentStatus } = {}
+      _options: { status?: CommentStatus } = {}
     ): Promise<{ total: number; open: number; resolved: number }> {
       const result = await db
         .prepare(

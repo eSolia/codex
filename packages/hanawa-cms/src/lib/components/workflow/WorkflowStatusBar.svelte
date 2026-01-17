@@ -42,7 +42,7 @@
   }
 
   let {
-    documentId,
+    documentId: _documentId,
     currentStage,
     approvals = [],
     transitions = [],
@@ -305,10 +305,11 @@
         <h3 class="text-lg font-semibold text-gray-900">Approve Content</h3>
       </div>
       <div class="p-4">
-        <label class="block text-sm font-medium text-gray-700 mb-2">
+        <label for="approve-comment" class="block text-sm font-medium text-gray-700 mb-2">
           Add a comment (optional)
         </label>
         <textarea
+          id="approve-comment"
           bind:value={approveComment}
           rows="3"
           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-esolia-navy focus:border-transparent"
@@ -347,10 +348,11 @@
         <h3 class="text-lg font-semibold text-gray-900">Request Changes</h3>
       </div>
       <div class="p-4">
-        <label class="block text-sm font-medium text-gray-700 mb-2">
+        <label for="reject-comment" class="block text-sm font-medium text-gray-700 mb-2">
           Please explain what needs to be changed <span class="text-red-500">*</span>
         </label>
         <textarea
+          id="reject-comment"
           bind:value={rejectComment}
           rows="4"
           required

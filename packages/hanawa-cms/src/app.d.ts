@@ -42,8 +42,10 @@ declare global {
       delivery?: DeliveryService;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-empty-object-type -- SvelteKit convention
     interface PageData {}
 
+    // eslint-disable-next-line @typescript-eslint/no-empty-object-type -- SvelteKit convention
     interface PageState {}
 
     interface Platform {

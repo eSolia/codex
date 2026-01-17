@@ -117,7 +117,12 @@
     <!-- Header -->
     <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
       <h2 class="text-lg font-semibold text-gray-900">Keyboard Shortcuts</h2>
-      <button type="button" class="p-1 text-gray-400 hover:text-gray-600 rounded" onclick={close}>
+      <button
+        type="button"
+        class="p-1 text-gray-400 hover:text-gray-600 rounded"
+        onclick={close}
+        aria-label="Close keyboard shortcuts"
+      >
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
             stroke-linecap="round"

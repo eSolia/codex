@@ -161,8 +161,10 @@
 
         <!-- Sensitivity -->
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2"> Sensitivity Level </label>
-          <div class="space-y-2">
+          <span id="sensitivity-label" class="block text-sm font-medium text-gray-700 mb-2">
+            Sensitivity Level
+          </span>
+          <div class="space-y-2" role="radiogroup" aria-labelledby="sensitivity-label">
             <label
               class="flex items-start gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50"
             >
