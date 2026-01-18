@@ -678,6 +678,16 @@ export const actions: Actions = {
           console.log(`PDF: Found Mermaid svgPath: ${svgPath} -> ${url}`);
         }
 
+        // Also add diagram fragments (category = 'diagrams') - their SVG is stored in R2
+        for (const frag of fragmentContents) {
+          if (frag.category === 'diagrams') {
+            // Diagram fragments have SVG stored at diagrams/{id}.svg in R2
+            const url = `/api/diagrams/${frag.id}`;
+            diagramIds.add(JSON.stringify({ url, id: frag.id }));
+            console.log(`PDF: Found diagram fragment: ${frag.id}`);
+          }
+        }
+
         console.log(`PDF: Total diagram IDs to fetch: ${diagramIds.size}`);
 
         // Fetch all diagrams from R2 in PARALLEL for better performance
@@ -769,14 +779,32 @@ export const actions: Actions = {
         for (const frag of enabledFragments) {
           const content = contentMap.get(frag.id);
           if (content) {
-            const fragContent =
-              lang === 'ja' && content.content_ja ? content.content_ja : content.content_en;
-            if (fragContent) {
-              // Add page break before this fragment if flagged
-              if (frag.pageBreakBefore) {
-                section += '<div class="page-break"></div>\n';
+            // Add page break before this fragment if flagged
+            if (frag.pageBreakBefore) {
+              section += '<div class="page-break"></div>\n';
+            }
+
+            // Check if this is a diagram fragment (SVG stored in R2)
+            if (content.category === 'diagrams') {
+              const diagramUrl = `/api/diagrams/${frag.id}`;
+              const svgContent = imageResolver.get(diagramUrl);
+              if (svgContent) {
+                // Render the diagram SVG directly
+                section += `<div class="diagram-container" style="margin: 20px 0; text-align: center;">${svgContent}</div>\n`;
+              } else {
+                // Fallback: show placeholder if SVG not found
+                section += `<div class="diagram-placeholder" style="margin: 20px 0; padding: 20px; border: 2px dashed #ccc; text-align: center; color: #666;">
+                  <p><strong>${content.name}</strong></p>
+                  <p style="font-size: 0.875em;">Diagram SVG not found in R2</p>
+                </div>\n`;
               }
-              section += markdownToHtml(fragContent, imageResolver) + '\n';
+            } else {
+              // Regular fragment with text/HTML content
+              const fragContent =
+                lang === 'ja' && content.content_ja ? content.content_ja : content.content_en;
+              if (fragContent) {
+                section += markdownToHtml(fragContent, imageResolver) + '\n';
+              }
             }
           }
         }
