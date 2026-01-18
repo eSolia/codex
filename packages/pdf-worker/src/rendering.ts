@@ -48,9 +48,11 @@ export async function generatePdf(
       body: JSON.stringify({
         html,
         viewport,
-        // Wait for fonts and all network requests to complete before rendering
+        // Wait for network to be mostly idle (allows 2 concurrent connections)
+        // Using networkidle2 instead of networkidle0 for faster rendering
+        // while still ensuring fonts and critical resources are loaded
         gotoOptions: {
-          waitUntil: "networkidle0",
+          waitUntil: "networkidle2",
         },
         pdfOptions: {
           landscape,
