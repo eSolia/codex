@@ -906,6 +906,17 @@
             };
           }}
         >
+          <!-- Pass enabled fragment IDs to avoid re-parsing on server -->
+          <input
+            type="hidden"
+            name="enabled_fragment_ids"
+            value={JSON.stringify(
+              fragments
+                .filter((f) => f.enabled)
+                .sort((a, b) => a.order - b.order)
+                .map((f) => ({ id: f.id, pageBreakBefore: f.pageBreakBefore }))
+            )}
+          />
           <button
             type="submit"
             disabled={isGeneratingPdf}

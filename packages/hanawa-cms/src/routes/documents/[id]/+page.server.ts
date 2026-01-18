@@ -492,7 +492,7 @@ export const actions: Actions = {
   },
 
   // Generate PDF
-  generatePdf: async ({ params, platform }) => {
+  generatePdf: async ({ params, request, platform }) => {
     if (!platform?.env?.DB) {
       return fail(500, { error: 'Database not available' });
     }
@@ -504,43 +504,94 @@ export const actions: Actions = {
       return fail(500, { error: 'PDF service not configured' });
     }
 
+    // Helper: Retry D1 operations on timeout
+    // InfoSec: Only retries on timeout errors, not on other failures
+    async function withRetry<T>(
+      operation: () => Promise<T>,
+      maxRetries = 2,
+      label = 'DB operation'
+    ): Promise<T> {
+      let lastError: Error | null = null;
+      for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+          return await operation();
+        } catch (err) {
+          lastError = err as Error;
+          const isTimeout =
+            lastError.message?.includes('timeout') || lastError.message?.includes('D1_ERROR');
+          if (!isTimeout || attempt === maxRetries) {
+            throw lastError;
+          }
+          console.warn(`${label}: Attempt ${attempt} failed with timeout, retrying...`);
+          // Brief delay before retry
+          await new Promise((resolve) => setTimeout(resolve, 100 * attempt));
+        }
+      }
+      throw lastError;
+    }
+
     try {
-      // Load proposal
-      const proposal = await db
-        .prepare('SELECT * FROM proposals WHERE id = ?')
-        .bind(params.id)
-        .first<Proposal>();
+      // Parse enabled fragment IDs from form (passed from client to avoid re-parsing)
+      const formData = await request.formData();
+      const enabledFragmentIdsJson = formData.get('enabled_fragment_ids') as string;
+
+      let enabledFragments: Array<{ id: string; pageBreakBefore?: boolean }> = [];
+      try {
+        enabledFragments = JSON.parse(enabledFragmentIdsJson || '[]');
+      } catch {
+        // Fall back to loading from database if client data is invalid
+        console.warn('generatePdf: Invalid enabled_fragment_ids, will parse from DB');
+      }
+
+      const enabledFragmentIds = enabledFragments.map((f) => f.id);
+
+      // Fetch proposal and fragments in PARALLEL to reduce total time
+      // InfoSec: Parameterized queries (OWASP A03)
+      const [proposal, fragmentContents] = await Promise.all([
+        // Query 1: Load proposal
+        withRetry(
+          () =>
+            db.prepare('SELECT * FROM proposals WHERE id = ?').bind(params.id).first<Proposal>(),
+          2,
+          'Load proposal'
+        ),
+
+        // Query 2: Load fragment contents (only if we have IDs)
+        enabledFragmentIds.length > 0
+          ? withRetry(
+              async () => {
+                const placeholders = enabledFragmentIds.map(() => '?').join(',');
+                const result = await db
+                  .prepare(
+                    `SELECT id, name, slug, category, content_en, content_ja
+                   FROM fragments
+                   WHERE id IN (${placeholders})`
+                  )
+                  .bind(...enabledFragmentIds)
+                  .all<FragmentContent>();
+                return result.results ?? [];
+              },
+              2,
+              'Load fragments'
+            )
+          : Promise.resolve([] as FragmentContent[]),
+      ]);
 
       if (!proposal) {
         return fail(404, { error: 'Proposal not found' });
       }
 
-      // Parse fragments
-      let fragments: Fragment[] = [];
-      try {
-        fragments = JSON.parse(proposal.fragments || '[]');
-      } catch {
-        fragments = [];
-      }
-
-      // Load fragment contents
-      // Keep full fragment objects for pageBreakBefore support
-      const enabledFragments = fragments.filter((f) => f.enabled).sort((a, b) => a.order - b.order);
-      const enabledFragmentIds = enabledFragments.map((f) => f.id);
-
-      let fragmentContents: FragmentContent[] = [];
-      if (enabledFragmentIds.length > 0) {
-        const placeholders = enabledFragmentIds.map(() => '?').join(',');
-        const result = await db
-          .prepare(
-            `SELECT id, name, slug, category, content_en, content_ja
-             FROM fragments
-             WHERE id IN (${placeholders})`
-          )
-          .bind(...enabledFragmentIds)
-          .all<FragmentContent>();
-
-        fragmentContents = result.results ?? [];
+      // If no fragment config from client, fall back to parsing from proposal
+      if (enabledFragments.length === 0) {
+        try {
+          const fragments: Fragment[] = JSON.parse(proposal.fragments || '[]');
+          enabledFragments = fragments
+            .filter((f) => f.enabled)
+            .sort((a, b) => a.order - b.order)
+            .map((f) => ({ id: f.id, pageBreakBefore: f.pageBreakBefore }));
+        } catch {
+          enabledFragments = [];
+        }
       }
 
       // Build content map for ordering
@@ -627,8 +678,8 @@ export const actions: Actions = {
 
         console.log(`PDF: Total diagram IDs to fetch: ${diagramIds.size}`);
 
-        // Fetch each diagram from R2
-        for (const entry of diagramIds) {
+        // Fetch all diagrams from R2 in PARALLEL for better performance
+        const diagramFetches = Array.from(diagramIds).map(async (entry) => {
           const { url, id } = JSON.parse(entry);
           // Strip .svg if present for R2 key lookup
           const diagramId = id.endsWith('.svg') ? id.slice(0, -4) : id;
@@ -638,12 +689,20 @@ export const actions: Actions = {
             const object = await platform.env.R2.get(r2Key);
             if (object) {
               const svgContent = await object.text();
-              // Store with the original URL as key
-              imageResolver.set(url, svgContent);
               console.log(`PDF: Loaded diagram ${diagramId} from R2`);
+              return { url, svgContent };
             }
           } catch (err) {
             console.warn(`PDF: Failed to load diagram ${diagramId}:`, err);
+          }
+          return null;
+        });
+
+        // Wait for all diagram fetches to complete
+        const diagramResults = await Promise.all(diagramFetches);
+        for (const result of diagramResults) {
+          if (result) {
+            imageResolver.set(result.url, result.svgContent);
           }
         }
       }
