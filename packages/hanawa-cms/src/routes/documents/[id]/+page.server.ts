@@ -537,45 +537,21 @@ export const actions: Actions = {
 
       let enabledFragments: Array<{ id: string; pageBreakBefore?: boolean }> = [];
       try {
-        enabledFragments = JSON.parse(enabledFragmentIdsJson || '[]');
+        const parsed = JSON.parse(enabledFragmentIdsJson || '[]');
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          enabledFragments = parsed;
+        }
       } catch {
         // Fall back to loading from database if client data is invalid
         console.warn('generatePdf: Invalid enabled_fragment_ids, will parse from DB');
       }
 
-      const enabledFragmentIds = enabledFragments.map((f) => f.id);
-
-      // Fetch proposal and fragments in PARALLEL to reduce total time
-      // InfoSec: Parameterized queries (OWASP A03)
-      const [proposal, fragmentContents] = await Promise.all([
-        // Query 1: Load proposal
-        withRetry(
-          () =>
-            db.prepare('SELECT * FROM proposals WHERE id = ?').bind(params.id).first<Proposal>(),
-          2,
-          'Load proposal'
-        ),
-
-        // Query 2: Load fragment contents (only if we have IDs)
-        enabledFragmentIds.length > 0
-          ? withRetry(
-              async () => {
-                const placeholders = enabledFragmentIds.map(() => '?').join(',');
-                const result = await db
-                  .prepare(
-                    `SELECT id, name, slug, category, content_en, content_ja
-                   FROM fragments
-                   WHERE id IN (${placeholders})`
-                  )
-                  .bind(...enabledFragmentIds)
-                  .all<FragmentContent>();
-                return result.results ?? [];
-              },
-              2,
-              'Load fragments'
-            )
-          : Promise.resolve([] as FragmentContent[]),
-      ]);
+      // First, always load the proposal (needed for fallback and cover letters)
+      const proposal = await withRetry(
+        () => db.prepare('SELECT * FROM proposals WHERE id = ?').bind(params.id).first<Proposal>(),
+        2,
+        'Load proposal'
+      );
 
       if (!proposal) {
         return fail(404, { error: 'Proposal not found' });
@@ -589,9 +565,35 @@ export const actions: Actions = {
             .filter((f) => f.enabled)
             .sort((a, b) => a.order - b.order)
             .map((f) => ({ id: f.id, pageBreakBefore: f.pageBreakBefore }));
+          console.log('generatePdf: Parsed fragments from proposal:', enabledFragments.length);
         } catch {
           enabledFragments = [];
         }
+      }
+
+      // Now fetch fragment contents with the correct IDs
+      // InfoSec: Parameterized queries (OWASP A03)
+      const enabledFragmentIds = enabledFragments.map((f) => f.id);
+      let fragmentContents: FragmentContent[] = [];
+
+      if (enabledFragmentIds.length > 0) {
+        fragmentContents = await withRetry(
+          async () => {
+            const placeholders = enabledFragmentIds.map(() => '?').join(',');
+            const result = await db
+              .prepare(
+                `SELECT id, name, slug, category, content_en, content_ja
+                 FROM fragments
+                 WHERE id IN (${placeholders})`
+              )
+              .bind(...enabledFragmentIds)
+              .all<FragmentContent>();
+            return result.results ?? [];
+          },
+          2,
+          'Load fragments'
+        );
+        console.log('generatePdf: Loaded fragment contents:', fragmentContents.length);
       }
 
       // Build content map for ordering
