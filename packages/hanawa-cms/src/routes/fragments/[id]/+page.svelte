@@ -237,9 +237,11 @@
     });
   });
 
-  // Parse markdown to HTML
+  // Parse markdown to HTML (but don't double-process existing HTML)
   function renderMarkdown(content: string | null | undefined): string {
     if (!content) return '';
+    // If content is already HTML (from Tiptap), return as-is
+    if (content.trim().startsWith('<')) return content;
     return marked.parse(content) as string;
   }
 
