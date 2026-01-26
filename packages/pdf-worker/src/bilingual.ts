@@ -208,6 +208,7 @@ function buildTocHtml(toc: TocData, firstLanguage: "en" | "ja"): string {
       font-weight: 500;
       color: #4a4c7a;
       margin-bottom: 20px;
+      font-family: 'IBM Plex Sans JP', sans-serif;
     }
     .divider {
       height: 3px;
@@ -224,6 +225,7 @@ function buildTocHtml(toc: TocData, firstLanguage: "en" | "ja"): string {
       font-size: 14px;
       color: #4a4c7a;
       margin-bottom: 24px;
+      font-family: 'IBM Plex Sans JP', sans-serif;
     }
     .toc-entry {
       padding: 16px 20px;
@@ -246,6 +248,7 @@ function buildTocHtml(toc: TocData, firstLanguage: "en" | "ja"): string {
       font-size: 14px;
       color: #666;
       margin-left: 12px;
+      font-family: 'IBM Plex Sans JP', sans-serif;
     }
     .toc-details {
       font-size: 13px;
