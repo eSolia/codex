@@ -258,6 +258,58 @@
   @apply hidden;
 }
 
+/* Page Break styles for editor */
+.page-break {
+  @apply my-8 py-4 border-t-2 border-b-2 border-dashed border-gray-300 bg-gray-50;
+  position: relative;
+}
+
+.page-break::before,
+.page-break::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent,
+    transparent 4px,
+    #d1d5db 4px,
+    #d1d5db 8px
+  );
+}
+
+.page-break::before {
+  top: -2px;
+}
+
+.page-break::after {
+  bottom: -2px;
+}
+
+.page-break-label {
+  @apply text-xs text-gray-500 font-medium text-center uppercase tracking-wider;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.page-break-label::before,
+.page-break-label::after {
+  content: '✂';
+  font-size: 14px;
+}
+
+.page-break.ProseMirror-selectednode {
+  @apply border-blue-400 bg-blue-50;
+}
+
+.page-break.ProseMirror-selectednode .page-break-label {
+  @apply text-blue-600;
+}
+
 /* Slash Commands Menu Styles */
 .slash-menu {
   @apply bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden;
@@ -299,6 +351,7 @@
 .tippy-box[data-theme~='slash-menu'] {
   background: transparent;
   padding: 0;
+  z-index: 9999 !important;
 }
 
 .tippy-box[data-theme~='slash-menu'] > .tippy-content {

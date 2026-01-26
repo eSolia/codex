@@ -161,8 +161,7 @@ const slashCommands: SlashCommandItem[] = [
     icon: '📄',
     keywords: ['page', 'break', 'newpage', 'pagebreak'],
     command: ({ editor, range }) => {
-      // Insert a div marker that the PDF renderer recognizes
-      editor.chain().focus().deleteRange(range).insertContent('<p><!-- pagebreak --></p>').run();
+      editor.chain().focus().deleteRange(range).insertPageBreak().run();
     },
   },
   {
@@ -177,6 +176,22 @@ const slashCommands: SlashCommandItem[] = [
         .deleteRange(range)
         .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
         .run();
+    },
+  },
+  {
+    title: 'Fragment',
+    description: 'Embed a reusable fragment',
+    icon: '🧩',
+    keywords: ['fragment', 'embed', 'include', 'reference', 'reuse'],
+    command: ({ editor, range }) => {
+      // Prompt for fragment ID (e.g., "diagrams/network-topology" or "proposals/esolia-intro")
+      const fragmentId = prompt(
+        'Enter fragment ID (e.g., diagrams/my-diagram or proposals/intro):'
+      );
+      if (fragmentId && fragmentId.trim()) {
+        const lang = document.documentElement.lang === 'ja' ? 'ja' : 'en';
+        editor.chain().focus().deleteRange(range).insertFragment(fragmentId.trim(), lang).run();
+      }
     },
   },
 ];
