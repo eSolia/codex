@@ -1142,11 +1142,10 @@ export const actions: Actions = {
         </g>
       </svg>`;
 
-      // Google Fonts link tags (loaded in <head> before CSS for better font loading)
+      // Google Fonts - preconnect hints only, @import used in CSS for reliability
       const fontLinks = `
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+JP:wght@400;500;600;700&display=block" rel="stylesheet">`;
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>`;
 
       // Language-specific CSS styles for PDFs
       // A4 is 210mm x 297mm, with 12mm margins = 186mm content width
@@ -1156,7 +1155,9 @@ export const actions: Actions = {
         const fontFamily =
           lang === 'ja' ? "'IBM Plex Sans JP', sans-serif" : "'IBM Plex Sans', sans-serif";
 
+        // Use @import for fonts - more reliable in headless browser environments
         return `
+    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+JP:wght@400;500;600;700&display=block');
     body {
       font-family: ${fontFamily};
       line-height: 1.5;
