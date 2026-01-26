@@ -7,6 +7,95 @@ import type { PageServerLoad, Actions } from './$types';
 import { error, fail } from '@sveltejs/kit';
 
 /**
+ * Process Tiptap callout blocks to PDF-styled HTML
+ * Handles nested divs properly by counting open/close tags
+ */
+function processCallouts(
+  html: string,
+  styles: Record<string, { bg: string; border: string; icon: string }>
+): string {
+  // Find callout start tags and process each one
+  const calloutStartRegex = /<div[^>]*data-callout-type=["']([^"']+)["'][^>]*>/gi;
+  let result = html;
+  let match;
+
+  // Collect all callout positions first
+  const callouts: Array<{
+    start: number;
+    end: number;
+    type: string;
+    title: string | null;
+    fullMatch: string;
+  }> = [];
+
+  while ((match = calloutStartRegex.exec(html)) !== null) {
+    const startTag = match[0];
+    const type = match[1];
+    const startPos = match.index;
+
+    // Extract title from the start tag
+    const titleMatch = startTag.match(/data-callout-title=["']([^"']+)["']/i);
+    const title = titleMatch ? titleMatch[1] : null;
+
+    // Find the matching closing </div> by counting nested divs
+    let depth = 1;
+    let pos = startPos + startTag.length;
+    while (depth > 0 && pos < html.length) {
+      const nextOpen = html.indexOf('<div', pos);
+      const nextClose = html.indexOf('</div>', pos);
+
+      if (nextClose === -1) break;
+
+      if (nextOpen !== -1 && nextOpen < nextClose) {
+        depth++;
+        pos = nextOpen + 4;
+      } else {
+        depth--;
+        if (depth === 0) {
+          const endPos = nextClose + 6; // '</div>'.length
+          callouts.push({
+            start: startPos,
+            end: endPos,
+            type,
+            title,
+            fullMatch: html.substring(startPos, endPos),
+          });
+        }
+        pos = nextClose + 6;
+      }
+    }
+  }
+
+  // Process callouts in reverse order to preserve positions
+  for (let i = callouts.length - 1; i >= 0; i--) {
+    const callout = callouts[i];
+    const style = styles[callout.type] || styles.info;
+
+    // Extract the content between the outer div tags
+    const innerHtml = callout.fullMatch.replace(/^<div[^>]*>/, '').replace(/<\/div>$/, '');
+
+    // Extract just the callout-content div's contents if present
+    const contentMatch = innerHtml.match(
+      /<div[^>]*class=["'][^"']*callout-content[^"']*["'][^>]*>([\s\S]*)<\/div>\s*$/i
+    );
+    const innerContent = contentMatch ? contentMatch[1] : innerHtml;
+
+    const titleHtml = callout.title
+      ? `<div style="font-weight: bold; margin-bottom: 8px; color: ${style.border};">${style.icon}${callout.title}</div>`
+      : '';
+
+    const replacement = `<div style="margin: 16px 0; padding: 16px; background-color: ${style.bg}; border-left: 4px solid ${style.border}; border-radius: 4px;">
+${titleHtml}
+<div>${innerContent}</div>
+</div>`;
+
+    result = result.substring(0, callout.start) + replacement + result.substring(callout.end);
+  }
+
+  return result;
+}
+
+/**
  * Basic markdown to HTML converter
  * InfoSec: Only used for server-side PDF generation, output not displayed in browser
  *
@@ -55,6 +144,52 @@ function markdownToHtml(markdown: string, imageResolver?: Map<string, string>): 
       }
     );
 
+    // Handle Page Break blocks - convert to CSS page-break for PDF
+    processed = processed.replace(
+      /<div[^>]*data-type=["']pageBreak["'][^>]*>[\s\S]*?<\/div>/gi,
+      () => {
+        return `<div style="page-break-before: always; break-before: page; height: 0; margin: 0; padding: 0;"></div>`;
+      }
+    );
+
+    // Handle Tiptap Callout blocks - convert to styled PDF format
+    // Matches: <div data-callout-type="info" data-callout-title="...">...</div>
+    const pdfCalloutStyles: Record<string, { bg: string; border: string; icon: string }> = {
+      info: {
+        bg: '#dbeafe',
+        border: '#3b82f6',
+        icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 256 256" style="vertical-align: middle; margin-right: 6px;"><path fill="currentColor" d="M128 24a104 104 0 1 0 104 104A104.11 104.11 0 0 0 128 24Zm0 192a88 88 0 1 1 88-88a88.1 88.1 0 0 1-88 88Zm16-40a8 8 0 0 1-8 8a16 16 0 0 1-16-16v-40a8 8 0 0 1 0-16a16 16 0 0 1 16 16v40a8 8 0 0 1 8 8Zm-32-92a12 12 0 1 1 12 12a12 12 0 0 1-12-12Z"/></svg>',
+      },
+      warning: {
+        bg: '#fef3c7',
+        border: '#f59e0b',
+        icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 256 256" style="vertical-align: middle; margin-right: 6px;"><path fill="currentColor" d="M236.8 188.09L149.35 36.22a24.76 24.76 0 0 0-42.7 0L19.2 188.09a23.51 23.51 0 0 0 0 23.72A24.35 24.35 0 0 0 40.55 224h174.9a24.35 24.35 0 0 0 21.33-12.19a23.51 23.51 0 0 0 .02-23.72ZM120 144v-40a8 8 0 0 1 16 0v40a8 8 0 0 1-16 0Zm20 36a12 12 0 1 1-12-12a12 12 0 0 1 12 12Z"/></svg>',
+      },
+      danger: {
+        bg: '#fee2e2',
+        border: '#ef4444',
+        icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 256 256" style="vertical-align: middle; margin-right: 6px;"><path fill="currentColor" d="M128 24a104 104 0 1 0 104 104A104.11 104.11 0 0 0 128 24Zm0 192a88 88 0 1 1 88-88a88.1 88.1 0 0 1-88 88Zm-8-80V80a8 8 0 0 1 16 0v56a8 8 0 0 1-16 0Zm20 36a12 12 0 1 1-12-12a12 12 0 0 1 12 12Z"/></svg>',
+      },
+      success: {
+        bg: '#d1fae5',
+        border: '#10b981',
+        icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 256 256" style="vertical-align: middle; margin-right: 6px;"><path fill="currentColor" d="M173.66 98.34a8 8 0 0 1 0 11.32l-56 56a8 8 0 0 1-11.32 0l-24-24a8 8 0 0 1 11.32-11.32L112 148.69l50.34-50.35a8 8 0 0 1 11.32 0ZM232 128A104 104 0 1 1 128 24a104.11 104.11 0 0 1 104 104Zm-16 0a88 88 0 1 0-88 88a88.1 88.1 0 0 0 88-88Z"/></svg>',
+      },
+      note: {
+        bg: '#f3f4f6',
+        border: '#6b7280',
+        icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 256 256" style="vertical-align: middle; margin-right: 6px;"><path fill="currentColor" d="M208 32H48a16 16 0 0 0-16 16v160a16 16 0 0 0 16 16h108.69a15.86 15.86 0 0 0 11.31-4.69l49.32-49.32a15.86 15.86 0 0 0 4.68-11.31V48a16 16 0 0 0-16-16Zm0 16v104h-48a8 8 0 0 0-8 8v48H48V48Zm-12.69 120L168 195.31V168Z"/></svg>',
+      },
+      tip: {
+        bg: '#e0e7ff',
+        border: '#6366f1',
+        icon: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 256 256" style="vertical-align: middle; margin-right: 6px;"><path fill="currentColor" d="M176 232a8 8 0 0 1-8 8H88a8 8 0 0 1 0-16h80a8 8 0 0 1 8 8Zm40-128a87.55 87.55 0 0 1-33.64 69.21A16.24 16.24 0 0 0 176 186v6a16 16 0 0 1-16 16H96a16 16 0 0 1-16-16v-6a16 16 0 0 0-6.23-12.66A87.59 87.59 0 0 1 40 104.5C39.74 56.83 78.26 17.14 125.88 16A88 88 0 0 1 216 104Z"/></svg>',
+      },
+    };
+
+    // Handle Tiptap Callout blocks - use a function to properly handle nested divs
+    processed = processCallouts(processed, pdfCalloutStyles);
+
     // Resolve HTML img tags with imageResolver (for Mermaid SVGs from R2)
     // Replace <img src="/api/diagrams/..."> with inline SVG content
     if (imageResolver && imageResolver.size > 0) {
@@ -88,6 +223,71 @@ function markdownToHtml(markdown: string, imageResolver?: Map<string, string>): 
     processed = processed.replace(/<p[^>]*>\s*<\/p>/g, '');
     // Collapse multiple whitespace/newlines between tags
     processed = processed.replace(/>\s+</g, '><');
+
+    // Handle callout blocks in HTML content (:::type{title="..."}<br>...<br>:::</p>)
+    // Must decode &quot; first, then match the pattern
+    processed = processed.replace(/&quot;/g, '"').replace(/&amp;/g, '&');
+
+    // Callout styles with Phosphor icons
+    const htmlCalloutStyles: Record<
+      string,
+      { bg: string; border: string; label: string; icon: string }
+    > = {
+      info: {
+        bg: '#dbeafe',
+        border: '#3b82f6',
+        label: 'Info',
+        icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 256 256" style="vertical-align: middle; margin-right: 8px;"><path fill="currentColor" d="M128 24a104 104 0 1 0 104 104A104.11 104.11 0 0 0 128 24Zm0 192a88 88 0 1 1 88-88a88.1 88.1 0 0 1-88 88Zm16-40a8 8 0 0 1-8 8a16 16 0 0 1-16-16v-40a8 8 0 0 1 0-16a16 16 0 0 1 16 16v40a8 8 0 0 1 8 8Zm-32-92a12 12 0 1 1 12 12a12 12 0 0 1-12-12Z"/></svg>',
+      },
+      warning: {
+        bg: '#fef3c7',
+        border: '#f59e0b',
+        label: 'Warning',
+        icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 256 256" style="vertical-align: middle; margin-right: 8px;"><path fill="currentColor" d="M236.8 188.09L149.35 36.22a24.76 24.76 0 0 0-42.7 0L19.2 188.09a23.51 23.51 0 0 0 0 23.72A24.35 24.35 0 0 0 40.55 224h174.9a24.35 24.35 0 0 0 21.33-12.19a23.51 23.51 0 0 0 .02-23.72Zm-13.87 15.71a8.5 8.5 0 0 1-7.48 4.2H40.55a8.5 8.5 0 0 1-7.48-4.2a7.59 7.59 0 0 1 0-7.72l87.45-151.87a8.75 8.75 0 0 1 15 0l87.45 151.87a7.59 7.59 0 0 1-.04 7.72ZM120 144v-40a8 8 0 0 1 16 0v40a8 8 0 0 1-16 0Zm20 36a12 12 0 1 1-12-12a12 12 0 0 1 12 12Z"/></svg>',
+      },
+      danger: {
+        bg: '#fee2e2',
+        border: '#ef4444',
+        label: 'Important',
+        icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 256 256" style="vertical-align: middle; margin-right: 8px;"><path fill="currentColor" d="M128 24a104 104 0 1 0 104 104A104.11 104.11 0 0 0 128 24Zm0 192a88 88 0 1 1 88-88a88.1 88.1 0 0 1-88 88Zm-8-80V80a8 8 0 0 1 16 0v56a8 8 0 0 1-16 0Zm20 36a12 12 0 1 1-12-12a12 12 0 0 1 12 12Z"/></svg>',
+      },
+      success: {
+        bg: '#d1fae5',
+        border: '#10b981',
+        label: 'Success',
+        icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 256 256" style="vertical-align: middle; margin-right: 8px;"><path fill="currentColor" d="M173.66 98.34a8 8 0 0 1 0 11.32l-56 56a8 8 0 0 1-11.32 0l-24-24a8 8 0 0 1 11.32-11.32L112 148.69l50.34-50.35a8 8 0 0 1 11.32 0ZM232 128A104 104 0 1 1 128 24a104.11 104.11 0 0 1 104 104Zm-16 0a88 88 0 1 0-88 88a88.1 88.1 0 0 0 88-88Z"/></svg>',
+      },
+      note: {
+        bg: '#f3f4f6',
+        border: '#6b7280',
+        label: 'Note',
+        icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 256 256" style="vertical-align: middle; margin-right: 8px;"><path fill="currentColor" d="M208 32H48a16 16 0 0 0-16 16v160a16 16 0 0 0 16 16h108.69a15.86 15.86 0 0 0 11.31-4.69l49.32-49.32a15.86 15.86 0 0 0 4.68-11.31V48a16 16 0 0 0-16-16Zm0 16v104h-48a8 8 0 0 0-8 8v48H48V48Zm-12.69 120L168 195.31V168Z"/></svg>',
+      },
+      tip: {
+        bg: '#e0e7ff',
+        border: '#6366f1',
+        label: 'Tip',
+        icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 256 256" style="vertical-align: middle; margin-right: 8px;"><path fill="currentColor" d="M176 232a8 8 0 0 1-8 8H88a8 8 0 0 1 0-16h80a8 8 0 0 1 8 8Zm40-128a87.55 87.55 0 0 1-33.64 69.21A16.24 16.24 0 0 0 176 186v6a16 16 0 0 1-16 16H96a16 16 0 0 1-16-16v-6a16 16 0 0 0-6.23-12.66A87.59 87.59 0 0 1 40 104.5C39.74 56.83 78.26 17.14 125.88 16A88 88 0 0 1 216 104Zm-16 0a72 72 0 0 0-73.74-72c-39 .92-70.47 33.39-70.26 72.39a71.64 71.64 0 0 0 27.64 56.3A32 32 0 0 1 96 186v6h24v-44.69l-29.66-29.65a8 8 0 0 1 11.32-11.32L128 132.69l26.34-26.35a8 8 0 0 1 11.32 11.32L136 147.31V192h24v-6a32.12 32.12 0 0 1 12.47-25.35A71.65 71.65 0 0 0 200 104Z"/></svg>',
+      },
+    };
+
+    // Match :::type{title="..."}<br>content<br>:::</p>
+    processed = processed.replace(
+      /:::(info|warning|danger|success|note|tip)(?:\{title="(.+)"\})?<br\s*\/?>([\s\S]*?)<br\s*\/?>:::(?:<\/p>)?/gi,
+      (match, type, title, content) => {
+        const style = htmlCalloutStyles[type.toLowerCase()] || htmlCalloutStyles.info;
+        const cleanTitle = title?.replace(/\\"/g, '"') || style.label;
+        const cleanContent = content
+          .replace(/^<\/p>\s*/i, '')
+          .replace(/\s*<p>$/i, '')
+          .trim();
+        return `<div class="callout callout-${type}" style="margin: 16px 0; padding: 16px; background-color: ${style.bg}; border-left: 4px solid ${style.border}; border-radius: 4px;">
+<div style="font-weight: bold; margin-bottom: 8px; color: ${style.border};">${style.icon}${cleanTitle}</div>
+<div>${cleanContent}</div>
+</div>`;
+      }
+    );
+
     return processed;
   }
 
@@ -118,6 +318,103 @@ function markdownToHtml(markdown: string, imageResolver?: Map<string, string>): 
   // Syntax: <!-- pagebreak --> or :::pagebreak
   html = html.replace(/<!--\s*pagebreak\s*-->/gi, '<div class="page-break"></div>');
   html = html.replace(/^:::pagebreak\s*$/gm, '<div class="page-break"></div>');
+
+  // Handle callout/admonition blocks
+  // Syntax: :::type{title="Title"} ... ::: or :::type ... :::
+  // Types: info, warning, danger, success, note, tip
+  // Using Phosphor-style inline SVG icons for reliable PDF rendering
+  const calloutStyles: Record<string, { bg: string; border: string; label: string; icon: string }> =
+    {
+      info: {
+        bg: '#dbeafe',
+        border: '#3b82f6',
+        label: 'Info',
+        // Phosphor Info icon
+        icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 256 256" style="vertical-align: middle; margin-right: 8px;"><path fill="currentColor" d="M128 24a104 104 0 1 0 104 104A104.11 104.11 0 0 0 128 24Zm0 192a88 88 0 1 1 88-88a88.1 88.1 0 0 1-88 88Zm16-40a8 8 0 0 1-8 8a16 16 0 0 1-16-16v-40a8 8 0 0 1 0-16a16 16 0 0 1 16 16v40a8 8 0 0 1 8 8Zm-32-92a12 12 0 1 1 12 12a12 12 0 0 1-12-12Z"/></svg>',
+      },
+      warning: {
+        bg: '#fef3c7',
+        border: '#f59e0b',
+        label: 'Warning',
+        // Phosphor Warning icon
+        icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 256 256" style="vertical-align: middle; margin-right: 8px;"><path fill="currentColor" d="M236.8 188.09L149.35 36.22a24.76 24.76 0 0 0-42.7 0L19.2 188.09a23.51 23.51 0 0 0 0 23.72A24.35 24.35 0 0 0 40.55 224h174.9a24.35 24.35 0 0 0 21.33-12.19a23.51 23.51 0 0 0 .02-23.72Zm-13.87 15.71a8.5 8.5 0 0 1-7.48 4.2H40.55a8.5 8.5 0 0 1-7.48-4.2a7.59 7.59 0 0 1 0-7.72l87.45-151.87a8.75 8.75 0 0 1 15 0l87.45 151.87a7.59 7.59 0 0 1-.04 7.72ZM120 144v-40a8 8 0 0 1 16 0v40a8 8 0 0 1-16 0Zm20 36a12 12 0 1 1-12-12a12 12 0 0 1 12 12Z"/></svg>',
+      },
+      danger: {
+        bg: '#fee2e2',
+        border: '#ef4444',
+        label: 'Important',
+        // Phosphor WarningCircle icon
+        icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 256 256" style="vertical-align: middle; margin-right: 8px;"><path fill="currentColor" d="M128 24a104 104 0 1 0 104 104A104.11 104.11 0 0 0 128 24Zm0 192a88 88 0 1 1 88-88a88.1 88.1 0 0 1-88 88Zm-8-80V80a8 8 0 0 1 16 0v56a8 8 0 0 1-16 0Zm20 36a12 12 0 1 1-12-12a12 12 0 0 1 12 12Z"/></svg>',
+      },
+      success: {
+        bg: '#d1fae5',
+        border: '#10b981',
+        label: 'Success',
+        // Phosphor CheckCircle icon
+        icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 256 256" style="vertical-align: middle; margin-right: 8px;"><path fill="currentColor" d="M173.66 98.34a8 8 0 0 1 0 11.32l-56 56a8 8 0 0 1-11.32 0l-24-24a8 8 0 0 1 11.32-11.32L112 148.69l50.34-50.35a8 8 0 0 1 11.32 0ZM232 128A104 104 0 1 1 128 24a104.11 104.11 0 0 1 104 104Zm-16 0a88 88 0 1 0-88 88a88.1 88.1 0 0 0 88-88Z"/></svg>',
+      },
+      note: {
+        bg: '#f3f4f6',
+        border: '#6b7280',
+        label: 'Note',
+        // Phosphor Note icon
+        icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 256 256" style="vertical-align: middle; margin-right: 8px;"><path fill="currentColor" d="M208 32H48a16 16 0 0 0-16 16v160a16 16 0 0 0 16 16h108.69a15.86 15.86 0 0 0 11.31-4.69l49.32-49.32a15.86 15.86 0 0 0 4.68-11.31V48a16 16 0 0 0-16-16Zm0 16v104h-48a8 8 0 0 0-8 8v48H48V48Zm-12.69 120L168 195.31V168Z"/></svg>',
+      },
+      tip: {
+        bg: '#e0e7ff',
+        border: '#6366f1',
+        label: 'Tip',
+        // Phosphor Lightbulb icon
+        icon: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 256 256" style="vertical-align: middle; margin-right: 8px;"><path fill="currentColor" d="M176 232a8 8 0 0 1-8 8H88a8 8 0 0 1 0-16h80a8 8 0 0 1 8 8Zm40-128a87.55 87.55 0 0 1-33.64 69.21A16.24 16.24 0 0 0 176 186v6a16 16 0 0 1-16 16H96a16 16 0 0 1-16-16v-6a16 16 0 0 0-6.23-12.66A87.59 87.59 0 0 1 40 104.5C39.74 56.83 78.26 17.14 125.88 16A88 88 0 0 1 216 104Zm-16 0a72 72 0 0 0-73.74-72c-39 .92-70.47 33.39-70.26 72.39a71.64 71.64 0 0 0 27.64 56.3A32 32 0 0 1 96 186v6h24v-44.69l-29.66-29.65a8 8 0 0 1 11.32-11.32L128 132.69l26.34-26.35a8 8 0 0 1 11.32 11.32L136 147.31V192h24v-6a32.12 32.12 0 0 1 12.47-25.35A71.65 71.65 0 0 0 200 104Z"/></svg>',
+      },
+    };
+
+  // Match callout blocks - handles HTML-wrapped format from D1
+  // Actual format in D1: :::info{title=&quot;...&quot;}<br>content...</p><ul>...</ul><p>...<br>:::</p>
+  // Opening has &quot; for quotes, content spans multiple HTML elements, closing is <br>:::</p>
+
+  // First, decode HTML entities for easier matching
+  let processedHtml = html.replace(/&quot;/g, '"').replace(/&amp;/g, '&');
+
+  // Helper function to create callout HTML
+  const createCallout = (type: string, title: string | undefined, content: string) => {
+    const style = calloutStyles[type] || calloutStyles.info;
+    const displayTitle = title || style.label;
+    // Clean up content - remove leading/trailing p tags, keep internal HTML structure
+    const cleanContent = content
+      .replace(/^<\/p>\s*/i, '') // Remove closing p tag at start (from split)
+      .replace(/\s*<p>$/i, '') // Remove opening p tag at end (before :::)
+      .replace(/^<br\s*\/?>/i, '') // Remove leading br
+      .replace(/<br\s*\/?>$/i, '') // Remove trailing br
+      .trim();
+    return `<div class="callout callout-${type}" style="margin: 16px 0; padding: 16px; background-color: ${style.bg}; border-left: 4px solid ${style.border}; border-radius: 4px;">
+<div style="font-weight: bold; margin-bottom: 8px; color: ${style.border};">${style.icon}${displayTitle}</div>
+<div>${cleanContent}</div>
+</div>`;
+  };
+
+  // Match pattern: :::type{title="..."}<br> ... <br>:::
+  // The content between can include any HTML (p, ul, li, etc.)
+  // Title uses GREEDY .+ to handle embedded quotes like "What is "Zero Knowledge"?"
+  processedHtml = processedHtml.replace(
+    /:::(info|warning|danger|success|note|tip)(?:\{title="(.+)"\})?<br\s*\/?>([\s\S]*?)<br\s*\/?>:::(?:<\/p>)?/gi,
+    (match, type, title, content) => {
+      // Clean up escaped quotes in title
+      const cleanTitle = title?.replace(/\\"/g, '"');
+      return createCallout(type.toLowerCase(), cleanTitle, content);
+    }
+  );
+
+  // Also handle pure markdown format (for content not from D1)
+  processedHtml = processedHtml.replace(
+    /^:::(info|warning|danger|success|note|tip)(?:\{title="(.+)"\})?\s*\n([\s\S]*?)^:::\s*$/gm,
+    (match, type, title, content) => {
+      const cleanTitle = title?.replace(/\\"/g, '"');
+      return createCallout(type.toLowerCase(), cleanTitle, content);
+    }
+  );
+
+  html = processedHtml;
 
   // Handle images BEFORE escaping (images need their URLs intact)
   // Replace markdown images with HTML img tags
@@ -851,11 +1148,17 @@ export const actions: Actions = {
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+JP:wght@400;500;600;700&display=block" rel="stylesheet">`;
 
-      // Shared CSS styles for all PDFs
+      // Language-specific CSS styles for PDFs
       // A4 is 210mm x 297mm, with 12mm margins = 186mm content width
-      const pdfStyles = `
+      // Japanese uses 'IBM Plex Sans JP' first to ensure proper CJK character rendering
+      function getPdfStyles(lang: 'en' | 'ja'): string {
+        // Japanese uses JP variant (includes Latin glyphs), English uses standard variant
+        const fontFamily =
+          lang === 'ja' ? "'IBM Plex Sans JP', sans-serif" : "'IBM Plex Sans', sans-serif";
+
+        return `
     body {
-      font-family: 'IBM Plex Sans', 'IBM Plex Sans JP', sans-serif;
+      font-family: ${fontFamily};
       line-height: 1.5;
       color: #2D2F63;
       max-width: 100%;
@@ -902,7 +1205,8 @@ export const actions: Actions = {
     .diagram-container { margin: 1em 0; text-align: center; max-width: 100%; overflow: hidden; }
     .diagram-container svg { max-width: 100%; height: auto; display: block; margin: 0 auto; }
     @media print { body { padding: 0; } .logo { margin-bottom: 15px; } }
-      `.trim();
+        `.trim();
+      }
 
       // Helper: Build complete single-language HTML document
       function buildSingleLanguageHtml(lang: 'en' | 'ja'): string {
@@ -926,7 +1230,7 @@ export const actions: Actions = {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${title}</title>
   ${fontLinks}
-  <style>${pdfStyles}</style>
+  <style>${getPdfStyles(lang)}</style>
 </head>
 <body>
   <div class="logo">${esoliaLogoSvg}</div>
@@ -1114,7 +1418,7 @@ export const actions: Actions = {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${proposal.title}</title>
   ${fontLinks}
-  <style>${pdfStyles}</style>
+  <style>${getPdfStyles(primaryLang as 'en' | 'ja')}</style>
 </head>
 <body>
   <div class="logo">${esoliaLogoSvg}</div>
