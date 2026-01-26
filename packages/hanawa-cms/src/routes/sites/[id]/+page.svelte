@@ -77,7 +77,7 @@
         </div>
         <div>
           <p class="text-sm text-gray-500">Default Language</p>
-          <p class="font-medium">{data.site.default_language?.toUpperCase() ?? 'JA'}</p>
+          <p class="font-medium">{(data.site.default_language as string)?.toUpperCase() ?? 'JA'}</p>
         </div>
       </div>
     </div>
@@ -159,7 +159,7 @@
                 </span>
                 <span class="flex items-center text-xs text-gray-400">
                   <Clock size={14} class="mr-1" />
-                  {new Date(doc.updated_at).toLocaleDateString()}
+                  {new Date(doc.updated_at as string).toLocaleDateString()}
                 </span>
               </div>
             </div>

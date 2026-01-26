@@ -329,7 +329,7 @@
         const errorDiv = document.createElement('div');
         errorDiv.className = 'text-red-500 text-sm mt-2';
         errorDiv.textContent = `Diagram error: ${err instanceof Error ? err.message : 'Unknown error'}`;
-        preElement.after(errorDiv);
+        preElement.parentNode?.insertBefore(errorDiv, preElement.nextSibling);
       }
     }
   }

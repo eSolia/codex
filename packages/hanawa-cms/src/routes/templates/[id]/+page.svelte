@@ -245,7 +245,7 @@
       return async ({ result, update }) => {
         if (result.type === 'success') {
           // Show success message without resetting form state
-          saveMessage = result.data?.message || 'Template updated';
+          saveMessage = (result.data?.message as string) || 'Template updated';
           setTimeout(() => {
             saveMessage = null;
           }, 3000);
