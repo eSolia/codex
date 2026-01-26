@@ -1,0 +1,15 @@
+{
+  "theme": "neutral",
+  "themeVariables": {
+    "fontFamily": "-apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', 'Yu Gothic', sans-serif",
+    "fontSize": "12px"
+  },
+  "flowchart": {
+    "useMaxWidth": true,
+    "htmlLabels": true,
+    "curve": "basis",
+    "nodeSpacing": 30,
+    "rankSpacing": 40
+  },
+  "securityLevel": "strict"
+}

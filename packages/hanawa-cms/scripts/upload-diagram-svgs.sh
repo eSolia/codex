@@ -1,0 +1,12 @@
+npx wrangler r2 object put "codex/diagrams/password-vault-master-password-en.svg" --file="/Users/rcogley/dev/codex/packages/hanawa-cms/static/diagrams/password-vault-master-password-en.svg" --remote
+npx wrangler r2 object put "codex/diagrams/password-vault-master-password-ja.svg" --file="/Users/rcogley/dev/codex/packages/hanawa-cms/static/diagrams/password-vault-master-password-ja.svg" --remote
+npx wrangler r2 object put "codex/diagrams/password-vault-architecture-comparison-en.svg" --file="/Users/rcogley/dev/codex/packages/hanawa-cms/static/diagrams/password-vault-architecture-comparison-en.svg" --remote
+npx wrangler r2 object put "codex/diagrams/password-vault-architecture-comparison-ja.svg" --file="/Users/rcogley/dev/codex/packages/hanawa-cms/static/diagrams/password-vault-architecture-comparison-ja.svg" --remote
+npx wrangler r2 object put "codex/diagrams/password-vault-cloud-sync-en.svg" --file="/Users/rcogley/dev/codex/packages/hanawa-cms/static/diagrams/password-vault-cloud-sync-en.svg" --remote
+npx wrangler r2 object put "codex/diagrams/password-vault-cloud-sync-ja.svg" --file="/Users/rcogley/dev/codex/packages/hanawa-cms/static/diagrams/password-vault-cloud-sync-ja.svg" --remote
+npx wrangler r2 object put "codex/diagrams/password-vault-attack-vectors-en.svg" --file="/Users/rcogley/dev/codex/packages/hanawa-cms/static/diagrams/password-vault-attack-vectors-en.svg" --remote
+npx wrangler r2 object put "codex/diagrams/password-vault-attack-vectors-ja.svg" --file="/Users/rcogley/dev/codex/packages/hanawa-cms/static/diagrams/password-vault-attack-vectors-ja.svg" --remote
+npx wrangler r2 object put "codex/diagrams/password-vault-decision-framework-en.svg" --file="/Users/rcogley/dev/codex/packages/hanawa-cms/static/diagrams/password-vault-decision-framework-en.svg" --remote
+npx wrangler r2 object put "codex/diagrams/password-vault-decision-framework-ja.svg" --file="/Users/rcogley/dev/codex/packages/hanawa-cms/static/diagrams/password-vault-decision-framework-ja.svg" --remote
+npx wrangler r2 object put "codex/diagrams/password-vault-convenience-layer-en.svg" --file="/Users/rcogley/dev/codex/packages/hanawa-cms/static/diagrams/password-vault-convenience-layer-en.svg" --remote
+npx wrangler r2 object put "codex/diagrams/password-vault-convenience-layer-ja.svg" --file="/Users/rcogley/dev/codex/packages/hanawa-cms/static/diagrams/password-vault-convenience-layer-ja.svg" --remote
