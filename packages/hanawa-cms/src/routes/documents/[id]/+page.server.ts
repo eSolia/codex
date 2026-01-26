@@ -1142,24 +1142,17 @@ export const actions: Actions = {
         </g>
       </svg>`;
 
-      // Google Fonts - preconnect hints only, @import used in CSS for reliability
+      // Google Fonts link tags (loaded in <head> before CSS for better font loading)
       const fontLinks = `
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>`;
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+JP:wght@400;500;600;700&display=block" rel="stylesheet">`;
 
-      // Language-specific CSS styles for PDFs
+      // Shared CSS styles for all PDFs
       // A4 is 210mm x 297mm, with 12mm margins = 186mm content width
-      // Japanese uses 'IBM Plex Sans JP' first to ensure proper CJK character rendering
-      function getPdfStyles(lang: 'en' | 'ja'): string {
-        // Japanese uses JP variant (includes Latin glyphs), English uses standard variant
-        const fontFamily =
-          lang === 'ja' ? "'IBM Plex Sans JP', sans-serif" : "'IBM Plex Sans', sans-serif";
-
-        // Use @import for fonts - more reliable in headless browser environments
-        return `
-    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+JP:wght@400;500;600;700&display=block');
+      const pdfStyles = `
     body {
-      font-family: ${fontFamily};
+      font-family: 'IBM Plex Sans', 'IBM Plex Sans JP', sans-serif;
       line-height: 1.5;
       color: #2D2F63;
       max-width: 100%;
@@ -1206,8 +1199,7 @@ export const actions: Actions = {
     .diagram-container { margin: 1em 0; text-align: center; max-width: 100%; overflow: hidden; }
     .diagram-container svg { max-width: 100%; height: auto; display: block; margin: 0 auto; }
     @media print { body { padding: 0; } .logo { margin-bottom: 15px; } }
-        `.trim();
-      }
+      `.trim();
 
       // Helper: Build complete single-language HTML document
       function buildSingleLanguageHtml(lang: 'en' | 'ja'): string {
@@ -1231,7 +1223,7 @@ export const actions: Actions = {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${title}</title>
   ${fontLinks}
-  <style>${getPdfStyles(lang)}</style>
+  <style>${pdfStyles}</style>
 </head>
 <body>
   <div class="logo">${esoliaLogoSvg}</div>
@@ -1419,7 +1411,7 @@ export const actions: Actions = {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${proposal.title}</title>
   ${fontLinks}
-  <style>${getPdfStyles(primaryLang as 'en' | 'ja')}</style>
+  <style>${pdfStyles}</style>
 </head>
 <body>
   <div class="logo">${esoliaLogoSvg}</div>

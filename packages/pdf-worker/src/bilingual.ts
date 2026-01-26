@@ -183,8 +183,9 @@ function buildTocHtml(toc: TocData, firstLanguage: "en" | "ja"): string {
   <title>Table of Contents</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+JP:wght@400;500;600;700&display=block" as="style">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+JP:wght@400;500;600;700&display=block" rel="stylesheet">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+JP:wght@400;500;600;700&display=block');
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: 'IBM Plex Sans', 'IBM Plex Sans JP', sans-serif;
@@ -207,7 +208,6 @@ function buildTocHtml(toc: TocData, firstLanguage: "en" | "ja"): string {
       font-weight: 500;
       color: #4a4c7a;
       margin-bottom: 20px;
-      font-family: 'IBM Plex Sans JP', sans-serif;
     }
     .divider {
       height: 3px;
@@ -224,7 +224,6 @@ function buildTocHtml(toc: TocData, firstLanguage: "en" | "ja"): string {
       font-size: 14px;
       color: #4a4c7a;
       margin-bottom: 24px;
-      font-family: 'IBM Plex Sans JP', sans-serif;
     }
     .toc-entry {
       padding: 16px 20px;
@@ -247,7 +246,6 @@ function buildTocHtml(toc: TocData, firstLanguage: "en" | "ja"): string {
       font-size: 14px;
       color: #666;
       margin-left: 12px;
-      font-family: 'IBM Plex Sans JP', sans-serif;
     }
     .toc-details {
       font-size: 13px;
