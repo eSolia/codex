@@ -76,20 +76,39 @@ export const GET: RequestHandler = async ({ params, platform, url }) => {
     ? new Date(proposal.updated_at).toISOString().slice(0, 10).replace(/-/g, '')
     : new Date().toISOString().slice(0, 10).replace(/-/g, '');
 
+  // Build filename parts, omitting client_code if empty
+  const clientPart = proposal.client_code ? `${proposal.client_code}_` : '';
+
   // Generate filename: eSolia_ClientCode_Title_YYYYMMDD_lang.pdf
-  const title = lang === 'ja' && proposal.title_ja ? proposal.title_ja : proposal.title;
+  // Use appropriate title based on language for the full filename
+  const displayTitle = lang === 'ja' && proposal.title_ja ? proposal.title_ja : proposal.title;
   // Sanitize title: keep alphanumeric, hyphens, and CJK characters
-  const safeTitle = title
+  const safeTitle = displayTitle
     .replace(/[^a-zA-Z0-9-\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/g, '_')
+    .replace(/_+/g, '_')
     .substring(0, 50);
-  const filename = `eSolia_${proposal.client_code}_${safeTitle}_${dateStr}_${langSuffix}.pdf`;
+  const filename = `eSolia_${clientPart}${safeTitle}_${dateStr}_${langSuffix}.pdf`;
+
+  // For ASCII fallback, prefer English title, fallback to document ID
+  const englishTitle = proposal.title
+    .replace(/[^a-zA-Z0-9-]/g, '_')
+    .replace(/_+/g, '_')
+    .substring(0, 40);
+  // Use English title if it has meaningful ASCII content, otherwise use doc ID
+  const asciiTitle =
+    englishTitle.replace(/_/g, '').length > 3 ? englishTitle : params.id.substring(0, 20);
+  const asciiFilename = `eSolia_${clientPart}${asciiTitle}_${dateStr}_${langSuffix}.pdf`;
+
+  // RFC 5987 encoding for non-ASCII filenames
+  const encodedFilename = encodeURIComponent(filename).replace(/'/g, '%27');
 
   // Return PDF with appropriate headers
   // InfoSec: no-store ensures fresh PDF after regeneration
+  // Use both filename (ASCII fallback) and filename* (UTF-8) for compatibility
   return new Response(object.body, {
     headers: {
       'Content-Type': 'application/pdf',
-      'Content-Disposition': `inline; filename="${filename}"`,
+      'Content-Disposition': `inline; filename="${asciiFilename}"; filename*=UTF-8''${encodedFilename}`,
       'Cache-Control': 'no-store, must-revalidate',
     },
   });
