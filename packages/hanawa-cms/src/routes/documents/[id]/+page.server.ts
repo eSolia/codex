@@ -680,7 +680,8 @@ export const actions: Actions = {
     const db = platform.env.DB;
     const formData = await request.formData();
 
-    const clientCode = formData.get('client_code')?.toString().trim();
+    // Client code is optional - empty string for general (non-personalized) documents
+    const clientCode = formData.get('client_code')?.toString().trim() || '';
     const clientName = formData.get('client_name')?.toString().trim() || null;
     const clientNameJa = formData.get('client_name_ja')?.toString().trim() || null;
     const contactName = formData.get('contact_name')?.toString().trim() || null;
@@ -694,8 +695,9 @@ export const actions: Actions = {
     const coverLetterEn = formData.get('cover_letter_en')?.toString() || null;
     const coverLetterJa = formData.get('cover_letter_ja')?.toString() || null;
 
-    if (!clientCode || !title) {
-      return fail(400, { error: 'Client code and title are required' });
+    // Only title is required - client_code is optional for general documents
+    if (!title) {
+      return fail(400, { error: 'Document title is required' });
     }
 
     // InfoSec: Validate language_mode enum (OWASP A03)
@@ -734,7 +736,7 @@ export const actions: Actions = {
         )
         .run();
 
-      return { success: true, message: 'Proposal updated' };
+      return { success: true, message: 'Document saved' };
     } catch (err) {
       console.error('Failed to update proposal:', err);
       return fail(500, { error: 'Failed to update proposal' });
@@ -997,8 +999,14 @@ export const actions: Actions = {
           try {
             const object = await platform.env.R2.get(r2Key);
             if (object) {
-              const svgContent = await object.text();
-              console.log(`PDF: Loaded diagram ${diagramId} from R2`);
+              let svgContent = await object.text();
+              // Sanitize SVG: remove only font-family declarations (preserve other styles)
+              // Remove font-family from CSS rules inside <style> blocks
+              svgContent = svgContent.replace(/font-family\s*:\s*[^;}\n]+[;]?/gi, '');
+              // Remove font-family attributes from SVG elements
+              svgContent = svgContent.replace(/\s*font-family="[^"]*"/gi, '');
+              svgContent = svgContent.replace(/\s*font-family='[^']*'/gi, '');
+              console.log(`PDF: Loaded and sanitized diagram ${diagramId} from R2`);
               return { url, svgContent };
             }
           } catch (err) {
@@ -1142,18 +1150,45 @@ export const actions: Actions = {
         </g>
       </svg>`;
 
-      // Google Fonts link tags - matches bilingual.ts TOC which renders correctly
+      // Self-hosted fonts from R2 - MUST match bilingual.ts TOC exactly (which works!)
+      const fontBaseUrl = 'https://pub-f1629ddc1be440d2ab0eb2fa9b5c84ef.r2.dev/fonts';
       const fontLinks = `
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preload" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+JP:wght@400;500;600;700&display=block" as="style">
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+JP:wght@400;500;600;700&display=block" rel="stylesheet">`;
+  <style>
+    @font-face {
+      font-family: 'IBM Plex Sans JP';
+      font-style: normal;
+      font-weight: 400;
+      font-display: block;
+      src: url('${fontBaseUrl}/IBMPlexSansJP-Regular.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'IBM Plex Sans JP';
+      font-style: normal;
+      font-weight: 500;
+      font-display: block;
+      src: url('${fontBaseUrl}/IBMPlexSansJP-Medium.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'IBM Plex Sans JP';
+      font-style: normal;
+      font-weight: 600;
+      font-display: block;
+      src: url('${fontBaseUrl}/IBMPlexSansJP-SemiBold.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'IBM Plex Sans JP';
+      font-style: normal;
+      font-weight: 700;
+      font-display: block;
+      src: url('${fontBaseUrl}/IBMPlexSansJP-Bold.woff2') format('woff2');
+    }
+  </style>`;
 
       // Shared CSS styles for all PDFs
       // A4 is 210mm x 297mm, with 12mm margins = 186mm content width
       const pdfStyles = `
     body {
-      font-family: 'IBM Plex Sans', 'IBM Plex Sans JP', sans-serif;
+      font-family: 'IBM Plex Sans JP', sans-serif;
       line-height: 1.5;
       color: #2D2F63;
       max-width: 100%;
@@ -1180,8 +1215,8 @@ export const actions: Actions = {
     strong { color: #2D2F63; }
     hr { border: none; border-top: 1px solid #ddd; margin: 1em 0; }
     a { color: #2D2F63; }
-    /* Code styling */
-    code { font-family: 'IBM Plex Mono', monospace; font-size: 0.9em; background-color: #f5f5f5; padding: 2px 5px; border-radius: 3px; }
+    /* Code styling - override the wildcard rule */
+    code, pre, pre code { font-family: 'IBM Plex Mono', monospace !important; font-size: 0.9em; background-color: #f5f5f5; padding: 2px 5px; border-radius: 3px; }
     pre { background-color: #f5f5f5; border: 1px solid #ddd; border-radius: 4px; padding: 12px; overflow-x: auto; margin: 0.8em 0; page-break-inside: avoid; }
     pre code { background-color: transparent; padding: 0; border-radius: 0; font-size: 9pt; line-height: 1.4; display: block; white-space: pre-wrap; word-wrap: break-word; }
     /* Page break support */
@@ -1224,9 +1259,24 @@ export const actions: Actions = {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${title}</title>
   ${fontLinks}
-  <style>${pdfStyles}</style>
+  <style>
+    /* Hide body until fonts are loaded */
+    body { opacity: 0; }
+    body.fonts-loaded { opacity: 1; }
+    ${pdfStyles}
+  </style>
 </head>
 <body>
+  <!-- Hidden element to force font loading with Japanese characters -->
+  <div style="position:absolute;left:-9999px;font-family:'IBM Plex Sans JP'">
+    日本語フォント読み込みテスト用テキスト。これはPDF生成時にフォントを正しく読み込むためのダミーテキストです。
+  </div>
+  <script>
+    // Wait for fonts then show content
+    document.fonts.ready.then(function() {
+      document.body.classList.add('fonts-loaded');
+    });
+  </script>
   <div class="logo">${esoliaLogoSvg}</div>
   <div class="header">
     <h1>${title}</h1>
@@ -1331,7 +1381,9 @@ export const actions: Actions = {
         let r2KeyJa: string | null = null;
 
         if (platform.env.R2) {
-          const basePath = `proposals/${proposal.client_code}/${proposal.id}`;
+          // Use "general" folder for non-personalized documents (empty client_code)
+          const clientFolder = proposal.client_code || 'general';
+          const basePath = `proposals/${clientFolder}/${proposal.id}`;
           r2KeyCombined = `${basePath}.pdf`;
           r2KeyEn = `${basePath}_en.pdf`;
           r2KeyJa = `${basePath}_ja.pdf`;
@@ -1443,7 +1495,10 @@ export const actions: Actions = {
           options: {
             title: proposal.title,
             author: 'eSolia Inc.',
-            subject: `Proposal for ${proposal.client_name || proposal.client_code}`,
+            subject:
+              proposal.client_name || proposal.client_code
+                ? `Proposal for ${proposal.client_name || proposal.client_code}`
+                : proposal.title,
             provenance,
             // PDF rendering options
             displayHeaderFooter: true,
@@ -1466,7 +1521,9 @@ export const actions: Actions = {
       // Store in R2 if available
       let r2Key: string | null = null;
       if (platform.env.R2) {
-        r2Key = `proposals/${proposal.client_code}/${proposal.id}.pdf`;
+        // Use "general" folder for non-personalized documents (empty client_code)
+        const clientFolder = proposal.client_code || 'general';
+        r2Key = `proposals/${clientFolder}/${proposal.id}.pdf`;
         await platform.env.R2.put(r2Key, pdfData, {
           httpMetadata: {
             contentType: 'application/pdf',

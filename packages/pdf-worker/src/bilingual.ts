@@ -175,20 +175,47 @@ function buildTocHtml(toc: TocData, firstLanguage: "en" | "ja"): string {
 
   const tocEntries = firstLanguage === "en" ? [enEntry, jaEntry] : [jaEntry, enEntry];
 
+  // Self-hosted fonts from R2 for reliable PDF rendering
+  const fontBaseUrl = 'https://pub-f1629ddc1be440d2ab0eb2fa9b5c84ef.r2.dev/fonts';
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Table of Contents</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preload" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+JP:wght@400;500;600;700&display=block" as="style">
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+JP:wght@400;500;600;700&display=block" rel="stylesheet">
   <style>
+    @font-face {
+      font-family: 'IBM Plex Sans JP';
+      font-style: normal;
+      font-weight: 400;
+      font-display: block;
+      src: url('${fontBaseUrl}/IBMPlexSansJP-Regular.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'IBM Plex Sans JP';
+      font-style: normal;
+      font-weight: 500;
+      font-display: block;
+      src: url('${fontBaseUrl}/IBMPlexSansJP-Medium.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'IBM Plex Sans JP';
+      font-style: normal;
+      font-weight: 600;
+      font-display: block;
+      src: url('${fontBaseUrl}/IBMPlexSansJP-SemiBold.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'IBM Plex Sans JP';
+      font-style: normal;
+      font-weight: 700;
+      font-display: block;
+      src: url('${fontBaseUrl}/IBMPlexSansJP-Bold.woff2') format('woff2');
+    }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: 'IBM Plex Sans', 'IBM Plex Sans JP', sans-serif;
+      font-family: 'IBM Plex Sans JP', sans-serif;
       line-height: 1.6;
       color: #2D2F63;
       padding: 60px;

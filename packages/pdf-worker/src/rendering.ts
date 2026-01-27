@@ -49,7 +49,6 @@ export async function generatePdf(
         html,
         viewport,
         // Wait for all network requests to complete before rendering
-        // networkidle0 ensures fonts and all resources are fully loaded
         gotoOptions: {
           waitUntil: "networkidle0",
         },
