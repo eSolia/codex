@@ -1148,7 +1148,23 @@ export const actions: Actions = {
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+JP:wght@400;500;600;700&display=block" as="style">
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+JP:wght@400;500;600;700&display=block" rel="stylesheet">`;
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+JP:wght@400;500;600;700&display=block" rel="stylesheet">
+  <script>
+    // Force load Japanese font by requesting specific glyphs
+    // This ensures the browser actually fetches the Japanese subset
+    document.fonts.load('400 16px "IBM Plex Sans JP"', 'あいうえお漢字');
+    document.fonts.load('500 16px "IBM Plex Sans JP"', 'あいうえお漢字');
+    document.fonts.load('600 16px "IBM Plex Sans JP"', 'あいうえお漢字');
+    document.fonts.load('700 16px "IBM Plex Sans JP"', 'あいうえお漢字');
+    // Wait for all fonts to be ready before showing content
+    document.fonts.ready.then(function() {
+      document.documentElement.classList.add('fonts-loaded');
+    });
+  </script>
+  <style>
+    html:not(.fonts-loaded) body { visibility: hidden; }
+    html.fonts-loaded body { visibility: visible; }
+  </style>`;
 
       // Shared CSS styles for all PDFs
       // A4 is 210mm x 297mm, with 12mm margins = 186mm content width
