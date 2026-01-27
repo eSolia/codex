@@ -57,6 +57,11 @@
   let coverLetterJa = $state(data.proposal.cover_letter_ja || '');
   /* eslint-enable svelte/valid-compile */
 
+  // Client document toggle - true if this is a client-specific document
+  /* eslint-disable svelte/valid-compile -- Form fields intentionally capture initial values */
+  let isClientDocument = $state(Boolean(data.proposal.client_code));
+  /* eslint-enable svelte/valid-compile */
+
   // Format date to JST - use Intl.DateTimeFormat for consistent server/client formatting
   // SQLite datetime('now') stores UTC but without timezone indicator, so we append 'Z'
   function formatJstDate(dateStr: string | null): string {
@@ -276,9 +281,13 @@
           </span>
         </div>
         <p class="mt-1 text-gray-600">
-          {proposal.client_name || proposal.client_code}
-          {#if proposal.client_name_ja}
-            <span class="text-gray-400">({proposal.client_name_ja})</span>
+          {#if proposal.client_name || proposal.client_code}
+            {proposal.client_name || proposal.client_code}
+            {#if proposal.client_name_ja}
+              <span class="text-gray-400">({proposal.client_name_ja})</span>
+            {/if}
+          {:else}
+            <span class="text-gray-400 italic">General Document</span>
           {/if}
         </p>
       </div>
@@ -367,23 +376,39 @@
           class="bg-white rounded-lg shadow p-6 space-y-4"
         >
           <input type="hidden" name="fragments" value={fragmentsJson} />
+          <!-- Hidden field to pass empty client_code when unchecked -->
+          {#if !isClientDocument}
+            <input type="hidden" name="client_code" value="" />
+          {/if}
 
-          <h2 class="text-lg font-semibold text-gray-900">Proposal Details</h2>
+          <h2 class="text-lg font-semibold text-gray-900">Document Details</h2>
+
+          <!-- Document Type Toggle -->
+          <div class="flex items-center gap-6 p-3 bg-gray-50 rounded-lg">
+            <span class="text-sm font-medium text-gray-700">Document Type:</span>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                name="doc_type"
+                checked={!isClientDocument}
+                onchange={() => (isClientDocument = false)}
+                class="text-esolia-navy focus:ring-esolia-navy"
+              />
+              <span class="text-sm text-gray-700">General</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                name="doc_type"
+                checked={isClientDocument}
+                onchange={() => (isClientDocument = true)}
+                class="text-esolia-navy focus:ring-esolia-navy"
+              />
+              <span class="text-sm text-gray-700">Client-specific</span>
+            </label>
+          </div>
 
           <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label for="client_code" class="block text-sm font-medium text-gray-700">
-                Client Code
-              </label>
-              <input
-                type="text"
-                id="client_code"
-                name="client_code"
-                value={proposal.client_code}
-                required
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-esolia-navy focus:ring-esolia-navy"
-              />
-            </div>
             <div>
               <label for="language_mode" class="block text-sm font-medium text-gray-700"
                 >Language Mode</label
@@ -402,68 +427,93 @@
             </div>
           </div>
 
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label for="client_name" class="block text-sm font-medium text-gray-700">
-                Client Name (EN)
-              </label>
-              <input
-                type="text"
-                id="client_name"
-                name="client_name"
-                value={proposal.client_name || ''}
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-esolia-navy focus:ring-esolia-navy"
-              />
-            </div>
-            <div>
-              <label for="client_name_ja" class="block text-sm font-medium text-gray-700">
-                Client Name (JA)
-              </label>
-              <input
-                type="text"
-                id="client_name_ja"
-                name="client_name_ja"
-                value={proposal.client_name_ja || ''}
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-esolia-navy focus:ring-esolia-navy"
-              />
-            </div>
-          </div>
+          <!-- Client Fields (shown only for client-specific documents) -->
+          {#if isClientDocument}
+            <div class="border-l-4 border-esolia-orange pl-4 space-y-4">
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label for="client_code" class="block text-sm font-medium text-gray-700">
+                    Client Code
+                  </label>
+                  <input
+                    type="text"
+                    id="client_code"
+                    name="client_code"
+                    value={proposal.client_code}
+                    placeholder="e.g., ACME"
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-esolia-navy focus:ring-esolia-navy"
+                  />
+                </div>
+              </div>
 
-          <!-- Contact Name fields (conditional on language mode) -->
-          <div class="grid grid-cols-2 gap-4">
-            {#if showEnglish}
-              <div>
-                <label for="contact_name" class="block text-sm font-medium text-gray-700">
-                  Contact Name (EN)
-                </label>
-                <p class="text-xs text-gray-500 mb-1">Recipient's name for "Prepared for:"</p>
-                <input
-                  type="text"
-                  id="contact_name"
-                  name="contact_name"
-                  value={proposal.contact_name || ''}
-                  placeholder="Taro Tanaka"
-                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-esolia-navy focus:ring-esolia-navy"
-                />
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label for="client_name" class="block text-sm font-medium text-gray-700">
+                    Client Name (EN)
+                  </label>
+                  <input
+                    type="text"
+                    id="client_name"
+                    name="client_name"
+                    value={proposal.client_name || ''}
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-esolia-navy focus:ring-esolia-navy"
+                  />
+                </div>
+                <div>
+                  <label for="client_name_ja" class="block text-sm font-medium text-gray-700">
+                    Client Name (JA)
+                  </label>
+                  <input
+                    type="text"
+                    id="client_name_ja"
+                    name="client_name_ja"
+                    value={proposal.client_name_ja || ''}
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-esolia-navy focus:ring-esolia-navy"
+                  />
+                </div>
               </div>
-            {/if}
-            {#if showJapanese}
-              <div>
-                <label for="contact_name_ja" class="block text-sm font-medium text-gray-700">
-                  Contact Name (JA)
-                </label>
-                <p class="text-xs text-gray-500 mb-1">「宛先」のお名前</p>
-                <input
-                  type="text"
-                  id="contact_name_ja"
-                  name="contact_name_ja"
-                  value={proposal.contact_name_ja || ''}
-                  placeholder="田中太郎 様"
-                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-esolia-navy focus:ring-esolia-navy"
-                />
+            </div>
+          {/if}
+
+          <!-- Contact Name fields (only for client-specific documents, conditional on language mode) -->
+          {#if isClientDocument}
+            <div class="border-l-4 border-esolia-orange pl-4">
+              <div class="grid grid-cols-2 gap-4">
+                {#if showEnglish}
+                  <div>
+                    <label for="contact_name" class="block text-sm font-medium text-gray-700">
+                      Contact Name (EN)
+                    </label>
+                    <p class="text-xs text-gray-500 mb-1">Recipient's name for "Prepared for:"</p>
+                    <input
+                      type="text"
+                      id="contact_name"
+                      name="contact_name"
+                      value={proposal.contact_name || ''}
+                      placeholder="Taro Tanaka"
+                      class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-esolia-navy focus:ring-esolia-navy"
+                    />
+                  </div>
+                {/if}
+                {#if showJapanese}
+                  <div>
+                    <label for="contact_name_ja" class="block text-sm font-medium text-gray-700">
+                      Contact Name (JA)
+                    </label>
+                    <p class="text-xs text-gray-500 mb-1">「宛先」のお名前</p>
+                    <input
+                      type="text"
+                      id="contact_name_ja"
+                      name="contact_name_ja"
+                      value={proposal.contact_name_ja || ''}
+                      placeholder="田中太郎 様"
+                      class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-esolia-navy focus:ring-esolia-navy"
+                    />
+                  </div>
+                {/if}
               </div>
-            {/if}
-          </div>
+            </div>
+          {/if}
 
           <div>
             <label for="title" class="block text-sm font-medium text-gray-700">Title</label>
@@ -609,7 +659,13 @@
           <dl class="grid grid-cols-2 gap-4 text-sm">
             <div>
               <dt class="text-gray-500">Client Code</dt>
-              <dd class="font-medium">{proposal.client_code}</dd>
+              <dd class="font-medium">
+                {#if proposal.client_code}
+                  {proposal.client_code}
+                {:else}
+                  <span class="text-gray-400 italic">General</span>
+                {/if}
+              </dd>
             </div>
             <div>
               <dt class="text-gray-500">Language Mode</dt>

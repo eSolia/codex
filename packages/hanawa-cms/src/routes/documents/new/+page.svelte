@@ -83,6 +83,7 @@
 
   let language = $state('en');
   let draggedIndex = $state<number | null>(null);
+  let isClientDocument = $state(false); // Default to general document for new documents
 
   const fragmentsJson = $derived(JSON.stringify(fragments));
 
@@ -321,50 +322,81 @@
           Document Details
         </h2>
 
-        <!-- Client Code -->
-        <div>
-          <label for="client_code" class="block text-sm font-medium text-gray-700">
-            Client Code <span class="text-red-500">*</span>
+        <!-- Hidden field to pass empty client_code when unchecked -->
+        {#if !isClientDocument}
+          <input type="hidden" name="client_code" value="" />
+        {/if}
+
+        <!-- Document Type Toggle -->
+        <div class="flex items-center gap-6 p-3 bg-gray-50 rounded-lg">
+          <span class="text-sm font-medium text-gray-700">Document Type:</span>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input
+              type="radio"
+              name="doc_type"
+              checked={!isClientDocument}
+              onchange={() => (isClientDocument = false)}
+              class="text-esolia-navy focus:ring-esolia-navy"
+            />
+            <span class="text-sm text-gray-700">General</span>
           </label>
-          <input
-            type="text"
-            id="client_code"
-            name="client_code"
-            required
-            placeholder="e.g., ACME"
-            value={form?.clientCode ?? ''}
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-esolia-navy focus:ring-esolia-navy"
-          />
-          <p class="mt-1 text-xs text-gray-500">Short identifier for the client</p>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input
+              type="radio"
+              name="doc_type"
+              checked={isClientDocument}
+              onchange={() => (isClientDocument = true)}
+              class="text-esolia-navy focus:ring-esolia-navy"
+            />
+            <span class="text-sm text-gray-700">Client-specific</span>
+          </label>
         </div>
 
-        <!-- Client Names -->
-        <div class="grid grid-cols-2 gap-4">
-          <div>
-            <label for="client_name" class="block text-sm font-medium text-gray-700">
-              Client Name (EN)
-            </label>
-            <input
-              type="text"
-              id="client_name"
-              name="client_name"
-              placeholder="Acme Corporation"
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-esolia-navy focus:ring-esolia-navy"
-            />
+        <!-- Client Fields (shown only for client-specific documents) -->
+        {#if isClientDocument}
+          <div class="border-l-4 border-esolia-orange pl-4 space-y-4">
+            <div>
+              <label for="client_code" class="block text-sm font-medium text-gray-700">
+                Client Code
+              </label>
+              <input
+                type="text"
+                id="client_code"
+                name="client_code"
+                placeholder="e.g., ACME"
+                value={form?.clientCode ?? ''}
+                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-esolia-navy focus:ring-esolia-navy"
+              />
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label for="client_name" class="block text-sm font-medium text-gray-700">
+                  Client Name (EN)
+                </label>
+                <input
+                  type="text"
+                  id="client_name"
+                  name="client_name"
+                  placeholder="Acme Corporation"
+                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-esolia-navy focus:ring-esolia-navy"
+                />
+              </div>
+              <div>
+                <label for="client_name_ja" class="block text-sm font-medium text-gray-700">
+                  Client Name (JA)
+                </label>
+                <input
+                  type="text"
+                  id="client_name_ja"
+                  name="client_name_ja"
+                  placeholder="アクメ株式会社"
+                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-esolia-navy focus:ring-esolia-navy"
+                />
+              </div>
+            </div>
           </div>
-          <div>
-            <label for="client_name_ja" class="block text-sm font-medium text-gray-700">
-              Client Name (JA)
-            </label>
-            <input
-              type="text"
-              id="client_name_ja"
-              name="client_name_ja"
-              placeholder="アクメ株式会社"
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-esolia-navy focus:ring-esolia-navy"
-            />
-          </div>
-        </div>
+        {/if}
 
         <!-- Document Titles -->
         <div>

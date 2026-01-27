@@ -120,7 +120,8 @@ export const actions: Actions = {
 
     // InfoSec: Extract and validate form fields (OWASP A03)
     const templateId = formData.get('template_id')?.toString() || null;
-    const clientCode = formData.get('client_code')?.toString().trim();
+    // Client code is optional - empty string for general (non-personalized) documents
+    const clientCode = formData.get('client_code')?.toString().trim() || '';
     const clientName = formData.get('client_name')?.toString().trim() || null;
     const clientNameJa = formData.get('client_name_ja')?.toString().trim() || null;
     const title = formData.get('title')?.toString().trim();
@@ -129,11 +130,7 @@ export const actions: Actions = {
     const language = formData.get('language')?.toString() || 'en';
     const fragmentsJson = formData.get('fragments')?.toString() || '[]';
 
-    // Validation
-    if (!clientCode) {
-      return fail(400, { error: 'Client code is required', clientCode, title });
-    }
-
+    // Validation - only title is required, client_code is optional
     if (!title) {
       return fail(400, { error: 'Document title is required', clientCode, title });
     }

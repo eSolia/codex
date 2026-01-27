@@ -133,9 +133,13 @@
                 {/if}
               </td>
               <td class="px-6 py-4">
-                <div class="text-sm font-medium text-gray-900">{doc.client_code}</div>
-                {#if doc.client_name}
-                  <div class="text-sm text-gray-500">{doc.client_name}</div>
+                {#if doc.client_code}
+                  <div class="text-sm font-medium text-gray-900">{doc.client_code}</div>
+                  {#if doc.client_name}
+                    <div class="text-sm text-gray-500">{doc.client_name}</div>
+                  {/if}
+                {:else}
+                  <div class="text-sm text-gray-400 italic">General</div>
                 {/if}
               </td>
               <td class="px-6 py-4">
