@@ -172,9 +172,9 @@ function resolveFragmentReferences(
   const fragmentRefRegex = /<div[^>]*data-fragment-id=["']([^"']+)["'][^>]*>[\s\S]*?<\/div>/gi;
 
   let result = html.replace(fragmentRefRegex, (match, fragmentId) => {
-    // Extract language from the match
+    // Extract language from the reference attribute
     const langMatch = match.match(/data-fragment-lang=["']([^"']+)["']/i);
-    const lang = (langMatch?.[1] || defaultLang) as 'en' | 'ja';
+    const refLang = (langMatch?.[1] || defaultLang) as 'en' | 'ja';
 
     const fragment = fragmentContentMap.get(fragmentId);
     if (!fragment) {
@@ -183,6 +183,11 @@ function resolveFragmentReferences(
         <strong>Fragment not found:</strong> ${fragmentId}
       </div>`;
     }
+
+    // For diagrams, use the section language (defaultLang) not the reference attribute
+    // This ensures JA section gets JA diagrams even if reference was inserted as EN
+    // For text fragments, use the reference attribute (user may intentionally set language)
+    const lang = fragment.category === 'diagrams' ? defaultLang : refLang;
 
     // Check if this is a diagram fragment (SVG stored in R2)
     if (fragment.category === 'diagrams') {
