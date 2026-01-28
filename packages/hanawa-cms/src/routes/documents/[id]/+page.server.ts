@@ -186,46 +186,38 @@ function resolveFragmentReferences(
 
     // Check if this is a diagram fragment (SVG stored in R2)
     if (fragment.category === 'diagrams') {
-      // Extract actual SVG path from fragment content (more robust than guessing)
+      // Primary: try fragment ID with language suffix (standard bilingual naming: {id}-{lang}.svg)
+      const primaryUrl = `/api/diagrams/${fragmentId}-${lang}`;
+      const primarySvg = imageResolver.get(primaryUrl);
+      if (primarySvg) {
+        console.log(`[PDF] Resolved diagram ${fragmentId} via ID-${lang}`);
+        return `<div class="diagram-container" style="margin: 20px 0; text-align: center;">${primarySvg}</div>`;
+      }
+
+      // Fallback 1: try fragment ID without language suffix
+      const noLangUrl = `/api/diagrams/${fragmentId}`;
+      const noLangSvg = imageResolver.get(noLangUrl);
+      if (noLangSvg) {
+        console.log(`[PDF] Resolved diagram ${fragmentId} via ID (no lang suffix)`);
+        return `<div class="diagram-container" style="margin: 20px 0; text-align: center;">${noLangSvg}</div>`;
+      }
+
+      // Fallback 2: try path extracted from content (for inline mermaid exports)
       const svgPaths = extractSvgPathsFromFragment(fragment, lang);
-
       if (svgPaths.length > 0) {
-        // Use the first (primary) SVG path found in content
-        const rawPath = svgPaths[0];
-        // Adjust path for the target language (handles case where content_ja is empty)
-        const svgPath = adjustSvgPathForLanguage(rawPath, lang);
+        const svgPath = adjustSvgPathForLanguage(svgPaths[0], lang);
         const id = svgPath.replace('diagrams/', '').replace('.svg', '');
-        const diagramUrl = `/api/diagrams/${id}`;
-        const svgContent = imageResolver.get(diagramUrl);
-
-        if (svgContent) {
-          console.log(
-            `[PDF] Resolved diagram fragment ${fragmentId} via path: ${svgPath} (lang=${lang})`
-          );
-          return `<div class="diagram-container" style="margin: 20px 0; text-align: center;">${svgContent}</div>`;
+        const contentUrl = `/api/diagrams/${id}`;
+        const contentSvg = imageResolver.get(contentUrl);
+        if (contentSvg) {
+          console.log(`[PDF] Resolved diagram ${fragmentId} via content path: ${svgPath}`);
+          return `<div class="diagram-container" style="margin: 20px 0; text-align: center;">${contentSvg}</div>`;
         }
-        console.warn(`[PDF] Diagram SVG not found in resolver for path: ${svgPath}`);
       }
 
-      // Fallback: try fragment ID with language suffix
-      const fallbackUrl = `/api/diagrams/${fragmentId}-${lang}`;
-      const fallbackSvg = imageResolver.get(fallbackUrl);
-      if (fallbackSvg) {
-        console.log(
-          `[PDF] Resolved diagram fragment ${fragmentId} (fallback by ID-${lang}) from R2`
-        );
-        return `<div class="diagram-container" style="margin: 20px 0; text-align: center;">${fallbackSvg}</div>`;
-      }
-
-      // Last fallback: try without language suffix
-      const lastFallbackUrl = `/api/diagrams/${fragmentId}`;
-      const lastFallbackSvg = imageResolver.get(lastFallbackUrl);
-      if (lastFallbackSvg) {
-        console.log(`[PDF] Resolved diagram fragment ${fragmentId} (fallback by ID) from R2`);
-        return `<div class="diagram-container" style="margin: 20px 0; text-align: center;">${lastFallbackSvg}</div>`;
-      }
-
-      console.warn(`[PDF] Diagram fragment SVG not found in R2: ${fragmentId}`);
+      console.warn(
+        `[PDF] Diagram not found in R2: ${fragmentId} (tried ${fragmentId}-${lang}, ${fragmentId})`
+      );
       return `<div style="margin: 16px 0; padding: 16px; border: 2px dashed #fbbf24; background: #fef3c7; border-radius: 8px; color: #92400e;">
         <strong>Diagram not exported:</strong> ${fragmentId}<br>
         <span style="font-size: 0.875em;">Export this diagram to R2 before generating PDF.</span>
@@ -1187,83 +1179,52 @@ export const actions: Actions = {
           }
         }
 
-        // Add diagram fragment references - extract actual SVG paths from content
+        // Add diagram fragment references - ALWAYS add fragment ID with language suffixes
+        // Diagram SVGs are stored as {fragmentId}-{lang}.svg in R2
         for (const fragId of referencedFragmentIds) {
           const frag = contentMap.get(fragId);
           if (frag?.category === 'diagrams') {
-            // Extract actual SVG paths from fragment content (both languages)
+            // Primary: fragment ID with language suffixes (standard bilingual diagram naming)
+            diagramIds.add(JSON.stringify({ url: `/api/diagrams/${fragId}`, id: fragId }));
+            diagramIds.add(
+              JSON.stringify({ url: `/api/diagrams/${fragId}-en`, id: `${fragId}-en` })
+            );
+            diagramIds.add(
+              JSON.stringify({ url: `/api/diagrams/${fragId}-ja`, id: `${fragId}-ja` })
+            );
+            console.log(`PDF: Added diagram fragment: ${fragId} (+ en/ja variants)`);
+
+            // Also add any paths found in content (for inline mermaid exports)
             const pathsEn = extractSvgPathsFromFragment(frag, 'en');
             const pathsJa = extractSvgPathsFromFragment(frag, 'ja');
-            const allPaths = [...new Set([...pathsEn, ...pathsJa])];
-
-            if (allPaths.length > 0) {
-              for (const path of allPaths) {
-                const id = path.replace('diagrams/', '').replace('.svg', '');
-                // Add both the exact path and language-adjusted versions
-                diagramIds.add(JSON.stringify({ url: `/api/diagrams/${id}`, id }));
-                // Also add language-suffixed versions for fallback
-                const idEn = adjustSvgPathForLanguage(path, 'en')
-                  .replace('diagrams/', '')
-                  .replace('.svg', '');
-                const idJa = adjustSvgPathForLanguage(path, 'ja')
-                  .replace('diagrams/', '')
-                  .replace('.svg', '');
-                diagramIds.add(JSON.stringify({ url: `/api/diagrams/${idEn}`, id: idEn }));
-                diagramIds.add(JSON.stringify({ url: `/api/diagrams/${idJa}`, id: idJa }));
-                console.log(
-                  `PDF: Extracted diagram paths from fragment ${fragId}: ${id}, ${idEn}, ${idJa}`
-                );
-              }
-            } else {
-              // Fallback: use fragment ID with language suffixes
-              diagramIds.add(JSON.stringify({ url: `/api/diagrams/${fragId}`, id: fragId }));
-              diagramIds.add(
-                JSON.stringify({ url: `/api/diagrams/${fragId}-en`, id: `${fragId}-en` })
-              );
-              diagramIds.add(
-                JSON.stringify({ url: `/api/diagrams/${fragId}-ja`, id: `${fragId}-ja` })
-              );
-              console.log(`PDF: Using fallback IDs for diagram fragment: ${fragId}`);
+            for (const path of [...new Set([...pathsEn, ...pathsJa])]) {
+              const id = path.replace('diagrams/', '').replace('.svg', '');
+              diagramIds.add(JSON.stringify({ url: `/api/diagrams/${id}`, id }));
+              console.log(`PDF: Also added content path from ${fragId}: ${id}`);
             }
           }
         }
 
-        // Also add diagram fragments from enabledFragments - extract paths from content
+        // Also add diagram fragments from enabledFragments
         for (const frag of fragmentContents) {
           if (frag.category === 'diagrams') {
-            // Extract actual SVG paths from fragment content
+            // Primary: fragment ID with language suffixes (standard bilingual diagram naming)
+            diagramIds.add(JSON.stringify({ url: `/api/diagrams/${frag.id}`, id: frag.id }));
+            diagramIds.add(
+              JSON.stringify({ url: `/api/diagrams/${frag.id}-en`, id: `${frag.id}-en` })
+            );
+            diagramIds.add(
+              JSON.stringify({ url: `/api/diagrams/${frag.id}-ja`, id: `${frag.id}-ja` })
+            );
+            console.log(`PDF: Added enabled diagram: ${frag.id} (+ en/ja variants)`);
+
+            // Also add any paths found in content (for inline mermaid exports)
             const pathsEn = extractSvgPathsFromFragment(frag, 'en');
             const pathsJa = extractSvgPathsFromFragment(frag, 'ja');
-            const allPaths = [...new Set([...pathsEn, ...pathsJa])];
-
-            if (allPaths.length > 0) {
-              for (const path of allPaths) {
-                const id = path.replace('diagrams/', '').replace('.svg', '');
-                // Add both the exact path and language-adjusted versions
-                diagramIds.add(JSON.stringify({ url: `/api/diagrams/${id}`, id }));
-                // Also add language-suffixed versions for fallback
-                const idEn = adjustSvgPathForLanguage(path, 'en')
-                  .replace('diagrams/', '')
-                  .replace('.svg', '');
-                const idJa = adjustSvgPathForLanguage(path, 'ja')
-                  .replace('diagrams/', '')
-                  .replace('.svg', '');
-                diagramIds.add(JSON.stringify({ url: `/api/diagrams/${idEn}`, id: idEn }));
-                diagramIds.add(JSON.stringify({ url: `/api/diagrams/${idJa}`, id: idJa }));
-                console.log(
-                  `PDF: Extracted diagram paths from fragment ${frag.id}: ${id}, ${idEn}, ${idJa}`
-                );
-              }
-            } else {
-              // Fallback: use fragment ID with language suffixes
-              diagramIds.add(JSON.stringify({ url: `/api/diagrams/${frag.id}`, id: frag.id }));
-              diagramIds.add(
-                JSON.stringify({ url: `/api/diagrams/${frag.id}-en`, id: `${frag.id}-en` })
-              );
-              diagramIds.add(
-                JSON.stringify({ url: `/api/diagrams/${frag.id}-ja`, id: `${frag.id}-ja` })
-              );
-              console.log(`PDF: Using fallback IDs for diagram fragment: ${frag.id}`);
+            for (const path of [...new Set([...pathsEn, ...pathsJa])]) {
+              const id = path.replace('diagrams/', '').replace('.svg', '');
+              diagramIds.add(JSON.stringify({ url: `/api/diagrams/${id}`, id }));
+              console.log(`PDF: Also added content path from ${frag.id}: ${id}`);
             }
           }
         }
