@@ -121,35 +121,6 @@ function extractSvgPathsFromFragment(
 }
 
 /**
- * Adjust SVG path for the requested language
- * Handles cases where content_ja is empty and we got an EN path but need JA
- *
- * @param svgPath - Original SVG path (e.g., "diagrams/xxx-en.svg")
- * @param lang - Target language ('en' or 'ja')
- * @returns Adjusted path with correct language suffix
- */
-function adjustSvgPathForLanguage(svgPath: string, lang: 'en' | 'ja'): string {
-  const otherLang = lang === 'ja' ? 'en' : 'ja';
-
-  // If path already has correct language suffix, return as-is
-  if (svgPath.includes(`-${lang}.svg`)) {
-    return svgPath;
-  }
-
-  // If path has wrong language suffix, swap it
-  if (svgPath.includes(`-${otherLang}.svg`)) {
-    return svgPath.replace(`-${otherLang}.svg`, `-${lang}.svg`);
-  }
-
-  // If path has no language suffix, add it
-  if (svgPath.endsWith('.svg') && !svgPath.includes('-en.svg') && !svgPath.includes('-ja.svg')) {
-    return svgPath.replace('.svg', `-${lang}.svg`);
-  }
-
-  return svgPath;
-}
-
-/**
  * Resolve fragment references in HTML content
  * Replaces <div data-fragment-id="xxx" data-fragment-lang="xx">...</div> with actual content
  * InfoSec: Fragment content is trusted (from D1 database, sanitized on save)
@@ -190,42 +161,29 @@ function resolveFragmentReferences(
     const lang = fragment.category === 'diagrams' ? defaultLang : refLang;
 
     // Check if this is a diagram fragment (SVG stored in R2)
+    // Single source of truth: data-svg-path attribute in fragment content
     if (fragment.category === 'diagrams') {
-      // Primary: try fragment ID with language suffix (standard bilingual naming: {id}-{lang}.svg)
-      const primaryUrl = `/api/diagrams/${fragmentId}-${lang}`;
-      const primarySvg = imageResolver.get(primaryUrl);
-      if (primarySvg) {
-        console.log(`[PDF] Resolved diagram ${fragmentId} via ID-${lang}`);
-        return `<div class="diagram-container" style="margin: 20px 0; text-align: center;">${primarySvg}</div>`;
-      }
-
-      // Fallback 1: try fragment ID without language suffix
-      const noLangUrl = `/api/diagrams/${fragmentId}`;
-      const noLangSvg = imageResolver.get(noLangUrl);
-      if (noLangSvg) {
-        console.log(`[PDF] Resolved diagram ${fragmentId} via ID (no lang suffix)`);
-        return `<div class="diagram-container" style="margin: 20px 0; text-align: center;">${noLangSvg}</div>`;
-      }
-
-      // Fallback 2: try path extracted from content (for inline mermaid exports)
       const svgPaths = extractSvgPathsFromFragment(fragment, lang);
-      if (svgPaths.length > 0) {
-        const svgPath = adjustSvgPathForLanguage(svgPaths[0], lang);
-        const id = svgPath.replace('diagrams/', '').replace('.svg', '');
-        const contentUrl = `/api/diagrams/${id}`;
-        const contentSvg = imageResolver.get(contentUrl);
-        if (contentSvg) {
-          console.log(`[PDF] Resolved diagram ${fragmentId} via content path: ${svgPath}`);
-          return `<div class="diagram-container" style="margin: 20px 0; text-align: center;">${contentSvg}</div>`;
-        }
+      if (svgPaths.length === 0) {
+        console.error(`[PDF] No data-svg-path for diagram: ${fragmentId} (lang=${lang})`);
+        return `<div style="margin: 16px 0; padding: 16px; border: 2px dashed #fbbf24; background: #fef3c7; border-radius: 8px; color: #92400e;">
+          <strong>Diagram not exported:</strong> ${fragmentId}<br>
+          <span style="font-size: 0.875em;">Export this diagram to R2 before generating PDF.</span>
+        </div>`;
       }
 
-      console.warn(
-        `[PDF] Diagram not found in R2: ${fragmentId} (tried ${fragmentId}-${lang}, ${fragmentId})`
-      );
-      return `<div style="margin: 16px 0; padding: 16px; border: 2px dashed #fbbf24; background: #fef3c7; border-radius: 8px; color: #92400e;">
-        <strong>Diagram not exported:</strong> ${fragmentId}<br>
-        <span style="font-size: 0.875em;">Export this diagram to R2 before generating PDF.</span>
+      const svgPath = svgPaths[0];
+      const id = svgPath.replace('diagrams/', '').replace('.svg', '');
+      const svgContent = imageResolver.get(`/api/diagrams/${id}`);
+      if (svgContent) {
+        console.log(`[PDF] Resolved diagram ${fragmentId} via data-svg-path: ${svgPath}`);
+        return `<div class="diagram-container" style="margin: 20px 0; text-align: center;">${svgContent}</div>`;
+      }
+
+      console.error(`[PDF] SVG not in R2: ${svgPath} (fragment: ${fragmentId})`);
+      return `<div style="margin: 16px 0; padding: 16px; border: 2px dashed #f87171; background: #fef2f2; border-radius: 8px; color: #b91c1c;">
+        <strong>SVG not found in R2:</strong> ${svgPath}<br>
+        <span style="font-size: 0.875em;">Re-export this diagram to R2.</span>
       </div>`;
     }
 
@@ -1057,107 +1015,28 @@ export const actions: Actions = {
       // This resolves /api/diagrams/* URLs to actual SVG content
       const imageResolver = new Map<string, string>();
       if (platform.env.R2) {
-        // Regex for markdown images: ![alt](/api/diagrams/id)
-        const markdownDiagramRegex = /!\[[^\]]*\]\((\/api\/diagrams\/([^)]+))\)/g;
-        // Regex for HTML img tags: <img src="/api/diagrams/id" ...>
-        const htmlImgRegex = /<img[^>]*src=["'](\/api\/diagrams\/([^"']+))["'][^>]*>/gi;
-        const diagramIds = new Set<string>();
-
-        // Scan all fragment content for diagram URLs and Mermaid blocks
-        for (const frag of fragmentContents) {
-          const contentToScan = [frag.content_en, frag.content_ja].filter(Boolean).join('\n');
-
-          // Scan for markdown diagram links
-          let match;
-          while ((match = markdownDiagramRegex.exec(contentToScan)) !== null) {
-            const url = match[1]; // /api/diagrams/some-id
-            const id = match[2]; // some-id (may or may not have .svg)
-            diagramIds.add(JSON.stringify({ url, id }));
-          }
-
-          // Scan for HTML img tags in fragments
-          let htmlMatch;
-          while ((htmlMatch = htmlImgRegex.exec(contentToScan)) !== null) {
-            const url = htmlMatch[1];
-            const id = htmlMatch[2];
-            diagramIds.add(JSON.stringify({ url, id }));
-          }
-
-          // Scan for Mermaid block data-svg-path in fragments
-          const mermaidRegex = /data-svg-path=["']([^"']+)["']/gi;
-          let mermaidMatch;
-          while ((mermaidMatch = mermaidRegex.exec(contentToScan)) !== null) {
-            const svgPath = mermaidMatch[1];
-            const id = svgPath.replace('diagrams/', '').replace('.svg', '');
-            const url = `/api/diagrams/${id}`;
-            diagramIds.add(JSON.stringify({ url, id }));
-            console.log(`PDF: Found Mermaid svgPath in fragment ${frag.id}: ${svgPath}`);
-          }
-        }
-
-        // Also scan cover letters (contain HTML with Mermaid blocks)
+        // Step 1: Discover nested fragment references and fetch from D1
+        // Scan cover letters and fragment content for fragment references
         const coverLettersToScan = [proposal.cover_letter_en, proposal.cover_letter_ja]
           .filter(Boolean)
           .join('\n');
-
-        // Also scan fragment content for nested fragment references
         const fragmentContentToScan = fragmentContents
           .map((f) => [f.content_en, f.content_ja].filter(Boolean).join('\n'))
           .join('\n');
 
-        // Scan for HTML img tags in cover letters
-        let htmlMatch;
-        while ((htmlMatch = htmlImgRegex.exec(coverLettersToScan)) !== null) {
-          const url = htmlMatch[1]; // /api/diagrams/some-id
-          const id = htmlMatch[2]; // some-id (may or may not have .svg)
-          diagramIds.add(JSON.stringify({ url, id }));
-        }
-
-        // Scan for Mermaid block data-svg-path attributes (before conversion to img tags)
-        // These are Tiptap mermaid blocks: <div data-type="mermaidBlock" data-svg-path="diagrams/xxx">
-        const mermaidSvgPathRegex = /data-svg-path=["']([^"']+)["']/gi;
-        let svgPathMatch;
-
-        // Debug: Log cover letter content to see if it has mermaid blocks
-        console.log(`PDF: Cover letter EN length: ${proposal.cover_letter_en?.length || 0}`);
-        console.log(`PDF: Cover letter JA length: ${proposal.cover_letter_ja?.length || 0}`);
-        if (coverLettersToScan.includes('mermaidBlock')) {
-          console.log('PDF: Found mermaidBlock in cover letters');
-          console.log('PDF: Cover letter snippet:', coverLettersToScan.substring(0, 500));
-        } else {
-          console.log('PDF: No mermaidBlock found in cover letters');
-        }
-
-        while ((svgPathMatch = mermaidSvgPathRegex.exec(coverLettersToScan)) !== null) {
-          const svgPath = svgPathMatch[1]; // diagrams/mermaid-xxx.svg
-          // Convert svgPath to the URL format that markdownToHtml will generate
-          const id = svgPath.replace('diagrams/', '').replace('.svg', '');
-          const url = `/api/diagrams/${id}`;
-          diagramIds.add(JSON.stringify({ url, id }));
-          console.log(`PDF: Found Mermaid svgPath: ${svgPath} -> ${url}`);
-        }
-
-        // Scan for fragment references in cover letters AND fragment content: <div data-fragment-id="xxx" data-fragment-lang="xx">
         const fragmentRefRegex = /data-fragment-id=["']([^"']+)["']/gi;
         let fragmentRefMatch;
         const referencedFragmentIds = new Set<string>();
 
-        // Scan cover letters
         while ((fragmentRefMatch = fragmentRefRegex.exec(coverLettersToScan)) !== null) {
-          const fragId = fragmentRefMatch[1];
-          referencedFragmentIds.add(fragId);
-          console.log(`PDF: Found fragment reference in cover letter: ${fragId}`);
+          referencedFragmentIds.add(fragmentRefMatch[1]);
         }
-
-        // Scan fragment content for nested references
-        fragmentRefRegex.lastIndex = 0; // Reset regex state
+        fragmentRefRegex.lastIndex = 0;
         while ((fragmentRefMatch = fragmentRefRegex.exec(fragmentContentToScan)) !== null) {
-          const fragId = fragmentRefMatch[1];
-          referencedFragmentIds.add(fragId);
-          console.log(`PDF: Found nested fragment reference in fragment content: ${fragId}`);
+          referencedFragmentIds.add(fragmentRefMatch[1]);
         }
 
-        // Fetch referenced fragments that aren't already in fragmentContents
+        // InfoSec: Parameterized query for D1 fragment fetch (OWASP A03)
         if (referencedFragmentIds.size > 0) {
           const existingIds = new Set(fragmentContents.map((f) => f.id));
           const missingIds = Array.from(referencedFragmentIds).filter((id) => !existingIds.has(id));
@@ -1173,7 +1052,6 @@ export const actions: Actions = {
               .all<FragmentContent>();
             if (additionalFragments.results) {
               fragmentContents.push(...additionalFragments.results);
-              // Add to contentMap as well
               for (const f of additionalFragments.results) {
                 contentMap.set(f.id, f);
               }
@@ -1184,90 +1062,61 @@ export const actions: Actions = {
           }
         }
 
-        // Add diagram fragment references - ALWAYS add fragment ID with language suffixes
-        // Diagram SVGs are stored as {fragmentId}-{lang}.svg in R2
-        for (const fragId of referencedFragmentIds) {
-          const frag = contentMap.get(fragId);
-          if (frag?.category === 'diagrams') {
-            // Primary: fragment ID with language suffixes (standard bilingual diagram naming)
-            diagramIds.add(JSON.stringify({ url: `/api/diagrams/${fragId}`, id: fragId }));
-            diagramIds.add(
-              JSON.stringify({ url: `/api/diagrams/${fragId}-en`, id: `${fragId}-en` })
-            );
-            diagramIds.add(
-              JSON.stringify({ url: `/api/diagrams/${fragId}-ja`, id: `${fragId}-ja` })
-            );
-            console.log(`PDF: Added diagram fragment: ${fragId} (+ en/ja variants)`);
+        // Step 2: Collect all SVG paths from data-svg-path attributes
+        // Single source of truth: scan ALL content (fragments + cover letters)
+        const svgPathRegex = /data-svg-path=["']([^"']+)["']/gi;
+        const diagramEntries = new Map<string, string>(); // url → r2Key
 
-            // Also add any paths found in content (for inline mermaid exports)
-            const pathsEn = extractSvgPathsFromFragment(frag, 'en');
-            const pathsJa = extractSvgPathsFromFragment(frag, 'ja');
-            for (const path of [...new Set([...pathsEn, ...pathsJa])]) {
-              const id = path.replace('diagrams/', '').replace('.svg', '');
-              diagramIds.add(JSON.stringify({ url: `/api/diagrams/${id}`, id }));
-              console.log(`PDF: Also added content path from ${fragId}: ${id}`);
-            }
-          }
+        const allContentToScan = [
+          ...fragmentContents.flatMap((f) => [f.content_en, f.content_ja]),
+          proposal.cover_letter_en,
+          proposal.cover_letter_ja,
+        ]
+          .filter(Boolean)
+          .join('\n');
+
+        let match;
+        while ((match = svgPathRegex.exec(allContentToScan)) !== null) {
+          const svgPath = match[1]; // "diagrams/mermaid-xxx.svg"
+          const id = svgPath.replace('diagrams/', '').replace('.svg', '');
+          const url = `/api/diagrams/${id}`;
+          diagramEntries.set(url, svgPath);
         }
 
-        // Also add diagram fragments from enabledFragments
-        for (const frag of fragmentContents) {
-          if (frag.category === 'diagrams') {
-            // Primary: fragment ID with language suffixes (standard bilingual diagram naming)
-            diagramIds.add(JSON.stringify({ url: `/api/diagrams/${frag.id}`, id: frag.id }));
-            diagramIds.add(
-              JSON.stringify({ url: `/api/diagrams/${frag.id}-en`, id: `${frag.id}-en` })
-            );
-            diagramIds.add(
-              JSON.stringify({ url: `/api/diagrams/${frag.id}-ja`, id: `${frag.id}-ja` })
-            );
-            console.log(`PDF: Added enabled diagram: ${frag.id} (+ en/ja variants)`);
-
-            // Also add any paths found in content (for inline mermaid exports)
-            const pathsEn = extractSvgPathsFromFragment(frag, 'en');
-            const pathsJa = extractSvgPathsFromFragment(frag, 'ja');
-            for (const path of [...new Set([...pathsEn, ...pathsJa])]) {
-              const id = path.replace('diagrams/', '').replace('.svg', '');
-              diagramIds.add(JSON.stringify({ url: `/api/diagrams/${id}`, id }));
-              console.log(`PDF: Also added content path from ${frag.id}: ${id}`);
-            }
-          }
+        // Also scan for <img src="/api/diagrams/xxx"> or markdown ![](/api/diagrams/xxx)
+        // (These come from inline content, not mermaid blocks)
+        const imgRegex = /(?:src=["']|!\[[^\]]*\]\()(\/api\/diagrams\/([^"')]+))/gi;
+        while ((match = imgRegex.exec(allContentToScan)) !== null) {
+          const url = match[1];
+          const id = match[2];
+          const r2Key = `diagrams/${id.endsWith('.svg') ? id : id + '.svg'}`;
+          diagramEntries.set(url, r2Key);
         }
 
-        console.log(`PDF: Total diagram IDs to fetch: ${diagramIds.size}`);
+        console.log(`PDF: Diagram SVGs to fetch: ${diagramEntries.size}`);
 
-        // Fetch all diagrams from R2 in PARALLEL for better performance
-        const diagramFetches = Array.from(diagramIds).map(async (entry) => {
-          const { url, id } = JSON.parse(entry);
-          // Strip .svg if present for R2 key lookup
-          const diagramId = id.endsWith('.svg') ? id.slice(0, -4) : id;
-          const r2Key = `diagrams/${diagramId}.svg`;
-
+        // Step 3: Fetch all SVGs from R2 in parallel
+        const fetches = [...diagramEntries.entries()].map(async ([url, r2Key]) => {
+          const cleanKey = r2Key.endsWith('.svg') ? r2Key : `${r2Key}.svg`;
           try {
-            const object = await platform.env.R2.get(r2Key);
+            const object = await platform.env.R2.get(cleanKey);
             if (object) {
-              let svgContent = await object.text();
-              // Sanitize SVG: remove only font-family declarations (preserve other styles)
-              // Remove font-family from CSS rules inside <style> blocks
-              svgContent = svgContent.replace(/font-family\s*:\s*[^;}\n]+[;]?/gi, '');
-              // Remove font-family attributes from SVG elements
-              svgContent = svgContent.replace(/\s*font-family="[^"]*"/gi, '');
-              svgContent = svgContent.replace(/\s*font-family='[^']*'/gi, '');
-              console.log(`PDF: Loaded and sanitized diagram ${diagramId} from R2`);
-              return { url, svgContent };
+              let svg = await object.text();
+              // Sanitize SVG: remove font-family declarations (preserve other styles)
+              svg = svg.replace(/font-family\s*:\s*[^;}\n]+[;]?/gi, '');
+              svg = svg.replace(/\s*font-family="[^"]*"/gi, '');
+              svg = svg.replace(/\s*font-family='[^']*'/gi, '');
+              console.log(`PDF: Loaded ${r2Key}`);
+              return { url, svg };
             }
           } catch (err) {
-            console.warn(`PDF: Failed to load diagram ${diagramId}:`, err);
+            console.warn(`PDF: Failed to fetch ${r2Key}:`, err);
           }
           return null;
         });
 
-        // Wait for all diagram fetches to complete
-        const diagramResults = await Promise.all(diagramFetches);
-        for (const result of diagramResults) {
-          if (result) {
-            imageResolver.set(result.url, result.svgContent);
-          }
+        for (const result of await Promise.all(fetches)) {
+          if (result) imageResolver.set(result.url, result.svg);
         }
       }
 
@@ -1279,10 +1128,7 @@ export const actions: Actions = {
       void _secondLang; // Suppress unused warning
       const primaryLang = isBilingual ? firstLang : langMode === 'ja' ? 'ja' : 'en';
 
-      // DEBUG: Return debug info so we can see what's happening
-      console.log(
-        `PDF Generation: langMode="${langMode}", isBilingual=${isBilingual}, raw="${proposal.language_mode}"`
-      );
+      console.log(`PDF: langMode="${langMode}", isBilingual=${isBilingual}`);
 
       // Get current date formatted for JST
       const now = new Date();
@@ -1344,23 +1190,29 @@ export const actions: Actions = {
             }
 
             // Check if this is a diagram fragment (SVG stored in R2)
+            // Single source of truth: data-svg-path attribute in fragment content
             if (content.category === 'diagrams') {
-              // Try language-specific SVG first (bilingual naming: {id}-{lang}.svg)
-              const langUrl = `/api/diagrams/${frag.id}-${lang}`;
-              const genericUrl = `/api/diagrams/${frag.id}`;
-              const svgContent = imageResolver.get(langUrl) || imageResolver.get(genericUrl);
+              const svgPaths = extractSvgPathsFromFragment(content, lang);
+              if (svgPaths.length === 0) {
+                console.error(`PDF buildSection: No data-svg-path for ${frag.id} (lang=${lang})`);
+                section += `<div class="diagram-placeholder" style="margin: 20px 0; padding: 20px; border: 2px dashed #fbbf24; text-align: center; color: #92400e; background: #fef3c7;">
+                  <p><strong>${content.name}</strong></p>
+                  <p style="font-size: 0.875em;">Diagram not exported to R2</p>
+                </div>\n`;
+                continue;
+              }
+
+              const svgPath = svgPaths[0];
+              const id = svgPath.replace('diagrams/', '').replace('.svg', '');
+              const svgContent = imageResolver.get(`/api/diagrams/${id}`);
               if (svgContent) {
-                // Render the diagram SVG directly
-                console.log(`PDF buildSection: Resolved diagram ${frag.id} (lang=${lang})`);
+                console.log(`PDF buildSection: Resolved ${frag.id} via data-svg-path: ${svgPath}`);
                 section += `<div class="diagram-container" style="margin: 20px 0; text-align: center;">${svgContent}</div>\n`;
               } else {
-                // Fallback: show placeholder if SVG not found
-                console.warn(
-                  `PDF buildSection: Diagram not found: ${frag.id} (tried ${langUrl}, ${genericUrl})`
-                );
-                section += `<div class="diagram-placeholder" style="margin: 20px 0; padding: 20px; border: 2px dashed #ccc; text-align: center; color: #666;">
+                console.error(`PDF buildSection: SVG not in R2: ${svgPath}`);
+                section += `<div class="diagram-placeholder" style="margin: 20px 0; padding: 20px; border: 2px dashed #f87171; text-align: center; color: #b91c1c; background: #fef2f2;">
                   <p><strong>${content.name}</strong></p>
-                  <p style="font-size: 0.875em;">Diagram SVG not found in R2</p>
+                  <p style="font-size: 0.875em;">SVG not found in R2: ${svgPath}</p>
                 </div>\n`;
               }
             } else {
