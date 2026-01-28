@@ -96,6 +96,115 @@ ${titleHtml}
 }
 
 /**
+ * Extract SVG paths from fragment content
+ * Looks for data-svg-path attributes in HTML content (from Tiptap Mermaid blocks)
+ *
+ * @param fragment - Fragment with content_en and content_ja fields
+ * @param lang - Language to prefer ('en' or 'ja')
+ * @returns Array of SVG paths found (e.g., "diagrams/mermaid-xxx.svg")
+ */
+function extractSvgPathsFromFragment(
+  fragment: { content_en: string | null; content_ja: string | null },
+  lang: 'en' | 'ja'
+): string[] {
+  // Use language-specific content, fallback to English
+  const content = lang === 'ja' && fragment.content_ja ? fragment.content_ja : fragment.content_en;
+  if (!content) return [];
+
+  const paths: string[] = [];
+  const regex = /data-svg-path=["']([^"']+)["']/gi;
+  let match;
+  while ((match = regex.exec(content)) !== null) {
+    paths.push(match[1]); // e.g., "diagrams/mermaid-xxx.svg"
+  }
+  return paths;
+}
+
+/**
+ * Resolve fragment references in HTML content
+ * Replaces <div data-fragment-id="xxx" data-fragment-lang="xx">...</div> with actual content
+ * InfoSec: Fragment content is trusted (from D1 database, sanitized on save)
+ *
+ * @param html - HTML content that may contain fragment references
+ * @param fragmentContentMap - Map of fragment ID to fragment content
+ * @param imageResolver - Map of image URLs to resolved SVG content
+ * @param defaultLang - Default language if not specified in fragment reference
+ */
+function resolveFragmentReferences(
+  html: string,
+  fragmentContentMap: Map<
+    string,
+    { id: string; category: string; content_en: string | null; content_ja: string | null }
+  >,
+  imageResolver: Map<string, string>,
+  defaultLang: 'en' | 'ja' = 'en'
+): string {
+  // Match fragment reference divs: <div data-fragment-id="xxx" data-fragment-lang="xx">...</div>
+  const fragmentRefRegex = /<div[^>]*data-fragment-id=["']([^"']+)["'][^>]*>[\s\S]*?<\/div>/gi;
+
+  return html.replace(fragmentRefRegex, (match, fragmentId) => {
+    // Extract language from the match
+    const langMatch = match.match(/data-fragment-lang=["']([^"']+)["']/i);
+    const lang = (langMatch?.[1] || defaultLang) as 'en' | 'ja';
+
+    const fragment = fragmentContentMap.get(fragmentId);
+    if (!fragment) {
+      console.warn(`[PDF] Fragment reference not found: ${fragmentId}`);
+      return `<div style="margin: 16px 0; padding: 16px; border: 2px dashed #f87171; background: #fef2f2; border-radius: 8px; color: #b91c1c;">
+        <strong>Fragment not found:</strong> ${fragmentId}
+      </div>`;
+    }
+
+    // Check if this is a diagram fragment (SVG stored in R2)
+    if (fragment.category === 'diagrams') {
+      // Extract actual SVG path from fragment content (more robust than guessing)
+      const svgPaths = extractSvgPathsFromFragment(fragment, lang);
+
+      if (svgPaths.length > 0) {
+        // Use the first (primary) SVG path found in content
+        const svgPath = svgPaths[0];
+        const id = svgPath.replace('diagrams/', '').replace('.svg', '');
+        const diagramUrl = `/api/diagrams/${id}`;
+        const svgContent = imageResolver.get(diagramUrl);
+
+        if (svgContent) {
+          console.log(`[PDF] Resolved diagram fragment ${fragmentId} via content path: ${svgPath}`);
+          return `<div class="diagram-container" style="margin: 20px 0; text-align: center;">${svgContent}</div>`;
+        }
+        console.warn(`[PDF] Diagram SVG not found in resolver for path: ${svgPath}`);
+      }
+
+      // Fallback: try fragment ID directly (for older fragments without data-svg-path)
+      const fallbackUrl = `/api/diagrams/${fragmentId}`;
+      const fallbackSvg = imageResolver.get(fallbackUrl);
+      if (fallbackSvg) {
+        console.log(`[PDF] Resolved diagram fragment ${fragmentId} (fallback by ID) from R2`);
+        return `<div class="diagram-container" style="margin: 20px 0; text-align: center;">${fallbackSvg}</div>`;
+      }
+
+      console.warn(`[PDF] Diagram fragment SVG not found in R2: ${fragmentId}`);
+      return `<div style="margin: 16px 0; padding: 16px; border: 2px dashed #fbbf24; background: #fef3c7; border-radius: 8px; color: #92400e;">
+        <strong>Diagram not exported:</strong> ${fragmentId}<br>
+        <span style="font-size: 0.875em;">Export this diagram to R2 before generating PDF.</span>
+      </div>`;
+    }
+
+    // Regular fragment - use content_en or content_ja based on language
+    const content =
+      lang === 'ja' && fragment.content_ja ? fragment.content_ja : fragment.content_en;
+    if (content) {
+      console.log(`[PDF] Resolved fragment ${fragmentId} (${lang})`);
+      return content;
+    }
+
+    console.warn(`[PDF] Fragment has no content: ${fragmentId}`);
+    return `<div style="margin: 16px 0; padding: 16px; border: 2px dashed #d1d5db; background: #f9fafb; border-radius: 8px; color: #6b7280;">
+      <strong>Fragment empty:</strong> ${fragmentId}
+    </div>`;
+  });
+}
+
+/**
  * Basic markdown to HTML converter
  * InfoSec: Only used for server-side PDF generation, output not displayed in browser
  *
@@ -945,6 +1054,11 @@ export const actions: Actions = {
           .filter(Boolean)
           .join('\n');
 
+        // Also scan fragment content for nested fragment references
+        const fragmentContentToScan = fragmentContents
+          .map((f) => [f.content_en, f.content_ja].filter(Boolean).join('\n'))
+          .join('\n');
+
         // Scan for HTML img tags in cover letters
         let htmlMatch;
         while ((htmlMatch = htmlImgRegex.exec(coverLettersToScan)) !== null) {
@@ -977,13 +1091,95 @@ export const actions: Actions = {
           console.log(`PDF: Found Mermaid svgPath: ${svgPath} -> ${url}`);
         }
 
-        // Also add diagram fragments (category = 'diagrams') - their SVG is stored in R2
+        // Scan for fragment references in cover letters AND fragment content: <div data-fragment-id="xxx" data-fragment-lang="xx">
+        const fragmentRefRegex = /data-fragment-id=["']([^"']+)["']/gi;
+        let fragmentRefMatch;
+        const referencedFragmentIds = new Set<string>();
+
+        // Scan cover letters
+        while ((fragmentRefMatch = fragmentRefRegex.exec(coverLettersToScan)) !== null) {
+          const fragId = fragmentRefMatch[1];
+          referencedFragmentIds.add(fragId);
+          console.log(`PDF: Found fragment reference in cover letter: ${fragId}`);
+        }
+
+        // Scan fragment content for nested references
+        fragmentRefRegex.lastIndex = 0; // Reset regex state
+        while ((fragmentRefMatch = fragmentRefRegex.exec(fragmentContentToScan)) !== null) {
+          const fragId = fragmentRefMatch[1];
+          referencedFragmentIds.add(fragId);
+          console.log(`PDF: Found nested fragment reference in fragment content: ${fragId}`);
+        }
+
+        // Fetch referenced fragments that aren't already in fragmentContents
+        if (referencedFragmentIds.size > 0) {
+          const existingIds = new Set(fragmentContents.map((f) => f.id));
+          const missingIds = Array.from(referencedFragmentIds).filter((id) => !existingIds.has(id));
+          if (missingIds.length > 0) {
+            const placeholders = missingIds.map(() => '?').join(',');
+            const additionalFragments = await db
+              .prepare(
+                `SELECT id, name, slug, category, content_en, content_ja
+                 FROM fragments
+                 WHERE id IN (${placeholders})`
+              )
+              .bind(...missingIds)
+              .all<FragmentContent>();
+            if (additionalFragments.results) {
+              fragmentContents.push(...additionalFragments.results);
+              // Add to contentMap as well
+              for (const f of additionalFragments.results) {
+                contentMap.set(f.id, f);
+              }
+              console.log(
+                `PDF: Loaded ${additionalFragments.results.length} additional fragments from references`
+              );
+            }
+          }
+        }
+
+        // Add diagram fragment references - extract actual SVG paths from content
+        for (const fragId of referencedFragmentIds) {
+          const frag = contentMap.get(fragId);
+          if (frag?.category === 'diagrams') {
+            // Extract actual SVG paths from fragment content (both languages)
+            const pathsEn = extractSvgPathsFromFragment(frag, 'en');
+            const pathsJa = extractSvgPathsFromFragment(frag, 'ja');
+            const allPaths = [...new Set([...pathsEn, ...pathsJa])];
+
+            if (allPaths.length > 0) {
+              for (const path of allPaths) {
+                const id = path.replace('diagrams/', '').replace('.svg', '');
+                diagramIds.add(JSON.stringify({ url: `/api/diagrams/${id}`, id }));
+                console.log(`PDF: Extracted diagram path from fragment ${fragId}: ${path}`);
+              }
+            } else {
+              // Fallback: use fragment ID if no paths found in content
+              diagramIds.add(JSON.stringify({ url: `/api/diagrams/${fragId}`, id: fragId }));
+              console.log(`PDF: Using fallback ID for diagram fragment: ${fragId}`);
+            }
+          }
+        }
+
+        // Also add diagram fragments from enabledFragments - extract paths from content
         for (const frag of fragmentContents) {
           if (frag.category === 'diagrams') {
-            // Diagram fragments have SVG stored at diagrams/{id}.svg in R2
-            const url = `/api/diagrams/${frag.id}`;
-            diagramIds.add(JSON.stringify({ url, id: frag.id }));
-            console.log(`PDF: Found diagram fragment: ${frag.id}`);
+            // Extract actual SVG paths from fragment content
+            const pathsEn = extractSvgPathsFromFragment(frag, 'en');
+            const pathsJa = extractSvgPathsFromFragment(frag, 'ja');
+            const allPaths = [...new Set([...pathsEn, ...pathsJa])];
+
+            if (allPaths.length > 0) {
+              for (const path of allPaths) {
+                const id = path.replace('diagrams/', '').replace('.svg', '');
+                diagramIds.add(JSON.stringify({ url: `/api/diagrams/${id}`, id }));
+                console.log(`PDF: Extracted diagram path from fragment ${frag.id}: ${path}`);
+              }
+            } else {
+              // Fallback: use fragment ID if no paths found
+              diagramIds.add(JSON.stringify({ url: `/api/diagrams/${frag.id}`, id: frag.id }));
+              console.log(`PDF: Using fallback ID for diagram fragment: ${frag.id}`);
+            }
           }
         }
 
@@ -1065,8 +1261,15 @@ export const actions: Actions = {
           lang === 'ja' ? proposalData.cover_letter_ja : proposalData.cover_letter_en;
         if (coverLetter) {
           // Cover letters are HTML from Tiptap, already formatted
+          // Resolve fragment references (e.g., <div data-fragment-id="xxx">) to actual content
+          const resolvedCoverLetter = resolveFragmentReferences(
+            coverLetter,
+            contentMap,
+            imageResolver,
+            lang
+          );
           // page-break-after: always ensures cover letter gets its own page
-          section += `<div class="cover-letter">${coverLetter}</div>\n`;
+          section += `<div class="cover-letter">${resolvedCoverLetter}</div>\n`;
         } else if (!isBilingual && proposalData.custom_sections) {
           // Fall back to custom_sections for single-language proposals
           section += `<div class="cover-letter">${markdownToHtml(proposalData.custom_sections, imageResolver)}</div>\n`;
@@ -1108,7 +1311,14 @@ export const actions: Actions = {
               const fragContent =
                 lang === 'ja' && content.content_ja ? content.content_ja : content.content_en;
               if (fragContent) {
-                section += markdownToHtml(fragContent, imageResolver) + '\n';
+                // Resolve nested fragment references before converting to HTML
+                const resolvedContent = resolveFragmentReferences(
+                  fragContent,
+                  contentMap,
+                  imageResolver,
+                  lang
+                );
+                section += markdownToHtml(resolvedContent, imageResolver) + '\n';
               }
             }
           }

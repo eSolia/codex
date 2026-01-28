@@ -376,9 +376,11 @@
           class="bg-white rounded-lg shadow p-6 space-y-4"
         >
           <input type="hidden" name="fragments" value={fragmentsJson} />
-          <!-- Hidden field to pass empty client_code when unchecked -->
+          <!-- Hidden fields for general documents (cover letters cleared when not client-specific) -->
           {#if !isClientDocument}
             <input type="hidden" name="client_code" value="" />
+            <input type="hidden" name="cover_letter_en" value="" />
+            <input type="hidden" name="cover_letter_ja" value="" />
           {/if}
 
           <h2 class="text-lg font-semibold text-gray-900">Document Details</h2>
@@ -475,9 +477,10 @@
             </div>
           {/if}
 
-          <!-- Contact Name fields (only for client-specific documents, conditional on language mode) -->
+          <!-- Contact Name & Personalization fields (only for client-specific documents) -->
           {#if isClientDocument}
-            <div class="border-l-4 border-esolia-orange pl-4">
+            <div class="border-l-4 border-esolia-orange pl-4 space-y-4">
+              <!-- Contact Name -->
               <div class="grid grid-cols-2 gap-4">
                 {#if showEnglish}
                   <div>
@@ -508,6 +511,57 @@
                       value={proposal.contact_name_ja || ''}
                       placeholder="田中太郎 様"
                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-esolia-navy focus:ring-esolia-navy"
+                    />
+                  </div>
+                {/if}
+              </div>
+
+              <!-- Cover Letter Personalization -->
+              <div class="pt-3 border-t border-esolia-orange/30">
+                <h4 class="text-sm font-medium text-gray-700 mb-3">
+                  Personalization <span class="text-gray-400 font-normal">(optional)</span>
+                </h4>
+
+                <!-- Hidden inputs for form submission -->
+                <input type="hidden" name="cover_letter_en" value={coverLetterEn} />
+                <input type="hidden" name="cover_letter_ja" value={coverLetterJa} />
+
+                {#if showEnglish}
+                  <div class="mb-4">
+                    <span class="block text-sm font-medium text-gray-700 mb-2">
+                      Cover Letter (English)
+                    </span>
+                    <p class="text-xs text-gray-500 mb-2">
+                      Client-specific introduction that appears before the standard fragments
+                    </p>
+                    <CoverLetterEditor
+                      bind:content={coverLetterEn}
+                      language="en"
+                      placeholder="Dear [Client Name], Thank you for the opportunity to discuss your IT requirements..."
+                      {boilerplates}
+                      onTranslate={(translated) => {
+                        coverLetterJa = translated;
+                      }}
+                    />
+                  </div>
+                {/if}
+
+                {#if showJapanese}
+                  <div>
+                    <span class="block text-sm font-medium text-gray-700 mb-2">
+                      Cover Letter (Japanese)
+                    </span>
+                    <p class="text-xs text-gray-500 mb-2">
+                      標準フラグメントの前に表示されるクライアント固有の紹介文
+                    </p>
+                    <CoverLetterEditor
+                      bind:content={coverLetterJa}
+                      language="ja"
+                      placeholder="[会社名] 御中、この度はIT要件についてご相談いただきありがとうございます..."
+                      {boilerplates}
+                      onTranslate={(translated) => {
+                        coverLetterEn = translated;
+                      }}
                     />
                   </div>
                 {/if}
@@ -597,51 +651,6 @@
               </div>
             {/if}
           </div>
-
-          <!-- Cover Letter Editors (conditional on language mode) -->
-          <!-- Hidden inputs for form submission -->
-          <input type="hidden" name="cover_letter_en" value={coverLetterEn} />
-          <input type="hidden" name="cover_letter_ja" value={coverLetterJa} />
-
-          {#if showEnglish}
-            <div>
-              <span class="block text-sm font-medium text-gray-700 mb-2">
-                Cover Letter (English)
-              </span>
-              <p class="text-xs text-gray-500 mb-2">
-                Client-specific introduction that appears before the standard fragments
-              </p>
-              <CoverLetterEditor
-                bind:content={coverLetterEn}
-                language="en"
-                placeholder="Dear [Client Name], Thank you for the opportunity to discuss your IT requirements..."
-                {boilerplates}
-                onTranslate={(translated) => {
-                  coverLetterJa = translated;
-                }}
-              />
-            </div>
-          {/if}
-
-          {#if showJapanese}
-            <div>
-              <span class="block text-sm font-medium text-gray-700 mb-2">
-                Cover Letter (Japanese)
-              </span>
-              <p class="text-xs text-gray-500 mb-2">
-                標準フラグメントの前に表示されるクライアント固有の紹介文
-              </p>
-              <CoverLetterEditor
-                bind:content={coverLetterJa}
-                language="ja"
-                placeholder="[会社名] 御中、この度はIT要件についてご相談いただきありがとうございます..."
-                {boilerplates}
-                onTranslate={(translated) => {
-                  coverLetterEn = translated;
-                }}
-              />
-            </div>
-          {/if}
 
           <div class="flex justify-end">
             <button
