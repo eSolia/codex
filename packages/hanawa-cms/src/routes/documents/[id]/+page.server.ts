@@ -1340,13 +1340,19 @@ export const actions: Actions = {
 
             // Check if this is a diagram fragment (SVG stored in R2)
             if (content.category === 'diagrams') {
-              const diagramUrl = `/api/diagrams/${frag.id}`;
-              const svgContent = imageResolver.get(diagramUrl);
+              // Try language-specific SVG first (bilingual naming: {id}-{lang}.svg)
+              const langUrl = `/api/diagrams/${frag.id}-${lang}`;
+              const genericUrl = `/api/diagrams/${frag.id}`;
+              const svgContent = imageResolver.get(langUrl) || imageResolver.get(genericUrl);
               if (svgContent) {
                 // Render the diagram SVG directly
+                console.log(`PDF buildSection: Resolved diagram ${frag.id} (lang=${lang})`);
                 section += `<div class="diagram-container" style="margin: 20px 0; text-align: center;">${svgContent}</div>\n`;
               } else {
                 // Fallback: show placeholder if SVG not found
+                console.warn(
+                  `PDF buildSection: Diagram not found: ${frag.id} (tried ${langUrl}, ${genericUrl})`
+                );
                 section += `<div class="diagram-placeholder" style="margin: 20px 0; padding: 20px; border: 2px dashed #ccc; text-align: center; color: #666;">
                   <p><strong>${content.name}</strong></p>
                   <p style="font-size: 0.875em;">Diagram SVG not found in R2</p>
