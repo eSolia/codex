@@ -6,7 +6,7 @@
   },
   "flowchart": {
     "useMaxWidth": true,
-    "htmlLabels": true,
+    "htmlLabels": false,
     "curve": "basis",
     "nodeSpacing": 30,
     "rankSpacing": 40

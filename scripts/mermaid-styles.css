@@ -21,13 +21,35 @@
 }
 
 .cluster rect {
-  fill: #f8fafc !important;
-  stroke: #e2e8f0 !important;
+  fill: #fef3c7 !important;
+  stroke: #f59e0b !important;
 }
 
 .cluster text {
   font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Noto Sans JP', sans-serif !important;
   font-size: 11px !important;
+}
+
+/* Make subgraph title look like integrated header text */
+.cluster-label rect,
+.cluster-label .nodeLabel rect,
+g.cluster-label rect {
+  fill: transparent !important;
+  stroke: none !important;
+}
+
+.cluster-label text,
+.cluster-label .nodeLabel {
+  font-weight: 600 !important;
+  font-size: 12px !important;
+  fill: #2D2F63 !important;
+}
+
+/* Add padding around cluster/subgraph title text */
+.cluster-label foreignObject div,
+.cluster-label .nodeLabel {
+  padding: 6px 12px !important;
+  margin-top: 4px !important;
 }
 
 text {

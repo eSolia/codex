@@ -234,6 +234,7 @@
       startOnLoad: false,
       theme: 'default',
       securityLevel: 'loose',
+      fontFamily: "'Noto Sans JP', sans-serif",
     });
   });
 
@@ -432,6 +433,13 @@
 
 <svelte:head>
   <title>{data.fragment.name} | Fragments | Hanawa CMS</title>
+  <!-- Noto Sans JP for Mermaid diagram rendering (matches CF Browser Rendering font) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;600;700&display=swap"
+    rel="stylesheet"
+  />
 </svelte:head>
 
 <div class="max-w-4xl mx-auto space-y-6">

@@ -27,7 +27,7 @@ async function getMermaid() {
       startOnLoad: false,
       theme: 'neutral',
       securityLevel: 'strict',
-      fontFamily: 'IBM Plex Sans, sans-serif',
+      fontFamily: "'Noto Sans JP', sans-serif",
     });
     mermaidInitialized = true;
   }
