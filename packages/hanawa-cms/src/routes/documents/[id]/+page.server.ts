@@ -34,7 +34,9 @@ function processCallouts(
     const startPos = match.index;
 
     // Extract title from the start tag
-    const titleMatch = startTag.match(/data-callout-title=["']([^"']+)["']/i);
+    const titleMatch =
+      startTag.match(/data-callout-title="([^"]+)"/i) ||
+      startTag.match(/data-callout-title='([^']+)'/i);
     const title = titleMatch ? titleMatch[1] : null;
 
     // Find the matching closing </div> by counting nested divs
@@ -177,7 +179,7 @@ function resolveFragmentReferences(
       const svgContent = imageResolver.get(`/api/diagrams/${id}`);
       if (svgContent) {
         console.log(`[PDF] Resolved diagram ${fragmentId} via data-svg-path: ${svgPath}`);
-        return `<div class="diagram-container" style="margin: 20px 0; text-align: center;">${svgContent}</div>`;
+        return `<div style="text-align: center; margin: 20px 0;">${svgContent}</div>`;
       }
 
       console.error(`[PDF] SVG not in R2: ${svgPath} (fragment: ${fragmentId})`);
@@ -244,7 +246,7 @@ function markdownToHtml(markdown: string, imageResolver?: Map<string, string>): 
           // Use the R2-stored SVG - will be resolved by imageResolver
           const svgUrl = `/api/diagrams/${svgPath.replace('diagrams/', '').replace('.svg', '')}`;
           console.log('[PDF] Using R2 SVG:', svgUrl);
-          return `<div class="mermaid-diagram" style="margin: 20px 0; text-align: center;"><img src="${svgUrl}" alt="Mermaid diagram" style="max-width: 100%; height: auto;"></div>`;
+          return `<div style="text-align: center; margin: 20px 0;"><img src="${svgUrl}" alt="Mermaid diagram" style="max-width: 90%; height: auto;"></div>`;
         }
 
         // No R2 export - show warning placeholder
@@ -536,7 +538,7 @@ function markdownToHtml(markdown: string, imageResolver?: Map<string, string>): 
     // Check if we have an inline SVG for this URL
     if (imageResolver && imageResolver.has(url)) {
       const svgContent = imageResolver.get(url)!;
-      return `<div class="diagram-container" style="margin: 20px 0; text-align: center;">${svgContent}</div>`;
+      return `<div style="margin: 20px 0; text-align: center;"><div class="diagram-container">${svgContent}</div></div>`;
     }
     // For external URLs or when no resolver, use img tag with absolute URL
     const absoluteUrl = url.startsWith('/') ? `https://hanawa.esolia.co.jp${url}` : url;
@@ -1102,7 +1104,7 @@ export const actions: Actions = {
             const object = await platform.env.R2.get(cleanKey);
             if (object) {
               let svg = await object.text();
-              // Sanitize SVG: remove font-family declarations (preserve other styles)
+              // Strip font-family so the SVG inherits IBM Plex Sans JP from page CSS
               svg = svg.replace(/font-family\s*:\s*[^;}\n]+[;]?/gi, '');
               svg = svg.replace(/\s*font-family="[^"]*"/gi, '');
               svg = svg.replace(/\s*font-family='[^']*'/gi, '');
@@ -1118,6 +1120,10 @@ export const actions: Actions = {
                   return `<g class="cluster-label" transform="translate(${x}, ${y})"><text x="0" y="${textY}" fill="#333" font-size="13px" font-weight="600">${cleanText}</text></g>`;
                 }
               );
+              // Clean SVG root: remove width and Mermaid inline style
+              // viewBox provides intrinsic dimensions for <img> data URI
+              svg = svg.replace(/(<svg\b[^>]*?)\s+width=["'][^"']*["']/, '$1');
+              svg = svg.replace(/(<svg\b[^>]*?)\s+style=["'][^"']*["']/, '$1');
               console.log(`PDF: Loaded ${r2Key}`);
               return { url, svg };
             }
@@ -1129,6 +1135,37 @@ export const actions: Actions = {
 
         for (const result of await Promise.all(fetches)) {
           if (result) imageResolver.set(result.url, result.svg);
+        }
+
+        // Convert diagram SVGs to data URI <img> tags for centering.
+        // Only <img> tags center correctly in CF Browser Rendering print mode.
+        // Inline SVGs ignore all CSS centering (margin:auto, flexbox, text-align, etc.)
+        // Font: sans-serif only (data URI <img> sandboxes SVG from page fonts)
+        if (imageResolver.size > 0) {
+          const CHUNK_SIZE = 8192;
+          for (const [url, svg] of imageResolver) {
+            // Set explicit sans-serif font stack with Japanese-capable fonts.
+            // CF Browser Rendering = headless Chromium on Linux, likely has Noto fonts.
+            // Data URI <img> is sandboxed from page fonts, so we must name fonts explicitly.
+            // overflow:visible on foreignObject prevents text clipping when Noto is
+            // slightly wider than the font Mermaid used to calculate box widths.
+            const svgWithFont = svg.replace(
+              /(<svg\b[^>]*>)/,
+              `$1<defs><style>*{font-family:'Noto Sans CJK JP','Noto Sans JP','Hiragino Kaku Gothic ProN',Meiryo,sans-serif!important;}foreignObject{overflow:visible!important;}foreignObject div,foreignObject span,foreignObject body{overflow:visible!important;}</style></defs>`
+            );
+            // Encode Unicode SVG to base64 data URI
+            const encoder = new TextEncoder();
+            const svgBytes = encoder.encode(svgWithFont);
+            const chunks: string[] = [];
+            for (let i = 0; i < svgBytes.length; i += CHUNK_SIZE) {
+              const chunk = svgBytes.subarray(i, Math.min(i + CHUNK_SIZE, svgBytes.length));
+              chunks.push(String.fromCharCode(...chunk));
+            }
+            const svgBase64 = btoa(chunks.join(''));
+            const imgTag = `<img src="data:image/svg+xml;base64,${svgBase64}" style="max-width: 90%; height: auto;" alt="Diagram">`;
+            imageResolver.set(url, imgTag);
+          }
+          console.log(`PDF: Converted ${imageResolver.size} diagrams to data URI <img> tags`);
         }
       }
 
@@ -1219,7 +1256,7 @@ export const actions: Actions = {
               const svgContent = imageResolver.get(`/api/diagrams/${id}`);
               if (svgContent) {
                 console.log(`PDF buildSection: Resolved ${frag.id} via data-svg-path: ${svgPath}`);
-                section += `<div class="diagram-container" style="margin: 20px 0; text-align: center;">${svgContent}</div>\n`;
+                section += `<div style="text-align: center; margin: 20px 0;">${svgContent}</div>\n`;
               } else {
                 console.error(`PDF buildSection: SVG not in R2: ${svgPath}`);
                 section += `<div class="diagram-placeholder" style="margin: 20px 0; padding: 20px; border: 2px dashed #f87171; text-align: center; color: #b91c1c; background: #fef2f2;">
@@ -1362,9 +1399,7 @@ export const actions: Actions = {
     h2 { page-break-before: auto; page-break-after: avoid; }
     h3 { page-break-after: avoid; }
     ul, ol, table { page-break-inside: avoid; }
-    /* Diagram container - ensure SVGs fit within content width */
-    .diagram-container { margin: 1em 0; text-align: center; max-width: 100%; overflow: hidden; }
-    .diagram-container svg { max-width: 100%; height: auto; display: block; margin: 0 auto; }
+    /* Diagram SVGs fill their wrapper div, which is centered via margin: auto */
     @media print { body { padding: 0; } .logo { margin-bottom: 15px; } }
       `.trim();
 
