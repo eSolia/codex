@@ -25,7 +25,9 @@
     "db:migrate": "wrangler d1 migrations apply hanawa-db",
     "db:migrate:local": "wrangler d1 migrations apply hanawa-db --local",
     "version:bump": "./scripts/bump-version.sh",
-    "version:check": "echo \"package.json: $(node -p \"require('./package.json').version\")\" && echo \"wrangler.jsonc: $(grep APP_VERSION wrangler.jsonc | sed 's/.*: \"\\(.*\\)\".*/\\1/')\""
+    "version:check": "echo \"package.json: $(node -p \"require('./package.json').version\")\" && echo \"wrangler.jsonc: $(grep APP_VERSION wrangler.jsonc | sed 's/.*: \"\\(.*\\)\".*/\\1/')\"",
+    "diagram:backup": "npx tsx scripts/export-diagram-yaml.ts",
+    "diagram:backup:all": "npx tsx scripts/export-diagram-yaml.ts"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
