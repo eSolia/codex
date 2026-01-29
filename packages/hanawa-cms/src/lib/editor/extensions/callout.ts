@@ -63,6 +63,31 @@ export const Callout = Node.create<CalloutOptions>({
     return [
       {
         tag: 'div[data-callout-type]',
+        // Use function to strip phantom title paragraphs before parsing content.
+        // A phantom is a <p> inside .callout-content that duplicates the callout title.
+        // These were created by an earlier code version and self-perpetuate on round-trip.
+        contentElement: (node: globalThis.HTMLElement) => {
+          const contentEl = node.querySelector('.callout-content') as HTMLElement | null;
+          if (!contentEl) return node;
+
+          const title = node.getAttribute('data-callout-title');
+          if (title) {
+            const stripPrefix = (s: string) =>
+              s.replace(/^(\s|\ufe0f|\u200d|\u26a0|\u2139)+/u, '').trim();
+            const cleanTitle = stripPrefix(title);
+
+            // Remove ALL leading paragraphs that match the title (may be multiple)
+            let firstP = contentEl.querySelector(':scope > p:first-child');
+            while (firstP) {
+              const pText = stripPrefix(firstP.textContent || '');
+              if (pText !== cleanTitle) break;
+              firstP.remove();
+              firstP = contentEl.querySelector(':scope > p:first-child');
+            }
+          }
+
+          return contentEl;
+        },
       },
     ];
   },
