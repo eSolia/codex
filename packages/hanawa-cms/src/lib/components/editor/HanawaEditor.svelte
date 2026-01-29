@@ -11,6 +11,7 @@
   import EditorToolbar from './EditorToolbar.svelte';
   import SaveIndicator from './SaveIndicator.svelte';
   import MediaPicker from '../MediaPicker.svelte';
+  import FragmentPicker from '../FragmentPicker.svelte';
 
   // Props using Svelte 5 runes
   let {
@@ -41,6 +42,7 @@
   let wordCount = $state(0);
   let charCount = $state(0);
   let mediaPickerOpen = $state(false);
+  let fragmentPickerOpen = $state(false);
 
   // Save state
   type SaveStatus = 'idle' | 'saving' | 'saved' | 'error' | 'unsaved';
@@ -97,10 +99,14 @@
         isFocused = false;
       },
     });
+
+    // Listen for fragment picker events from slash commands
+    document.addEventListener('hanawa:openFragmentPicker', handleFragmentPickerEvent);
   });
 
   onDestroy(() => {
     if (autosaveTimeout) clearTimeout(autosaveTimeout);
+    document.removeEventListener('hanawa:openFragmentPicker', handleFragmentPickerEvent);
     destroyEditor(editor);
   });
 
@@ -161,6 +167,27 @@
     mediaPickerOpen = true;
   }
 
+  function openFragmentPicker() {
+    fragmentPickerOpen = true;
+  }
+
+  // Handle fragment selection from picker
+  function handleFragmentSelect(fragmentId: string, lang: string) {
+    if (editor && !editor.isDestroyed) {
+      editor.chain().focus().insertFragment(fragmentId, lang).run();
+    }
+    fragmentPickerOpen = false;
+  }
+
+  // Listen for custom event from slash commands
+  function handleFragmentPickerEvent(event: Event) {
+    const customEvent = event as CustomEvent;
+    // The event carries the editor, but we already have access to it
+    if (customEvent.detail?.editor === editor) {
+      openFragmentPicker();
+    }
+  }
+
   // Reactive: Update editor content when prop changes externally
   $effect(() => {
     if (editor && !editor.isDestroyed && editor.getHTML() !== content) {
@@ -182,6 +209,17 @@
     }
   });
 </script>
+
+<!-- Noto Sans JP: Mermaid uses this font to calculate node box widths.
+     Must match CF Browser Rendering (Noto Sans CJK JP) so PDF diagrams don't clip text. -->
+<svelte:head>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;600;700&display=swap"
+    rel="stylesheet"
+  />
+</svelte:head>
 
 <div
   class="hanawa-editor-container bg-white rounded-lg shadow-sm border border-gray-200 {sensitivityStyles[
@@ -208,7 +246,7 @@
 
   <!-- Toolbar -->
   {#if editor && editable}
-    <EditorToolbar {editor} {openMediaPicker} />
+    <EditorToolbar {editor} {openMediaPicker} {openFragmentPicker} />
   {/if}
 
   <!-- Editor Content -->
@@ -246,6 +284,9 @@
 
 <!-- Media Picker Modal -->
 <MediaPicker bind:open={mediaPickerOpen} acceptTypes={['image/*']} onselect={handleImageSelect} />
+
+<!-- Fragment Picker Modal -->
+<FragmentPicker bind:open={fragmentPickerOpen} onselect={handleFragmentSelect} />
 
 <style>
   .editor-content :global(.is-editor-empty:first-child::before) {

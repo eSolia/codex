@@ -184,14 +184,14 @@ const slashCommands: SlashCommandItem[] = [
     icon: '🧩',
     keywords: ['fragment', 'embed', 'include', 'reference', 'reuse'],
     command: ({ editor, range }) => {
-      // Prompt for fragment ID (e.g., "diagrams/network-topology" or "proposals/esolia-intro")
-      const fragmentId = prompt(
-        'Enter fragment ID (e.g., diagrams/my-diagram or proposals/intro):'
-      );
-      if (fragmentId && fragmentId.trim()) {
-        const lang = document.documentElement.lang === 'ja' ? 'ja' : 'en';
-        editor.chain().focus().deleteRange(range).insertFragment(fragmentId.trim(), lang).run();
-      }
+      // Delete the slash command text, then dispatch event to open fragment picker
+      editor.chain().focus().deleteRange(range).run();
+      // Dispatch custom event that HanawaEditor will listen for
+      const event = new CustomEvent('hanawa:openFragmentPicker', {
+        bubbles: true,
+        detail: { editor },
+      });
+      document.dispatchEvent(event);
     },
   },
 ];

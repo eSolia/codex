@@ -7,7 +7,11 @@
    */
   import type { Editor } from '@tiptap/core';
 
-  let { editor, openMediaPicker }: { editor: Editor; openMediaPicker?: () => void } = $props();
+  let {
+    editor,
+    openMediaPicker,
+    openFragmentPicker,
+  }: { editor: Editor; openMediaPicker?: () => void; openFragmentPicker?: () => void } = $props();
 
   // Track active states reactively
   let isActive = $state({
@@ -81,10 +85,15 @@
   }
 
   function insertFragment() {
-    const fragmentId = prompt('Enter fragment ID (e.g., products/m365):');
-    if (fragmentId) {
-      const lang = prompt('Language (en/ja):', 'en') || 'en';
-      editor.chain().focus().insertFragment(fragmentId, lang).run();
+    if (openFragmentPicker) {
+      openFragmentPicker();
+    } else {
+      // Fallback to prompt if picker not available
+      const fragmentId = prompt('Enter fragment ID (e.g., products/m365):');
+      if (fragmentId) {
+        const lang = prompt('Language (en/ja):', 'en') || 'en';
+        editor.chain().focus().insertFragment(fragmentId, lang).run();
+      }
     }
   }
 
