@@ -685,6 +685,20 @@
                 {/if}
               </div>
             </div>
+            <!-- SVG Preview from R2 -->
+            {#if meta.path}
+              {@const svgId = meta.path.replace('diagrams/', '').replace('.svg', '')}
+              <div
+                class="border border-gray-200 rounded-lg p-4 bg-white overflow-auto max-h-[500px]"
+              >
+                <img
+                  src="/api/diagrams/{svgId}"
+                  alt="Exported SVG: {meta.path}"
+                  class="max-w-full h-auto mx-auto"
+                  loading="lazy"
+                />
+              </div>
+            {/if}
           {/each}
         </div>
       </div>

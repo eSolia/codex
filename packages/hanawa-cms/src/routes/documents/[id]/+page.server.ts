@@ -1106,6 +1106,18 @@ export const actions: Actions = {
               svg = svg.replace(/font-family\s*:\s*[^;}\n]+[;]?/gi, '');
               svg = svg.replace(/\s*font-family="[^"]*"/gi, '');
               svg = svg.replace(/\s*font-family='[^']*'/gi, '');
+              // Fix: Convert foreignObject cluster labels to SVG <text> elements.
+              // Cloudflare Browser Rendering doesn't render foreignObject in cluster-label
+              // groups when printing to PDF, so we replace them with native SVG text.
+              svg = svg.replace(
+                /<g class="cluster-label" transform="translate\(([^,]+),\s*(\d+)\)">\s*<foreignObject[^>]*>[\s\S]*?<span class="nodeLabel">(?:<p>)?([\s\S]*?)(?:<\/p>)?<\/span>[\s\S]*?<\/foreignObject>\s*<\/g>/gi,
+                (_, x, y, text) => {
+                  const cleanText = text.replace(/<[^>]+>/g, '').trim();
+                  if (!cleanText) return '';
+                  const textY = parseFloat(y) + 16;
+                  return `<g class="cluster-label" transform="translate(${x}, ${y})"><text x="0" y="${textY}" fill="#333" font-size="13px" font-weight="600">${cleanText}</text></g>`;
+                }
+              );
               console.log(`PDF: Loaded ${r2Key}`);
               return { url, svg };
             }
