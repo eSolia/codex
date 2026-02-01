@@ -22,16 +22,16 @@ sed -i '' "s/\"version\": \"[^\"]*\"/\"version\": \"$NEW_VERSION\"/" package.jso
 echo "  → wrangler.jsonc"
 sed -i '' "s/\"APP_VERSION\": \"[^\"]*\"/\"APP_VERSION\": \"$NEW_VERSION\"/" wrangler.jsonc
 
-# 3. Sync package-lock.json
-echo "  → package-lock.json (npm install)"
-npm install --package-lock-only --silent
+# 3. Sync pnpm-lock.yaml
+echo "  → pnpm-lock.yaml (pnpm install)"
+pnpm install --silent
 
 echo ""
 echo "✓ Version bumped to $NEW_VERSION"
 echo ""
 echo "Files updated:"
 echo "  - package.json"
-echo "  - package-lock.json"
+echo "  - pnpm-lock.yaml"
 echo "  - wrangler.jsonc"
 echo ""
 echo "Next steps:"
