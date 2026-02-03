@@ -22,9 +22,13 @@ sed -i '' "s/\"version\": \"[^\"]*\"/\"version\": \"$NEW_VERSION\"/" package.jso
 echo "  → wrangler.jsonc"
 sed -i '' "s/\"APP_VERSION\": \"[^\"]*\"/\"APP_VERSION\": \"$NEW_VERSION\"/" wrangler.jsonc
 
-# 3. Sync pnpm-lock.yaml
+# 3. Update wrangler to latest
+echo "  → Updating wrangler to latest"
+pnpm update wrangler@latest --silent
+
+# 4. Sync pnpm-lock.yaml
 echo "  → pnpm-lock.yaml (pnpm install)"
-pnpm install --silent
+pnpm install --lockfile-only --silent
 
 echo ""
 echo "✓ Version bumped to $NEW_VERSION"
@@ -33,6 +37,7 @@ echo "Files updated:"
 echo "  - package.json"
 echo "  - pnpm-lock.yaml"
 echo "  - wrangler.jsonc"
+echo "  - wrangler (updated to latest)"
 echo ""
 echo "Next steps:"
 echo "  1. git add . && git commit -m 'chore: bump version to $NEW_VERSION'"
