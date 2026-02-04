@@ -5,6 +5,9 @@
 
 import type { PageServerLoad, Actions } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
+import { superValidate } from 'sveltekit-superforms';
+import { zod4 } from 'sveltekit-superforms/adapters';
+import { createTemplateSchema } from '$lib/schemas';
 
 interface Fragment {
   id: string;
@@ -14,8 +17,10 @@ interface Fragment {
 }
 
 export const load: PageServerLoad = async ({ platform }) => {
+  const form = await superValidate(zod4(createTemplateSchema));
+
   if (!platform?.env?.DB) {
-    return { availableFragments: [] };
+    return { form, availableFragments: [] };
   }
 
   const db = platform.env.DB;
@@ -32,51 +37,45 @@ export const load: PageServerLoad = async ({ platform }) => {
       .all<Fragment>();
 
     return {
+      form,
       availableFragments: fragmentsResult.results ?? [],
     };
   } catch (error) {
     console.error('Failed to load fragments:', error);
-    return { availableFragments: [] };
+    return { form, availableFragments: [] };
   }
 };
 
 export const actions: Actions = {
   default: async ({ request, platform }) => {
     if (!platform?.env?.DB) {
-      return fail(500, { error: 'Database not available' });
+      const form = await superValidate(request, zod4(createTemplateSchema));
+      form.message = 'Database not available';
+      return fail(500, { form });
     }
 
     const db = platform.env.DB;
-    const formData = await request.formData();
 
-    // InfoSec: Extract and validate form fields (OWASP A03)
-    const name = formData.get('name')?.toString().trim();
-    const nameJa = formData.get('name_ja')?.toString().trim() || null;
-    const description = formData.get('description')?.toString().trim() || null;
-    const descriptionJa = formData.get('description_ja')?.toString().trim() || null;
-    const documentType = formData.get('document_type')?.toString() || 'proposal';
-    const isDefault = formData.get('is_default') === 'true';
-    const fragmentsJson = formData.get('fragments')?.toString() || '[]';
+    // InfoSec: Validate form input (OWASP A03)
+    const form = await superValidate(request, zod4(createTemplateSchema));
 
-    // Validation
-    if (!name) {
-      return fail(400, { error: 'Template name is required', name });
+    if (!form.valid) {
+      return fail(400, { form });
     }
 
-    // InfoSec: Validate document_type enum (OWASP A03)
-    const validTypes = ['proposal', 'report', 'quote', 'sow', 'assessment'];
-    if (!validTypes.includes(documentType)) {
-      return fail(400, { error: 'Invalid document type' });
-    }
+    const { name, name_ja, description, description_ja, document_type, is_default, fragments } =
+      form.data;
 
     // InfoSec: Validate fragments JSON structure
     try {
-      const fragments = JSON.parse(fragmentsJson);
-      if (!Array.isArray(fragments)) {
-        return fail(400, { error: 'Invalid fragments format' });
+      const fragmentArray = JSON.parse(fragments || '[]');
+      if (!Array.isArray(fragmentArray)) {
+        form.message = 'Invalid fragments format';
+        return fail(400, { form });
       }
     } catch {
-      return fail(400, { error: 'Invalid fragments JSON' });
+      form.message = 'Invalid fragments JSON';
+      return fail(400, { form });
     }
 
     // Generate unique ID
@@ -84,12 +83,12 @@ export const actions: Actions = {
 
     try {
       // If this is marked as default, unset other defaults for this type
-      if (isDefault) {
+      if (is_default) {
         await db
           .prepare(
             'UPDATE templates SET is_default = FALSE WHERE document_type = ? AND is_default = TRUE'
           )
-          .bind(documentType)
+          .bind(document_type)
           .run();
       }
 
@@ -101,22 +100,27 @@ export const actions: Actions = {
             document_type, default_fragments, is_default, is_active
           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, TRUE)`
         )
-        .bind(id, name, nameJa, description, descriptionJa, documentType, fragmentsJson, isDefault)
+        .bind(
+          id,
+          name,
+          name_ja || null,
+          description || null,
+          description_ja || null,
+          document_type,
+          fragments || '[]',
+          is_default
+        )
         .run();
 
       // Redirect to the template editor
       redirect(303, `/templates/${id}`);
-    } catch (error) {
+    } catch (err) {
       // Re-throw redirects
-      if (error instanceof Response || (error as { status?: number })?.status === 303) {
-        throw error;
-      }
+      if (err instanceof Response) throw err;
 
-      console.error('Failed to create template:', error);
-      return fail(500, {
-        error: 'Failed to create template',
-        name,
-      });
+      console.error('Failed to create template:', err);
+      form.message = 'Failed to create template';
+      return fail(500, { form });
     }
   },
 };

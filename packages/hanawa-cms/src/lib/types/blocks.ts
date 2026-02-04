@@ -71,8 +71,10 @@ export const CalloutDataSchema = z.object({
 });
 
 export const FragmentDataSchema = z.object({
-  fragmentId: z.string(),
-  overrides: z.record(z.string()).optional(),
+  fragmentId: z.string({ message: 'Fragment ID is required' }),
+  overrides: z
+    .record(z.string({ message: 'Key required' }), z.string({ message: 'Value required' }))
+    .optional(),
 });
 
 export const TableDataSchema = z.object({

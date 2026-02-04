@@ -4,8 +4,11 @@
  */
 
 import type { PageServerLoad, Actions } from './$types';
-import { error, redirect } from '@sveltejs/kit';
+import { error, fail, redirect } from '@sveltejs/kit';
 import { createVersionService, type VersionListItem } from '$lib/server/versions';
+import { superValidate } from 'sveltekit-superforms';
+import { zod4 } from 'sveltekit-superforms/adapters';
+import { saveFragmentSchema, deleteFragmentSchema } from '$lib/schemas';
 
 interface FragmentRow {
   id: string;
@@ -60,7 +63,21 @@ export const load: PageServerLoad = async ({ platform, params, locals }) => {
       console.warn('Could not load versions:', vErr);
     }
 
-    return { fragment, versions };
+    // Initialize forms
+    const saveForm = await superValidate(
+      {
+        name: fragment.name,
+        content_en: fragment.content_en || '',
+        content_ja: fragment.content_ja || '',
+        description: fragment.description || '',
+        category: fragment.category || '',
+        tags: JSON.stringify(fragment.tags),
+      },
+      zod4(saveFragmentSchema)
+    );
+    const deleteForm = await superValidate(zod4(deleteFragmentSchema));
+
+    return { fragment, versions, saveForm, deleteForm };
   } catch (err) {
     if ((err as { status?: number }).status === 404) {
       throw err;
@@ -77,60 +94,50 @@ export const actions: Actions = {
 
       if (!platform?.env?.DB) {
         console.error('[Fragment Update] Database not available');
-        return { success: false, error: 'Database not available' };
+        const saveForm = await superValidate(request, zod4(saveFragmentSchema));
+        saveForm.message = 'Database not available';
+        return fail(500, { saveForm });
       }
 
       const db = platform.env.DB;
-      let formData: FormData;
-      try {
-        formData = await request.formData();
-        console.log('[Fragment Update] Form data parsed successfully');
-      } catch (parseErr) {
-        console.error('[Fragment Update] Form parse error:', parseErr);
-        return { success: false, error: 'Failed to parse form data' };
+
+      // InfoSec: Validate form input (OWASP A03)
+      const saveForm = await superValidate(request, zod4(saveFragmentSchema));
+
+      if (!saveForm.valid) {
+        return fail(400, { saveForm });
       }
 
-      // InfoSec: Validate and sanitize inputs
-      const name = formData.get('name')?.toString().trim();
-      const contentEncoding = formData.get('content_encoding')?.toString();
+      const { name, content_encoding, description, category, tags } = saveForm.data;
+      let { content_en, content_ja } = saveForm.data;
 
       // Decode base64 content if encoded (bypasses WAF for HTML content)
-      let contentEn: string | null = formData.get('content_en')?.toString() || null;
-      let contentJa: string | null = formData.get('content_ja')?.toString() || null;
-
-      if (contentEncoding === 'base64') {
+      if (content_encoding === 'base64') {
         try {
-          if (contentEn) {
-            contentEn = decodeURIComponent(escape(atob(contentEn)));
+          if (content_en) {
+            content_en = decodeURIComponent(escape(atob(content_en)));
           }
-          if (contentJa) {
-            contentJa = decodeURIComponent(escape(atob(contentJa)));
+          if (content_ja) {
+            content_ja = decodeURIComponent(escape(atob(content_ja)));
           }
         } catch (decodeErr) {
           console.error('[Fragment Update] Base64 decode error:', decodeErr);
-          return { success: false, error: 'Failed to decode content' };
+          saveForm.message = 'Failed to decode content';
+          return fail(400, { saveForm });
         }
       }
 
       console.log(`[Fragment Update] Name: ${name}`);
-      console.log(`[Fragment Update] Content EN length: ${contentEn?.length || 0}`);
-      console.log(`[Fragment Update] Content JA length: ${contentJa?.length || 0}`);
-
-      const description = formData.get('description')?.toString() || null;
-      const category = formData.get('category')?.toString() || null;
-      const tagsRaw = formData.get('tags')?.toString() || '[]';
-
-      if (!name) {
-        return { success: false, error: 'Name is required' };
-      }
+      console.log(`[Fragment Update] Content EN length: ${content_en?.length || 0}`);
+      console.log(`[Fragment Update] Content JA length: ${content_ja?.length || 0}`);
 
       // Parse and validate tags
-      let tags: string[];
+      let tagArray: string[];
       try {
-        tags = JSON.parse(tagsRaw);
-        if (!Array.isArray(tags)) tags = [];
+        tagArray = JSON.parse(tags || '[]');
+        if (!Array.isArray(tagArray)) tagArray = [];
       } catch {
-        tags = [];
+        tagArray = [];
       }
 
       console.log(`[Fragment Update] Starting update for ${params.id}`);
@@ -153,12 +160,12 @@ export const actions: Actions = {
         )
         .bind(
           name,
-          contentEn,
-          contentJa,
-          description,
-          category,
-          JSON.stringify(tags),
-          contentEn && contentJa ? 1 : 0,
+          content_en || null,
+          content_ja || null,
+          description || null,
+          category || null,
+          JSON.stringify(tagArray),
+          content_en && content_ja ? 1 : 0,
           params.id
         )
         .run();
@@ -168,7 +175,11 @@ export const actions: Actions = {
       // Create version if content changed (non-blocking)
       try {
         if (locals.versions && locals.auditContext) {
-          const newContent = JSON.stringify({ name, content_en: contentEn, content_ja: contentJa });
+          const newContent = JSON.stringify({
+            name,
+            content_en: content_en,
+            content_ja: content_ja,
+          });
           const oldContent = current
             ? JSON.stringify({
                 name: current.name,
@@ -214,7 +225,7 @@ export const actions: Actions = {
       }
 
       console.log(`[Fragment Update] Completed successfully`);
-      return { success: true };
+      return { saveForm, success: true };
     } catch (err) {
       console.error('[Fragment Update] Error:', err);
       console.error(
@@ -225,7 +236,9 @@ export const actions: Actions = {
         '[Fragment Update] Error stack:',
         err instanceof Error ? err.stack : 'no stack'
       );
-      return { success: false, error: err instanceof Error ? err.message : 'Unknown error' };
+      const saveForm = await superValidate(zod4(saveFragmentSchema));
+      saveForm.message = err instanceof Error ? err.message : 'Unknown error';
+      return fail(500, { saveForm });
     }
   },
 

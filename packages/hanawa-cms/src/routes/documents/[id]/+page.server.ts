@@ -5,6 +5,9 @@
 
 import type { PageServerLoad, Actions } from './$types';
 import { error, fail } from '@sveltejs/kit';
+import { superValidate } from 'sveltekit-superforms';
+import { zod4 } from 'sveltekit-superforms/adapters';
+import { saveDocumentSchema, updateDocumentStatusSchema, deleteDocumentSchema } from '$lib/schemas';
 
 /**
  * Process Tiptap callout blocks to PDF-styled HTML
@@ -769,12 +772,37 @@ export const load: PageServerLoad = async ({ params, platform }) => {
 
     const boilerplates = boilerplateResult.results ?? [];
 
+    // Initialize forms - convert null to empty string for optional fields
+    const saveForm = await superValidate(
+      {
+        title: result.title,
+        title_ja: result.title_ja || '',
+        client_code: result.client_code || '',
+        client_name: result.client_name || '',
+        client_name_ja: result.client_name_ja || '',
+        contact_name: result.contact_name || '',
+        contact_name_ja: result.contact_name_ja || '',
+        scope: result.scope || '',
+        scope_ja: result.scope_ja || '',
+        language_mode: result.language_mode as 'en' | 'ja' | 'both_en_first' | 'both_ja_first',
+        fragments: result.fragments || '',
+        cover_letter_en: result.cover_letter_en || '',
+        cover_letter_ja: result.cover_letter_ja || '',
+      },
+      zod4(saveDocumentSchema)
+    );
+    const updateStatusForm = await superValidate(zod4(updateDocumentStatusSchema));
+    const deleteForm = await superValidate(zod4(deleteDocumentSchema));
+
     return {
       proposal: result,
       fragments,
       fragmentContents,
       availableFragments,
       boilerplates,
+      saveForm,
+      updateStatusForm,
+      deleteForm,
     };
   } catch (err) {
     if ((err as { status?: number })?.status === 404) {
@@ -789,37 +817,35 @@ export const actions: Actions = {
   // Update proposal details
   update: async ({ params, request, platform }) => {
     if (!platform?.env?.DB) {
-      return fail(500, { error: 'Database not available' });
+      const saveForm = await superValidate(request, zod4(saveDocumentSchema));
+      saveForm.message = 'Database not available';
+      return fail(500, { saveForm });
     }
 
     const db = platform.env.DB;
-    const formData = await request.formData();
 
-    // Client code is optional - empty string for general (non-personalized) documents
-    const clientCode = formData.get('client_code')?.toString().trim() || '';
-    const clientName = formData.get('client_name')?.toString().trim() || null;
-    const clientNameJa = formData.get('client_name_ja')?.toString().trim() || null;
-    const contactName = formData.get('contact_name')?.toString().trim() || null;
-    const contactNameJa = formData.get('contact_name_ja')?.toString().trim() || null;
-    const title = formData.get('title')?.toString().trim();
-    const titleJa = formData.get('title_ja')?.toString().trim() || null;
-    const scope = formData.get('scope')?.toString().trim() || null;
-    const scopeJa = formData.get('scope_ja')?.toString().trim() || null;
-    const languageMode = formData.get('language_mode')?.toString() || 'en';
-    const fragmentsJson = formData.get('fragments')?.toString() || '[]';
-    const coverLetterEn = formData.get('cover_letter_en')?.toString() || null;
-    const coverLetterJa = formData.get('cover_letter_ja')?.toString() || null;
+    // InfoSec: Validate form input (OWASP A03)
+    const saveForm = await superValidate(request, zod4(saveDocumentSchema));
 
-    // Only title is required - client_code is optional for general documents
-    if (!title) {
-      return fail(400, { error: 'Document title is required' });
+    if (!saveForm.valid) {
+      return fail(400, { saveForm });
     }
 
-    // InfoSec: Validate language_mode enum (OWASP A03)
-    const validModes = ['en', 'ja', 'both_en_first', 'both_ja_first'];
-    if (!validModes.includes(languageMode)) {
-      return fail(400, { error: 'Invalid language mode' });
-    }
+    const {
+      title,
+      title_ja,
+      client_code,
+      client_name,
+      client_name_ja,
+      contact_name,
+      contact_name_ja,
+      scope,
+      scope_ja,
+      language_mode,
+      fragments,
+      cover_letter_en,
+      cover_letter_ja,
+    } = saveForm.data;
 
     try {
       // InfoSec: Parameterized update (OWASP A03)
@@ -834,46 +860,49 @@ export const actions: Actions = {
            WHERE id = ?`
         )
         .bind(
-          clientCode,
-          clientName,
-          clientNameJa,
-          contactName,
-          contactNameJa,
+          client_code || '',
+          client_name || null,
+          client_name_ja || null,
+          contact_name || null,
+          contact_name_ja || null,
           title,
-          titleJa,
-          scope,
-          scopeJa,
-          languageMode,
-          fragmentsJson,
-          coverLetterEn,
-          coverLetterJa,
+          title_ja || null,
+          scope || null,
+          scope_ja || null,
+          language_mode,
+          fragments || '[]',
+          cover_letter_en || null,
+          cover_letter_ja || null,
           params.id
         )
         .run();
 
-      return { success: true, message: 'Document saved' };
+      return { saveForm, success: true };
     } catch (err) {
       console.error('Failed to update proposal:', err);
-      return fail(500, { error: 'Failed to update proposal' });
+      saveForm.message = 'Failed to update proposal';
+      return fail(500, { saveForm });
     }
   },
 
   // Update workflow status
   updateStatus: async ({ params, request, platform }) => {
     if (!platform?.env?.DB) {
-      return fail(500, { error: 'Database not available' });
+      const updateStatusForm = await superValidate(request, zod4(updateDocumentStatusSchema));
+      updateStatusForm.message = 'Database not available';
+      return fail(500, { updateStatusForm });
     }
 
     const db = platform.env.DB;
-    const formData = await request.formData();
-    const status = formData.get('status')?.toString();
-    const reviewNotes = formData.get('review_notes')?.toString() || null;
 
-    // InfoSec: Validate status enum (OWASP A03)
-    const validStatuses = ['draft', 'review', 'approved', 'shared', 'archived'];
-    if (!status || !validStatuses.includes(status)) {
-      return fail(400, { error: 'Invalid status' });
+    // InfoSec: Validate form input (OWASP A03)
+    const updateStatusForm = await superValidate(request, zod4(updateDocumentStatusSchema));
+
+    if (!updateStatusForm.valid) {
+      return fail(400, { updateStatusForm });
     }
+
+    const { status, review_notes } = updateStatusForm.data;
 
     try {
       if (status === 'approved' || status === 'review') {
@@ -885,7 +914,7 @@ export const actions: Actions = {
               updated_at = datetime('now')
              WHERE id = ?`
           )
-          .bind(status, reviewNotes, params.id)
+          .bind(status, review_notes || null, params.id)
           .run();
       } else {
         await db
@@ -898,10 +927,11 @@ export const actions: Actions = {
           .run();
       }
 
-      return { success: true, message: `Status updated to ${status}` };
+      return { updateStatusForm, success: true };
     } catch (err) {
       console.error('Failed to update status:', err);
-      return fail(500, { error: 'Failed to update status' });
+      updateStatusForm.message = 'Failed to update status';
+      return fail(500, { updateStatusForm });
     }
   },
 

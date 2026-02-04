@@ -6,10 +6,16 @@
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { logAuditEvent } from '$lib/server/security';
+import { superValidate } from 'sveltekit-superforms';
+import { zod4 } from 'sveltekit-superforms/adapters';
+import { createContentSchema } from '$lib/schemas';
 
 export const load: PageServerLoad = async ({ platform }) => {
+  const form = await superValidate(zod4(createContentSchema));
+
   if (!platform?.env?.DB) {
     return {
+      form,
       sites: [],
       contentTypes: [],
     };
@@ -24,51 +30,34 @@ export const load: PageServerLoad = async ({ platform }) => {
     ]);
 
     return {
+      form,
       sites: sitesResult.results ?? [],
       contentTypes: typesResult.results ?? [],
     };
   } catch (error) {
     console.error('New content page load error:', error);
-    return { sites: [], contentTypes: [] };
+    return { form, sites: [], contentTypes: [] };
   }
 };
 
 export const actions: Actions = {
   create: async ({ request, platform, locals }) => {
     if (!platform?.env?.DB) {
-      return fail(500, { message: 'Database not available' });
+      const form = await superValidate(request, zod4(createContentSchema));
+      form.message = 'Database not available';
+      return fail(500, { form });
     }
 
     const db = platform.env.DB;
-    const formData = await request.formData();
 
-    const title = formData.get('title') as string;
-    const slug = formData.get('slug') as string;
-    const siteId = formData.get('site_id') as string;
-    const contentTypeId = formData.get('content_type_id') as string;
-    const sensitivity = (formData.get('sensitivity') as string) || 'normal';
-    const language = (formData.get('language') as string) || 'en';
+    // InfoSec: Validate form input (OWASP A03)
+    const form = await superValidate(request, zod4(createContentSchema));
 
-    // InfoSec: Input validation (OWASP A03)
-    if (!title || !slug) {
-      return fail(400, { message: 'Title and slug are required' });
+    if (!form.valid) {
+      return fail(400, { form });
     }
 
-    if (!siteId || !contentTypeId) {
-      return fail(400, { message: 'Site and content type are required' });
-    }
-
-    // InfoSec: Validate slug format
-    if (!/^[a-z0-9-]+$/.test(slug)) {
-      return fail(400, {
-        message: 'Slug must contain only lowercase letters, numbers, and hyphens',
-      });
-    }
-
-    // InfoSec: Validate sensitivity
-    if (!['normal', 'confidential', 'embargoed'].includes(sensitivity)) {
-      return fail(400, { message: 'Invalid sensitivity level' });
-    }
+    const { title, slug, site_id, content_type_id, sensitivity, language } = form.data;
 
     const id = crypto.randomUUID();
     const now = Math.floor(Date.now() / 1000);
@@ -78,13 +67,12 @@ export const actions: Actions = {
       // Check for duplicate slug
       const existing = await db
         .prepare('SELECT id FROM content WHERE site_id = ? AND slug = ? AND language = ?')
-        .bind(siteId, slug, language)
+        .bind(site_id, slug, language)
         .first();
 
       if (existing) {
-        return fail(400, {
-          message: 'A content item with this slug already exists for this site and language',
-        });
+        form.message = 'A content item with this slug already exists for this site and language';
+        return fail(400, { form });
       }
 
       await db
@@ -96,7 +84,7 @@ export const actions: Actions = {
           ) VALUES (?, ?, ?, ?, ?, 'draft', ?, ?, ?, ?, ?)
         `
         )
-        .bind(id, siteId, contentTypeId, title, slug, language, sensitivity, actor, now, now)
+        .bind(id, site_id, content_type_id, title, slug, language, sensitivity, actor, now, now)
         .run();
 
       // InfoSec: Audit log
@@ -110,7 +98,8 @@ export const actions: Actions = {
     } catch (err) {
       if (err instanceof Response) throw err; // Re-throw redirect
       console.error('Content create error:', err);
-      return fail(500, { message: 'Failed to create content' });
+      form.message = 'Failed to create content';
+      return fail(500, { form });
     }
   },
 };

@@ -5,6 +5,9 @@
 
 import type { PageServerLoad, Actions } from './$types';
 import { error, fail, redirect } from '@sveltejs/kit';
+import { superValidate } from 'sveltekit-superforms';
+import { zod4 } from 'sveltekit-superforms/adapters';
+import { saveTemplateSchema, deleteTemplateSchema } from '$lib/schemas';
 
 interface Template {
   id: string;
@@ -56,9 +59,31 @@ export const load: PageServerLoad = async ({ params, platform }) => {
       )
       .all<Fragment>();
 
+    // Initialize forms - convert null to empty string for optional fields
+    const saveForm = await superValidate(
+      {
+        name: template.name,
+        name_ja: template.name_ja || '',
+        description: template.description || '',
+        description_ja: template.description_ja || '',
+        document_type: template.document_type as
+          | 'proposal'
+          | 'report'
+          | 'quote'
+          | 'sow'
+          | 'assessment',
+        is_default: template.is_default,
+        fragments: template.default_fragments || '',
+      },
+      zod4(saveTemplateSchema)
+    );
+    const deleteForm = await superValidate(zod4(deleteTemplateSchema));
+
     return {
       template,
       availableFragments: fragmentsResult.results ?? [],
+      saveForm,
+      deleteForm,
     };
   } catch (err) {
     if ((err as { status?: number })?.status === 404) {
@@ -73,48 +98,43 @@ export const actions: Actions = {
   // Update template
   update: async ({ params, request, platform }) => {
     if (!platform?.env?.DB) {
-      return fail(500, { error: 'Database not available' });
+      const saveForm = await superValidate(request, zod4(saveTemplateSchema));
+      saveForm.message = 'Database not available';
+      return fail(500, { saveForm });
     }
 
     const db = platform.env.DB;
-    const formData = await request.formData();
 
-    const name = formData.get('name')?.toString().trim();
-    const nameJa = formData.get('name_ja')?.toString().trim() || null;
-    const description = formData.get('description')?.toString().trim() || null;
-    const descriptionJa = formData.get('description_ja')?.toString().trim() || null;
-    const documentType = formData.get('document_type')?.toString() || 'proposal';
-    const isDefault = formData.get('is_default') === 'true';
-    const fragmentsJson = formData.get('fragments')?.toString() || '[]';
+    // InfoSec: Validate form input (OWASP A03)
+    const saveForm = await superValidate(request, zod4(saveTemplateSchema));
 
-    if (!name) {
-      return fail(400, { error: 'Template name is required' });
+    if (!saveForm.valid) {
+      return fail(400, { saveForm });
     }
 
-    // InfoSec: Validate document_type enum (OWASP A03)
-    const validTypes = ['proposal', 'report', 'quote', 'sow', 'assessment'];
-    if (!validTypes.includes(documentType)) {
-      return fail(400, { error: 'Invalid document type' });
-    }
+    const { name, name_ja, description, description_ja, document_type, is_default, fragments } =
+      saveForm.data;
 
     // InfoSec: Validate fragments JSON structure
     try {
-      const fragments = JSON.parse(fragmentsJson);
-      if (!Array.isArray(fragments)) {
-        return fail(400, { error: 'Invalid fragments format' });
+      const fragmentArray = JSON.parse(fragments || '[]');
+      if (!Array.isArray(fragmentArray)) {
+        saveForm.message = 'Invalid fragments format';
+        return fail(400, { saveForm });
       }
     } catch {
-      return fail(400, { error: 'Invalid fragments JSON' });
+      saveForm.message = 'Invalid fragments JSON';
+      return fail(400, { saveForm });
     }
 
     try {
       // If this is marked as default, unset other defaults for this type
-      if (isDefault) {
+      if (is_default) {
         await db
           .prepare(
             'UPDATE templates SET is_default = FALSE WHERE document_type = ? AND is_default = TRUE AND id != ?'
           )
-          .bind(documentType, params.id)
+          .bind(document_type, params.id)
           .run();
       }
 
@@ -129,20 +149,21 @@ export const actions: Actions = {
         )
         .bind(
           name,
-          nameJa,
-          description,
-          descriptionJa,
-          documentType,
-          fragmentsJson,
-          isDefault,
+          name_ja || null,
+          description || null,
+          description_ja || null,
+          document_type,
+          fragments || '[]',
+          is_default,
           params.id
         )
         .run();
 
-      return { success: true, message: 'Template updated' };
+      return { saveForm, success: true };
     } catch (err) {
       console.error('Failed to update template:', err);
-      return fail(500, { error: 'Failed to update template' });
+      saveForm.message = 'Failed to update template';
+      return fail(500, { saveForm });
     }
   },
 

@@ -42,9 +42,9 @@
   <div class="bg-white rounded-lg shadow p-6">
     <h1 class="text-2xl font-bold text-esolia-navy mb-6">Create New Content</h1>
 
-    {#if form?.message}
+    {#if form?.form?.message}
       <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-800">
-        {form.message}
+        {form.form.message}
       </div>
     {/if}
 

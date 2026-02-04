@@ -5,6 +5,9 @@
 
 import type { PageServerLoad, Actions } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
+import { superValidate } from 'sveltekit-superforms';
+import { zod4 } from 'sveltekit-superforms/adapters';
+import { createDocumentSchema } from '$lib/schemas';
 
 interface Template {
   id: string;
@@ -32,8 +35,10 @@ const FALLBACK_FRAGMENTS = [
 ];
 
 export const load: PageServerLoad = async ({ platform, url }) => {
+  const form = await superValidate(zod4(createDocumentSchema));
+
   if (!platform?.env?.DB) {
-    return { templates: [], availableFragments: [], selectedTemplate: null };
+    return { form, templates: [], availableFragments: [], selectedTemplate: null };
   }
 
   const db = platform.env.DB;
@@ -93,6 +98,7 @@ export const load: PageServerLoad = async ({ platform, url }) => {
     }
 
     return {
+      form,
       templates,
       availableFragments: fragmentsResult.results ?? [],
       selectedTemplate,
@@ -101,6 +107,7 @@ export const load: PageServerLoad = async ({ platform, url }) => {
   } catch (error) {
     console.error('Failed to load data:', error);
     return {
+      form,
       templates: [],
       availableFragments: [],
       selectedTemplate: null,
@@ -112,33 +119,31 @@ export const load: PageServerLoad = async ({ platform, url }) => {
 export const actions: Actions = {
   default: async ({ request, platform }) => {
     if (!platform?.env?.DB) {
-      return fail(500, { error: 'Database not available' });
+      const form = await superValidate(request, zod4(createDocumentSchema));
+      form.message = 'Database not available';
+      return fail(500, { form });
     }
 
     const db = platform.env.DB;
-    const formData = await request.formData();
 
-    // InfoSec: Extract and validate form fields (OWASP A03)
-    const templateId = formData.get('template_id')?.toString() || null;
-    // Client code is optional - empty string for general (non-personalized) documents
-    const clientCode = formData.get('client_code')?.toString().trim() || '';
-    const clientName = formData.get('client_name')?.toString().trim() || null;
-    const clientNameJa = formData.get('client_name_ja')?.toString().trim() || null;
-    const title = formData.get('title')?.toString().trim();
-    const titleJa = formData.get('title_ja')?.toString().trim() || null;
-    const scope = formData.get('scope')?.toString().trim() || null;
-    const language = formData.get('language')?.toString() || 'en';
-    const fragmentsJson = formData.get('fragments')?.toString() || '[]';
+    // InfoSec: Validate form input (OWASP A03)
+    const form = await superValidate(request, zod4(createDocumentSchema));
 
-    // Validation - only title is required, client_code is optional
-    if (!title) {
-      return fail(400, { error: 'Document title is required', clientCode, title });
+    if (!form.valid) {
+      return fail(400, { form });
     }
 
-    // InfoSec: Validate language enum (OWASP A03)
-    if (!['en', 'ja'].includes(language)) {
-      return fail(400, { error: 'Invalid language selection' });
-    }
+    const {
+      title,
+      title_ja,
+      client_code,
+      client_name,
+      client_name_ja,
+      scope,
+      language,
+      template_id,
+      fragments,
+    } = form.data;
 
     // Generate unique ID
     const id = `doc_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
@@ -154,32 +159,27 @@ export const actions: Actions = {
         )
         .bind(
           id,
-          clientCode,
-          clientName,
-          clientNameJa,
+          client_code || '',
+          client_name || null,
+          client_name_ja || null,
           title,
-          titleJa,
-          scope,
+          title_ja || null,
+          scope || null,
           language,
-          templateId,
-          fragmentsJson
+          template_id || null,
+          fragments || '[]'
         )
         .run();
 
       // Redirect to the document editor
       redirect(303, `/documents/${id}`);
-    } catch (error) {
+    } catch (err) {
       // Re-throw redirects
-      if (error instanceof Response || (error as { status?: number })?.status === 303) {
-        throw error;
-      }
+      if (err instanceof Response) throw err;
 
-      console.error('Failed to create document:', error);
-      return fail(500, {
-        error: 'Failed to create document',
-        clientCode,
-        title,
-      });
+      console.error('Failed to create document:', err);
+      form.message = 'Failed to create document';
+      return fail(500, { form });
     }
   },
 };

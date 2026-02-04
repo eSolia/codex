@@ -547,9 +547,9 @@
     <div class="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg">
       Fragment updated successfully.
     </div>
-  {:else if form?.error}
+  {:else if form?.saveForm?.message}
     <div class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">
-      Error: {form.error}
+      Error: {form.saveForm.message}
     </div>
   {/if}
 

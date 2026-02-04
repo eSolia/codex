@@ -29,12 +29,12 @@
 
 **Minimum Safe Versions:**
 
-| Package | Minimum Version | CVE |
-|---------|----------------|-----|
-| `svelte` | **5.46.4** | CVE-2025-15265 (XSS via hydratable keys) |
-| `@sveltejs/kit` | **2.49.5** | CVE-2025-67647 (prerendering DoS/SSRF), CVE-2026-22803 (remote functions) |
-| `@sveltejs/adapter-node` | **5.5.1** | CVE-2025-67647 (SSRF mitigation) |
-| `devalue` | **5.6.2** | CVE-2026-22775, CVE-2026-22774 (DoS - memory/CPU) |
+| Package                  | Minimum Version | CVE                                                                       |
+| ------------------------ | --------------- | ------------------------------------------------------------------------- |
+| `svelte`                 | **5.46.4**      | CVE-2025-15265 (XSS via hydratable keys)                                  |
+| `@sveltejs/kit`          | **2.49.5**      | CVE-2025-67647 (prerendering DoS/SSRF), CVE-2026-22803 (remote functions) |
+| `@sveltejs/adapter-node` | **5.5.1**       | CVE-2025-67647 (SSRF mitigation)                                          |
+| `devalue`                | **5.6.2**       | CVE-2026-22775, CVE-2026-22774 (DoS - memory/CPU)                         |
 
 ### Immediate Actions Required
 
@@ -62,6 +62,7 @@ npm audit
 **Affected:** `devalue` 5.1.0–5.6.1 when parsing user-controlled input
 
 **Mitigation:**
+
 - Update `devalue` to 5.6.2+
 - Disable `experimental.remoteFunctions` in production (if enabled)
 - Never deserialize untrusted user input directly
@@ -73,6 +74,7 @@ npm audit
 **Affected:** SvelteKit 2.49.0–2.49.4 with `experimental.remoteFunctions` flag enabled
 
 **Mitigation:**
+
 ```javascript
 // svelte.config.js
 export default {
@@ -90,10 +92,12 @@ export default {
 **Risk:** Server crashes, unauthorized internal resource access, cache poisoning leading to XSS.
 
 **Affected:**
+
 - SvelteKit 2.44.0–2.49.4 (DoS risk with prerendered routes)
 - SvelteKit 2.19.0–2.49.4 + adapter-node without `ORIGIN` environment variable (SSRF risk)
 
 **Mitigation:**
+
 ```bash
 # .env.production (REQUIRED for adapter-node)
 ORIGIN=https://your-domain.com
@@ -128,6 +132,7 @@ export default {
 ### Reporting Future Vulnerabilities
 
 Report security issues through:
+
 - Repository Security tab (preferred)
 - https://github.com/sveltejs/svelte/security
 
@@ -669,6 +674,49 @@ let { value } = $props();
 let displayValue = $derived(value.toUpperCase());
 ```
 
+### Modal/Dialog Double-Click Issue
+
+When using client-side navigation with modals, users may need to click twice on first load due to hydration timing.
+
+```svelte
+<script>
+  import { afterNavigate } from '$app/navigation';
+  import { tick } from 'svelte';
+
+  let dialog = $state<HTMLDialogElement>();
+  let showModal = $derived(!!data.selectedItem);
+
+  // ❌ Modal may not be ready on first navigation
+  afterNavigate(() => {
+    if (dialog && showModal && !dialog.open) {
+      dialog.showModal(); // Fails silently if dialog not ready
+    }
+  });
+
+  // ✅ Wait for DOM to settle before opening modal
+  afterNavigate(async () => {
+    await tick(); // Ensures dialog element is fully mounted
+    if (dialog && showModal && !dialog.open) {
+      dialog.showModal();
+    }
+  });
+</script>
+
+<dialog bind:this={dialog}>
+  <!-- Modal content -->
+</dialog>
+```
+
+**Common symptoms:**
+
+- First click does nothing
+- Second click works fine
+- Only happens on initial page load or after navigation
+
+**Root cause:** Dialog element hasn't finished mounting when `afterNavigate` runs.
+
+**Solution:** Use `tick()` to wait for DOM updates to complete.
+
 ---
 
 ## Security Requirements
@@ -783,6 +831,7 @@ export function sanitizeKeyAlphanumeric(input: string): string {
 ```
 
 **Best practices:**
+
 - **Preferred:** Use fixed object keys whenever possible
 - **If dynamic keys needed:** Validate against a strict whitelist
 - **Never:** Trust user input directly as object keys
@@ -861,11 +910,13 @@ export default {
 ```
 
 **CSP Mode behavior:**
+
 - `'auto'` — Uses hashes for prerendered pages, nonces for SSR (recommended)
 - `'hash'` — Always use hashes (works with prerendering)
 - `'nonce'` — Always use nonces (incompatible with prerendering)
 
 **⚠️ Known limitations:**
+
 - `%sveltekit.nonce%` in `<svelte:head>` components won't be replaced — add scripts in `app.html` instead
 - Svelte transitions require `'unsafe-inline'` in `style-src`
 - Cannot use `%sveltekit.nonce%` with prerendered pages
@@ -898,6 +949,7 @@ export async function load({ params, locals, platform }) {
 #### ORIGIN Environment Variable (CVE-2025-67647)
 
 Without the `ORIGIN` variable, prerendered routes are vulnerable to:
+
 - **DoS attacks** - Server crashes from malicious requests
 - **SSRF** - Unauthorized access to internal resources
 - **Cache poisoning** - Leading to XSS attacks
@@ -1112,12 +1164,12 @@ https://mcp.svelte.dev/mcp
 
 ### MCP Tools Available
 
-| Tool | Purpose |
-|------|---------|
-| `list-sections` | Discover all documentation sections with use_cases |
-| `get-documentation` | Retrieve full docs for specific sections |
-| `svelte-autofixer` | Analyze code and return issues/suggestions |
-| `playground-link` | Generate Svelte Playground links for code |
+| Tool                | Purpose                                            |
+| ------------------- | -------------------------------------------------- |
+| `list-sections`     | Discover all documentation sections with use_cases |
+| `get-documentation` | Retrieve full docs for specific sections           |
+| `svelte-autofixer`  | Analyze code and return issues/suggestions         |
+| `playground-link`   | Generate Svelte Playground links for code          |
 
 ### Using svelte-autofixer
 
@@ -1134,10 +1186,10 @@ The autofixer catches common mistakes before they reach your editor:
 
 Svelte supports the llms.txt standard for AI-friendly documentation:
 
-| File | Purpose |
-|------|---------|
-| `/llms.txt` | Index of all documentation files |
-| `/llms-full.txt` | Complete docs (Svelte + SvelteKit + CLI) |
+| File              | Purpose                                        |
+| ----------------- | ---------------------------------------------- |
+| `/llms.txt`       | Index of all documentation files               |
+| `/llms-full.txt`  | Complete docs (Svelte + SvelteKit + CLI)       |
 | `/llms-small.txt` | Compressed version for smaller context windows |
 
 Access at `https://svelte.dev/docs/llms` or `https://svelte.dev/llms.txt`.
@@ -1193,6 +1245,7 @@ import { PUBLIC_URL } from '$env/static/public';
 ### Pre-Deployment Checklist
 
 **Dependencies & Versions (CVE Mitigation):**
+
 - [ ] `svelte@5.46.4` or later (CVE-2025-15265)
 - [ ] `@sveltejs/kit@2.49.5` or later (CVE-2025-67647, CVE-2026-22803)
 - [ ] `@sveltejs/adapter-node@5.5.1` or later if using Node adapter (CVE-2025-67647)
@@ -1201,6 +1254,7 @@ import { PUBLIC_URL } from '$env/static/public';
 - [ ] `ORIGIN` environment variable set (adapter-node deployments only)
 
 **Security Implementation:**
+
 - [ ] No user input used as object keys with hydratable components (CVE-2025-15265)
 - [ ] No `experimental.remoteFunctions` enabled (or properly secured)
 - [ ] No `{@html}` with unsanitized content
@@ -1214,6 +1268,7 @@ import { PUBLIC_URL } from '$env/static/public';
 - [ ] Error pages don't leak stack traces or sensitive info
 
 **Code Quality:**
+
 - [ ] Form actions return appropriate responses (fail/redirect)
 - [ ] Types regenerated and validated (`npm run check`)
 - [ ] Using `adapter-cloudflare` (not deprecated `adapter-cloudflare-workers`)

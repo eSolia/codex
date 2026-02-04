@@ -3,8 +3,11 @@
  * InfoSec: Input validation and parameterized queries (OWASP A03)
  */
 
-import type { Actions } from './$types';
-import { error, redirect } from '@sveltejs/kit';
+import type { Actions, PageServerLoad } from './$types';
+import { fail, redirect } from '@sveltejs/kit';
+import { superValidate } from 'sveltekit-superforms';
+import { zod4 } from 'sveltekit-superforms/adapters';
+import { createFragmentSchema } from '$lib/schemas';
 
 function generateId(): string {
   const timestamp = Date.now().toString(36);
@@ -21,32 +24,35 @@ function slugify(text: string): string {
     .replace(/^-+|-+$/g, '');
 }
 
+export const load: PageServerLoad = async () => {
+  const form = await superValidate(zod4(createFragmentSchema));
+  return { form };
+};
+
 export const actions: Actions = {
   default: async ({ platform, request }) => {
     if (!platform?.env?.DB) {
-      throw error(500, 'Database not available');
+      const form = await superValidate(request, zod4(createFragmentSchema));
+      form.message = 'Database not available';
+      return fail(500, { form });
     }
 
     const db = platform.env.DB;
-    const formData = await request.formData();
 
-    // InfoSec: Validate and sanitize inputs
-    const name = formData.get('name')?.toString().trim();
-    const category = formData.get('category')?.toString().trim() || null;
-    const description = formData.get('description')?.toString().trim() || null;
-    const contentEn = formData.get('content_en')?.toString() || null;
-    const contentJa = formData.get('content_ja')?.toString() || null;
-    const tagsRaw = formData.get('tags')?.toString() || '';
+    // InfoSec: Validate form input (OWASP A03)
+    const form = await superValidate(request, zod4(createFragmentSchema));
 
-    if (!name) {
-      throw error(400, 'Name is required');
+    if (!form.valid) {
+      return fail(400, { form });
     }
+
+    const { name, category, description, content_en, content_ja, tags } = form.data;
 
     const id = generateId();
     const slug = slugify(name);
 
     // Parse tags
-    const tags = tagsRaw
+    const tagArray = (tags || '')
       .split(',')
       .map((t) => t.trim())
       .filter(Boolean);
@@ -64,12 +70,12 @@ export const actions: Actions = {
           id,
           name,
           slug,
-          category,
-          description,
-          contentEn,
-          contentJa,
-          contentEn && contentJa ? 1 : 0,
-          JSON.stringify(tags),
+          category || null,
+          description || null,
+          content_en || null,
+          content_ja || null,
+          content_en && content_ja ? 1 : 0,
+          JSON.stringify(tagArray),
           '1.0',
           'active'
         )
@@ -77,11 +83,10 @@ export const actions: Actions = {
 
       throw redirect(303, `/fragments/${id}`);
     } catch (err) {
-      if ((err as { status?: number }).status === 303) {
-        throw err;
-      }
+      if (err instanceof Response) throw err;
       console.error('Fragment create error:', err);
-      throw error(500, 'Failed to create fragment');
+      form.message = 'Failed to create fragment';
+      return fail(500, { form });
     }
   },
 };

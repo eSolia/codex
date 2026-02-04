@@ -7,6 +7,9 @@ import { error, fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { logAuditEvent } from '$lib/server/security';
 import type { SensitivityLevel } from '$lib/server/security';
+import { superValidate } from 'sveltekit-superforms';
+import { zod4 } from 'sveltekit-superforms/adapters';
+import { saveContentSchema, publishContentSchema } from '$lib/schemas';
 
 export const load: PageServerLoad = async ({ params, platform, locals }) => {
   if (!platform?.env?.DB) {
@@ -71,11 +74,17 @@ export const load: PageServerLoad = async ({ params, platform, locals }) => {
       db.prepare('SELECT id, name, slug, category FROM fragments ORDER BY category, name').all(),
     ]);
 
+    // Initialize forms
+    const saveForm = await superValidate(content, zod4(saveContentSchema));
+    const publishForm = await superValidate(zod4(publishContentSchema));
+
     return {
       content,
       sites: sitesResult.results ?? [],
       contentTypes: typesResult.results ?? [],
       fragments: fragmentsResult.results ?? [],
+      saveForm,
+      publishForm,
     };
   } catch (err) {
     console.error('Content load error:', err);
@@ -90,40 +99,32 @@ export const actions: Actions = {
    */
   save: async ({ request, params, platform, locals }) => {
     if (!platform?.env?.DB) {
-      return fail(500, { message: 'Database not available' });
+      const saveForm = await superValidate(request, zod4(saveContentSchema));
+      saveForm.message = 'Database not available';
+      return fail(500, { saveForm });
     }
 
     const db = platform.env.DB;
-    const formData = await request.formData();
 
-    // Extract form fields
-    const title = formData.get('title') as string;
-    const titleJa = formData.get('title_ja') as string | null;
-    const slug = formData.get('slug') as string;
-    const body = formData.get('body') as string;
-    const bodyJa = formData.get('body_ja') as string | null;
-    const status = formData.get('status') as string;
-    const language = formData.get('language') as string;
-    const sensitivity = (formData.get('sensitivity') as SensitivityLevel) || 'normal';
-    const siteId = formData.get('site_id') as string | null;
-    const contentTypeId = formData.get('content_type_id') as string | null;
+    // InfoSec: Validate form input (OWASP A03)
+    const saveForm = await superValidate(request, zod4(saveContentSchema));
 
-    // InfoSec: Input validation (OWASP A03)
-    if (!title || !slug) {
-      return fail(400, { message: 'Title and slug are required' });
+    if (!saveForm.valid) {
+      return fail(400, { saveForm });
     }
 
-    // InfoSec: Validate slug format
-    if (!/^[a-z0-9-]+$/.test(slug)) {
-      return fail(400, {
-        message: 'Slug must contain only lowercase letters, numbers, and hyphens',
-      });
-    }
-
-    // InfoSec: Validate sensitivity level
-    if (!['normal', 'confidential', 'embargoed'].includes(sensitivity)) {
-      return fail(400, { message: 'Invalid sensitivity level' });
-    }
+    const {
+      title,
+      title_ja,
+      slug,
+      body,
+      body_ja,
+      status,
+      language,
+      sensitivity,
+      site_id,
+      content_type_id,
+    } = saveForm.data;
 
     const now = Math.floor(Date.now() / 1000);
     const actor = locals.user?.email || 'anonymous';
@@ -156,15 +157,15 @@ export const actions: Actions = {
         )
         .bind(
           title,
-          titleJa || null,
+          title_ja || null,
           slug,
-          body,
-          bodyJa || null,
+          body || null,
+          body_ja || null,
           status,
           language,
           sensitivity,
-          siteId || null,
-          contentTypeId || null,
+          site_id || null,
+          content_type_id || null,
           now,
           params.id
         )
@@ -177,10 +178,11 @@ export const actions: Actions = {
         fieldsChanged: ['title', 'body', 'status', 'sensitivity'],
       });
 
-      return { success: true };
+      return { saveForm, success: true };
     } catch (err) {
       console.error('Content save error:', err);
-      return fail(500, { message: 'Failed to save content' });
+      saveForm.message = 'Failed to save content';
+      return fail(500, { saveForm });
     }
   },
 
@@ -188,14 +190,23 @@ export const actions: Actions = {
    * Publish content to R2
    * InfoSec: Authorization check, audit logging
    */
-  publish: async ({ params, platform, locals }) => {
+  publish: async ({ request, params, platform, locals }) => {
     if (!platform?.env?.DB || !platform?.env?.R2) {
-      return fail(500, { message: 'Storage not available' });
+      const publishForm = await superValidate(request, zod4(publishContentSchema));
+      publishForm.message = 'Storage not available';
+      return fail(500, { publishForm });
     }
 
     const db = platform.env.DB;
     const bucket = platform.env.R2;
     const actor = locals.user?.email || 'anonymous';
+
+    // Validate publish request
+    const publishForm = await superValidate(request, zod4(publishContentSchema));
+
+    if (!publishForm.valid) {
+      return fail(400, { publishForm });
+    }
 
     try {
       const content = await db
@@ -213,7 +224,8 @@ export const actions: Actions = {
         .first();
 
       if (!content) {
-        return fail(404, { message: 'Content not found' });
+        publishForm.message = 'Content not found';
+        return fail(404, { publishForm });
       }
 
       // InfoSec: Check embargo (OWASP A01)
@@ -222,7 +234,8 @@ export const actions: Actions = {
         content.embargo_until &&
         Date.now() / 1000 < Number(content.embargo_until)
       ) {
-        return fail(403, { message: 'Content is under embargo' });
+        publishForm.message = 'Content is under embargo';
+        return fail(403, { publishForm });
       }
 
       // Build R2 path
@@ -282,10 +295,11 @@ export const actions: Actions = {
         r2Key,
       });
 
-      return { success: true, published: true };
+      return { publishForm, success: true, published: true };
     } catch (err) {
       console.error('Publish error:', err);
-      return fail(500, { message: 'Failed to publish content' });
+      publishForm.message = 'Failed to publish content';
+      return fail(500, { publishForm });
     }
   },
 
