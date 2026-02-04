@@ -23,12 +23,14 @@ Cloudflare is consolidating Pages into Workers. All new development focuses on W
 Before starting:
 
 1. **Wrangler 4+** — Required for modern Workers deployment
+
    ```bash
    npm install --save-dev wrangler@^4.0.0
    npx wrangler --version  # Verify 4.x
    ```
 
 2. **@sveltejs/adapter-cloudflare** — The unified adapter (not `adapter-cloudflare-workers`)
+
    ```bash
    npm install --save-dev @sveltejs/adapter-cloudflare
    ```
@@ -69,12 +71,12 @@ npx source-map-explorer .svelte-kit/cloudflare/_worker.js
 
 **Common culprits and fixes:**
 
-| Issue | Fix |
-|-------|-----|
-| Large libraries (moment, lodash full) | Use lighter alternatives (date-fns, lodash-es with tree-shaking) |
-| Server-side only imports in shared code | Move to `+page.server.ts` or use dynamic imports |
-| Bundled dependencies that should be external | Check `vite.config.ts` externals |
-| Images/fonts in server bundle | Move to `/static` folder (served as assets) |
+| Issue                                        | Fix                                                              |
+| -------------------------------------------- | ---------------------------------------------------------------- |
+| Large libraries (moment, lodash full)        | Use lighter alternatives (date-fns, lodash-es with tree-shaking) |
+| Server-side only imports in shared code      | Move to `+page.server.ts` or use dynamic imports                 |
+| Bundled dependencies that should be external | Check `vite.config.ts` externals                                 |
+| Images/fonts in server bundle                | Move to `/static` folder (served as assets)                      |
 
 **Move heavy imports to client-side:**
 
@@ -103,6 +105,7 @@ npx wrangler dev .svelte-kit/cloudflare
 ```
 
 **Watch for errors mentioning:**
+
 - `fs` (use `$app/server`'s `read()` function instead)
 - `path` operations on server paths
 - Native Node modules (crypto operations should use Web Crypto API)
@@ -118,6 +121,7 @@ dig NS yourdomain.com +short
 ```
 
 If the nameservers aren't Cloudflare's (`*.ns.cloudflare.com`), you'll need to either:
+
 - Migrate DNS to Cloudflare before the Workers migration
 - Use a subdomain on a Cloudflare-managed zone
 - Keep the site on Pages (which supports external DNS)
@@ -155,14 +159,13 @@ const config = {
     adapter: adapter({
       // Optional: specify config path if non-standard
       // config: 'wrangler.jsonc',
-      
       // Optional: configure platform proxy for local dev
       // platformProxy: {
       //   configPath: 'wrangler.jsonc',
       //   persist: { path: '.wrangler/state/v3' }
       // }
-    })
-  }
+    }),
+  },
 };
 
 export default config;
@@ -173,6 +176,7 @@ export default config;
 Convert your Pages configuration to Workers format.
 
 **Before (Pages):**
+
 ```jsonc
 {
   "name": "my-sveltekit-app",
@@ -185,26 +189,27 @@ Convert your Pages configuration to Workers format.
 ```
 
 **After (Workers):**
+
 ```jsonc
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "my-sveltekit-app",
-  
+
   // Point to the generated worker entry
   "main": ".svelte-kit/cloudflare/_worker.js",
-  
+
   // Static assets configuration
   "assets": {
     "directory": ".svelte-kit/cloudflare",
     "binding": "ASSETS"
   },
-  
+
   "compatibility_date": "2025-01-01",
   "compatibility_flags": ["nodejs_compat"],
-  
+
   // Preview URLs (opt-in for security)
   "preview_urls": true,
-  
+
   // Enable observability
   "observability": {
     "logs": {
@@ -212,7 +217,7 @@ Convert your Pages configuration to Workers format.
       "invocation_logs": true
     }
   },
-  
+
   // Bindings remain the same
   "d1_databases": [...],
   "kv_namespaces": [...],
@@ -254,12 +259,14 @@ Replace Pages commands with Workers equivalents:
 Workers handle environment variables slightly differently than Pages.
 
 **Static imports (build-time):**
+
 ```typescript
 // Works the same in both
 import { PUBLIC_API_URL } from '$env/static/public';
 ```
 
 **Dynamic imports (runtime):**
+
 ```typescript
 // Preferred for secrets and runtime config
 import { env } from '$env/dynamic/private';
@@ -267,7 +274,7 @@ import { env } from '$env/dynamic/private';
 export async function load({ platform }) {
   // Access via SvelteKit's env module
   const apiKey = env.API_KEY;
-  
+
   // Or via platform.env for Cloudflare-specific bindings
   const db = platform?.env?.DB;
 }
@@ -281,9 +288,7 @@ In your `wrangler.jsonc`, add the routes configuration:
 
 ```jsonc
 {
-  "routes": [
-    { "pattern": "myapp.example.com", "custom_domain": true }
-  ]
+  "routes": [{ "pattern": "myapp.example.com", "custom_domain": true }],
 }
 ```
 
@@ -295,16 +300,18 @@ Workers now supports Pages-style preview deployments:
 
 ```jsonc
 {
-  "preview_urls": true
+  "preview_urls": true,
 }
 ```
 
 When connected to Git (GitHub/GitLab):
+
 - Each PR gets a stable branch preview URL: `feature-branch-my-app.account.workers.dev`
 - Preview links are posted as PR comments
 - URLs stay stable across commits to the same branch
 
 To protect previews with Cloudflare Access:
+
 1. Dashboard → Workers & Pages → Your Worker → Settings → Domains & Routes
 2. Under Preview URLs, click "Enable Cloudflare Access"
 
@@ -332,6 +339,7 @@ API_KEY=sk_test_...
 For secrets shared across multiple Workers (e.g., `MAILEROO_API_KEY` used by Nexus, Pulse, and Periodic), use the Cloudflare Secrets Store instead of per-Worker secrets.
 
 **Benefits:**
+
 - Single source of truth for shared credentials
 - RBAC-controlled access (separate from Worker permissions)
 - Audit logging for all secret access
@@ -359,9 +367,9 @@ wrangler secrets-store secret create \
     {
       "binding": "MAILEROO_API_KEY",
       "store_id": "<STORE_ID>",
-      "secret_name": "maileroo-api-key"
-    }
-  ]
+      "secret_name": "maileroo-api-key",
+    },
+  ],
 }
 ```
 
@@ -375,12 +383,14 @@ export async function load({ platform }) {
 ```
 
 **Good candidates for centralized secrets:**
+
 - Email service API keys (Maileroo, SendGrid)
 - Shared OAuth client secrets
 - Third-party API keys used across apps
 - Encryption keys for cross-app data
 
 **Keep as per-Worker secrets:**
+
 - Worker-specific configuration
 - Database connection strings (if different per app)
 - Secrets only one Worker needs
@@ -398,10 +408,10 @@ Now that you're on Workers, you can use features that weren't available on Pages
 {
   "triggers": {
     "crons": [
-      "0 * * * *",      // Hourly
-      "0 0 * * *"       // Daily at midnight
-    ]
-  }
+      "0 * * * *", // Hourly
+      "0 0 * * *", // Daily at midnight
+    ],
+  },
 }
 ```
 
@@ -417,7 +427,7 @@ export default {
         await runDailyCleanup(env);
         break;
     }
-  }
+  },
 };
 ```
 
@@ -426,13 +436,9 @@ export default {
 ```jsonc
 {
   "queues": {
-    "producers": [
-      { "binding": "MY_QUEUE", "queue": "my-queue" }
-    ],
-    "consumers": [
-      { "queue": "my-queue", "max_batch_size": 10 }
-    ]
-  }
+    "producers": [{ "binding": "MY_QUEUE", "queue": "my-queue" }],
+    "consumers": [{ "queue": "my-queue", "max_batch_size": 10 }],
+  },
 }
 ```
 
@@ -441,13 +447,9 @@ export default {
 ```jsonc
 {
   "durable_objects": {
-    "bindings": [
-      { "name": "COUNTER", "class_name": "Counter" }
-    ]
+    "bindings": [{ "name": "COUNTER", "class_name": "Counter" }],
   },
-  "migrations": [
-    { "tag": "v1", "new_classes": ["Counter"] }
-  ]
+  "migrations": [{ "tag": "v1", "new_classes": ["Counter"] }],
 }
 ```
 
@@ -455,9 +457,7 @@ export default {
 
 ```jsonc
 {
-  "analytics_engine_datasets": [
-    { "binding": "ANALYTICS", "dataset": "my_app_events" }
-  ]
+  "analytics_engine_datasets": [{ "binding": "ANALYTICS", "dataset": "my_app_events" }],
 }
 ```
 
@@ -466,6 +466,7 @@ export default {
 Service Bindings allow one Worker to call another Worker directly without going through the public internet. This is ideal for microservice architectures where a SvelteKit frontend needs to call a backend API Worker.
 
 **Benefits:**
+
 - **More secure**: Traffic never leaves Cloudflare's network
 - **Faster**: No DNS lookup, no TLS handshake (~10-50ms saved per request)
 - **Cheaper**: Service binding calls cost less than external HTTP requests
@@ -478,9 +479,9 @@ Service Bindings allow one Worker to call another Worker directly without going 
   "services": [
     {
       "binding": "API",
-      "service": "my-api-worker"  // Name of the target Worker
-    }
-  ]
+      "service": "my-api-worker", // Name of the target Worker
+    },
+  ],
 }
 ```
 
@@ -493,7 +494,7 @@ declare global {
   namespace App {
     interface Platform {
       env?: {
-        API: Fetcher;  // Service Binding to API Worker
+        API: Fetcher; // Service Binding to API Worker
         ASSETS: Fetcher;
       };
       cf?: CfProperties;
@@ -519,17 +520,12 @@ export function createApiClient(
   platform: App.Platform | undefined,
   fetch: typeof globalThis.fetch
 ) {
-  return async function apiFetch(
-    path: string,
-    init?: RequestInit
-  ): Promise<Response> {
+  return async function apiFetch(path: string, init?: RequestInit): Promise<Response> {
     const normalizedPath = path.startsWith('/') ? path : `/${path}`;
 
     // Use Service Binding if available (server-side in production)
     if (!browser && platform?.env?.API) {
-      return platform.env.API.fetch(
-        new Request(`https://api.internal${normalizedPath}`, init)
-      );
+      return platform.env.API.fetch(new Request(`https://api.internal${normalizedPath}`, init));
     }
 
     // Fallback to HTTP (client-side or local dev)
@@ -558,7 +554,7 @@ export async function load({ fetch, platform }) {
 
 ```yaml
 deploy-web:
-  needs: deploy-api  # API must deploy first
+  needs: deploy-api # API must deploy first
 ```
 
 ---
@@ -570,11 +566,13 @@ deploy-web:
 Smart Placement automatically moves your Worker closer to backend services (databases, APIs) rather than always running at the edge nearest the user. This can dramatically improve latency for apps that make multiple round-trips to centralized resources.
 
 **When to enable:**
+
 - Your app connects to external databases (Neon, Supabase, PlanetScale)
 - You make multiple API calls to centralized services
 - You use Hyperdrive for PostgreSQL/MySQL connections
 
 **When it doesn't help:**
+
 - Pure D1/KV/R2 usage (Cloudflare optimizes these automatically)
 - Static asset serving
 - Apps with minimal backend calls
@@ -584,14 +582,15 @@ Smart Placement automatically moves your Worker closer to backend services (data
 ```jsonc
 {
   "placement": {
-    "mode": "smart"
-  }
+    "mode": "smart",
+  },
 }
 ```
 
 **Verify it's working:**
 
 Check the `cf-placement` response header:
+
 - `remote-LHR` — Request was routed to London data center (Smart Placement active)
 - `local-EWR` — Request ran at nearest edge (Smart Placement not applied)
 
@@ -602,9 +601,11 @@ Check the `cf-placement` response header:
 If your app is read-heavy and users are distributed globally, D1 read replication can significantly reduce latency by routing read queries to nearby replicas instead of the primary database.
 
 **Enable in the dashboard:**
+
 1. D1 → Select database → Settings → Enable Read Replication
 
 **Or via API:**
+
 ```bash
 curl -X PUT "https://api.cloudflare.com/client/v4/accounts/{account_id}/d1/database/{database_id}" \
   -H "Authorization: Bearer $TOKEN" \
@@ -621,44 +622,46 @@ curl -X PUT "https://api.cloudflare.com/client/v4/accounts/{account_id}/d1/datab
 export async function load({ platform, cookies }) {
   const db = platform?.env?.DB;
   if (!db) throw error(500, 'Database not available');
-  
+
   // Get bookmark from previous request (stored in cookie or header)
   const bookmark = cookies.get('d1-bookmark') ?? 'first-unconstrained';
-  
+
   // Create session — queries will use appropriate replica
   const session = db.withSession(bookmark);
-  
+
   // Read queries go to nearest replica
   const { results } = await session
     .prepare('SELECT * FROM shares WHERE org_id = ?')
     .bind(orgId)
     .all();
-  
+
   // Store bookmark for next request to maintain consistency
   const newBookmark = session.getBookmark();
   if (newBookmark) {
     cookies.set('d1-bookmark', newBookmark, { path: '/', httpOnly: true });
   }
-  
+
   return { shares: results };
 }
 ```
 
 **Session strategies:**
 
-| Strategy | Use Case |
-|----------|----------|
-| `first-unconstrained` | Default. First query goes to any replica. Best latency. |
-| `first-primary` | First query goes to primary. Use after writes for immediate consistency. |
-| Stored bookmark | Continue from previous session. Best for multi-request flows. |
+| Strategy              | Use Case                                                                 |
+| --------------------- | ------------------------------------------------------------------------ |
+| `first-unconstrained` | Default. First query goes to any replica. Best latency.                  |
+| `first-primary`       | First query goes to primary. Use after writes for immediate consistency. |
+| Stored bookmark       | Continue from previous session. Best for multi-request flows.            |
 
 **When to use read replication:**
+
 - Dashboard views showing lists of data
 - Search and filtering operations
 - Public-facing read-heavy pages
 - Reporting and analytics queries
 
 **When NOT to use (or use `first-primary`):**
+
 - Immediately after a write (user expects to see their change)
 - Admin operations requiring latest data
 - Financial or audit-critical reads
@@ -666,6 +669,7 @@ export async function load({ platform, cookies }) {
 ### CPU Time Limits
 
 Workers now support up to 5 minutes of CPU time per request (up from 30 seconds). Useful for:
+
 - Large file processing
 - Complex cryptographic operations
 - Data transformation pipelines
@@ -673,8 +677,8 @@ Workers now support up to 5 minutes of CPU time per request (up from 30 seconds)
 ```jsonc
 {
   "limits": {
-    "cpu_ms": 300000  // 5 minutes (default is 30000)
-  }
+    "cpu_ms": 300000, // 5 minutes (default is 30000)
+  },
 }
 ```
 
@@ -689,9 +693,9 @@ If you're connecting to PostgreSQL or MySQL outside Cloudflare, Hyperdrive provi
   "hyperdrive": [
     {
       "binding": "DB",
-      "id": "<HYPERDRIVE_CONFIG_ID>"
-    }
-  ]
+      "id": "<HYPERDRIVE_CONFIG_ID>",
+    },
+  ],
 }
 ```
 
@@ -712,13 +716,14 @@ Enable automatic log collection, storage, and querying:
     "logs": {
       "enabled": true,
       "invocation_logs": true,
-      "head_sampling_rate": 1  // 1 = 100%, 0.1 = 10%
-    }
-  }
+      "head_sampling_rate": 1, // 1 = 100%, 0.1 = 10%
+    },
+  },
 }
 ```
 
 **Features:**
+
 - Automatic log ingestion and storage (7 days)
 - Query Builder for cross-Worker analysis
 - Invocation grouping (see all logs from one request)
@@ -727,12 +732,14 @@ Enable automatic log collection, storage, and querying:
 **Best practice — log in JSON format:**
 
 ```typescript
-console.log(JSON.stringify({
-  event: 'share_created',
-  shareId: share.id,
-  userId: user.id,
-  fileCount: files.length
-}));
+console.log(
+  JSON.stringify({
+    event: 'share_created',
+    shareId: share.id,
+    userId: user.id,
+    fileCount: files.length,
+  })
+);
 ```
 
 ### Tail Workers (Advanced)
@@ -741,9 +748,7 @@ For custom log processing or sending to external services (Datadog, Sentry):
 
 ```jsonc
 {
-  "tail_consumers": [
-    { "service": "my-log-processor" }
-  ]
+  "tail_consumers": [{ "service": "my-log-processor" }],
 }
 ```
 
@@ -765,28 +770,28 @@ declare global {
     interface Locals {
       user: { id: string; email: string } | null;
     }
-    
+
     interface Platform {
       env?: {
         // Databases
         DB: D1Database;
-        
+
         // Storage
         FILES: R2Bucket;
         CACHE: KVNamespace;
-        
+
         // Assets (auto-provided by adapter)
         ASSETS: Fetcher;
-        
+
         // Workers-only features
         ANALYTICS: AnalyticsEngineDataset;
         MY_QUEUE: Queue<QueueMessage>;
         COUNTER: DurableObjectNamespace;
-        
+
         // Secrets (accessed via $env/dynamic/private preferred)
         API_KEY?: string;
       };
-      
+
       // Cloudflare-specific request context
       cf?: CfProperties;
       ctx?: ExecutionContext;
@@ -819,23 +824,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-      
+
       - run: npm ci
-      
+
       - run: npm run build
-      
+
       # Preview deployment for PRs
       - name: Deploy Preview
         if: github.event_name == 'pull_request'
         run: npx wrangler deploy --env preview
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      
+
       # Production deployment for main
       - name: Deploy Production
         if: github.ref == 'refs/heads/main'
@@ -857,6 +862,7 @@ For automatic Git integration (PR comments with preview URLs), connect your repo
 ### Option 1: Keep Pages Project Temporarily
 
 Don't delete your Pages project immediately. Run both in parallel:
+
 - Workers on primary domain
 - Pages on `*.pages.dev` as backup
 
@@ -879,6 +885,7 @@ wrangler rollback
 ### "Domain not available" Error
 
 Workers requires Cloudflare-managed DNS. If your domain's nameservers are external:
+
 1. Migrate DNS to Cloudflare, or
 2. Use a subdomain on a Cloudflare-managed zone
 
@@ -899,6 +906,7 @@ if (browser) {
 ### Environment Variables Not Available
 
 Remember:
+
 - `$env/static/*` — resolved at build time
 - `$env/dynamic/*` — resolved at runtime (use for secrets)
 - `platform.env.*` — Cloudflare bindings (D1, KV, R2, etc.)
@@ -906,10 +914,11 @@ Remember:
 ### Preview URLs Not Working
 
 Ensure in `wrangler.jsonc`:
+
 ```jsonc
 {
   "preview_urls": true,
-  "workers_dev": true  // Required for *.workers.dev URLs
+  "workers_dev": true, // Required for *.workers.dev URLs
 }
 ```
 
@@ -918,6 +927,7 @@ Ensure in `wrangler.jsonc`:
 If GitHub Actions fails with `wrangler: command not found`, wrangler is installed as a dev dependency but not in the system PATH.
 
 **Fix:** Use your package manager's exec command:
+
 ```bash
 # npm
 npx wrangler deploy
@@ -941,6 +951,7 @@ pnpm --filter @myorg/pub add -D wrangler
 ### Secrets Store Authorization Error (10021)
 
 If deployment fails with:
+
 ```
 failed to fetch secrets store binding due to authorization error [code: 10021]
 ```
@@ -948,6 +959,7 @@ failed to fetch secrets store binding due to authorization error [code: 10021]
 **Cause:** Your API token has `Secrets Store: Read` but needs `Secrets Store: Edit`.
 
 **Fix:** Update your Cloudflare API token:
+
 1. Dashboard → Manage Account → API Tokens
 2. Edit your deployment token
 3. Change `Secrets Store: Read` → `Secrets Store: Edit`
@@ -957,6 +969,7 @@ This is a known issue - see [GitHub Issue #8964](https://github.com/cloudflare/w
 ### Workers Routes Authentication Error (10000)
 
 If the Worker uploads but fails on routes:
+
 ```
 A request to the Cloudflare API (/zones/.../workers/routes) failed.
 Authentication error [code: 10000]
@@ -965,6 +978,7 @@ Authentication error [code: 10000]
 **Cause:** Missing zone-level permission for Workers Routes.
 
 **Fix:** Add to your API token:
+
 - `Zone → Workers Routes → Edit`
 
 ### Zone Restrictions Blocking Account Permissions
@@ -972,6 +986,7 @@ Authentication error [code: 10000]
 If you have zone-restricted API tokens (e.g., "Specific zone → example.com"), account-level resources like Secrets Store may fail even with correct permissions.
 
 **Fix:** Either:
+
 1. Use "All zones" for Zone Resources, or
 2. Create a separate token for account-level operations
 
@@ -986,6 +1001,7 @@ Maximum number of static _redirects rules limit of 2000 exceeded
 **Options:**
 
 1. **Pattern-based handler** (recommended for large sets):
+
    ```typescript
    // src/hooks.server.ts
    import redirectMap from '$lib/legacy-redirects.json';
@@ -1014,6 +1030,7 @@ Maximum number of static _redirects rules limit of 2000 exceeded
 ## Migration Checklist
 
 ### Pre-Migration (While Still on Pages)
+
 - [ ] Check bundle size (`ls -lh .svelte-kit/cloudflare/_worker.js`)
 - [ ] Test with `wrangler dev` to catch Node API issues
 - [ ] Verify domain nameservers are Cloudflare-managed
@@ -1021,6 +1038,7 @@ Maximum number of static _redirects rules limit of 2000 exceeded
 - [ ] Search for `$env/static/private` imports
 
 ### Core Migration
+
 - [ ] Update Wrangler to v4+
 - [ ] Install/verify `@sveltejs/adapter-cloudflare`
 - [ ] Convert `wrangler.jsonc` from Pages to Workers format
@@ -1033,12 +1051,14 @@ Maximum number of static _redirects rules limit of 2000 exceeded
 - [ ] Update CI/CD workflow
 
 ### Secrets Consolidation (Optional)
+
 - [ ] Identify secrets shared across multiple Workers
 - [ ] Create Secrets Store and add shared secrets
 - [ ] Update `wrangler.jsonc` with `secrets_store_secrets` bindings
 - [ ] Remove duplicated per-Worker secrets
 
 ### Performance Optimization (Optional)
+
 - [ ] Enable Smart Placement if using external databases/APIs
 - [ ] Enable D1 read replication for read-heavy global apps
 - [ ] Implement Sessions API for D1 if using read replication
@@ -1046,11 +1066,13 @@ Maximum number of static _redirects rules limit of 2000 exceeded
 - [ ] Adjust `limits.cpu_ms` if doing heavy computation
 
 ### Observability
+
 - [ ] Enable `observability.logs` in wrangler config
 - [ ] Configure `head_sampling_rate` for high-traffic Workers
 - [ ] Set up Logpush or Tail Workers if needed
 
 ### Service Bindings (Optional)
+
 - [ ] Identify Workers that need to communicate
 - [ ] Add `services` binding in wrangler.jsonc
 - [ ] Create API client utility with dual-mode (Service Binding / HTTP fallback)
@@ -1058,6 +1080,7 @@ Maximum number of static _redirects rules limit of 2000 exceeded
 - [ ] Configure CI/CD job dependencies (API deploys before consumers)
 
 ### Deployment
+
 - [ ] Test locally with `wrangler dev`
 - [ ] Deploy with `wrangler deploy --dry-run` first
 - [ ] Deploy to production
@@ -1083,8 +1106,8 @@ Create a base wrangler config that can be extended:
   "compatibility_flags": ["nodejs_compat"],
   "preview_urls": true,
   "observability": {
-    "logs": { "enabled": true, "invocation_logs": true }
-  }
+    "logs": { "enabled": true, "invocation_logs": true },
+  },
 }
 ```
 
@@ -1111,7 +1134,7 @@ jobs:
 
   deploy-web:
     name: Deploy Web
-    needs: deploy-api  # Wait for API
+    needs: deploy-api # Wait for API
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -1128,6 +1151,7 @@ jobs:
 ### Client-Side Apps (SSR Disabled)
 
 If your app has `ssr = false` in `+layout.ts`, Service Bindings won't be used (they're server-side only). The API client will automatically fall back to HTTP fetch. You can still migrate to Workers for:
+
 - Unified deployment pipeline
 - Workers-only features (Cron Triggers, etc.)
 - Future SSR enablement

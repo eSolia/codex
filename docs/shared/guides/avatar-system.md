@@ -47,7 +47,7 @@ import {
   hueToHSL,
   hueToLightBg,
   hueToText,
-  getContrastText
+  getContrastText,
 } from '$lib/avatar';
 
 // Generate a new distinct hue
@@ -165,7 +165,7 @@ import { matchAssigneeToUser } from '$lib/avatar';
 
 const users = [
   { id: '1', name: 'John Smith', initials: 'JS', avatarHue: 210 },
-  { id: '2', name: 'Jane Doe', initials: 'JD', avatarHue: 30 }
+  { id: '2', name: 'Jane Doe', initials: 'JD', avatarHue: 30 },
 ];
 
 // Match by initials

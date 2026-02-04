@@ -1,0 +1,644 @@
+/**
+ * eSolia Typora Theme
+ *
+ * A professional Typora theme matching eSolia's brand guidelines.
+ * Uses IBM Plex Sans JP for both English and Japanese text.
+ *
+ * Installation:
+ *   1. Copy this file (esolia.css) to Typora's theme folder
+ *   2. Copy the esolia folder (containing logo assets) to the same location
+ *   3. Restart Typora and select "eSolia" from Themes menu
+ *
+ * Brand Colors:
+ *   - Primary Navy Blue: #2D2F63
+ *   - Accent Orange: #FFBC68
+ *   - Link Blue: #4A7CB8
+ *   - Text Gray: #374151
+ *
+ * @author eSolia Inc.
+ * @version 1.0.1
+ * @license MIT
+ */
+
+/* ============================================
+   FONTS - IBM Plex Sans JP from Google Fonts
+   ============================================ */
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+JP:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+/* ============================================
+   CSS VARIABLES
+   ============================================ */
+:root {
+  /* Brand Colors */
+  --esolia-navy: #2D2F63;
+  --esolia-orange: #FFBC68;
+  --esolia-link: #4A7CB8;
+  --esolia-link-hover: #3A6CA8;
+  --esolia-sky: #0284c7;  /* Tailwind sky-600 */
+
+  /* Text Colors */
+  --text-color: #374151;
+  --text-muted: #6B7280;
+  --heading-color: var(--esolia-navy);
+
+  /* Background Colors */
+  --bg-color: #ffffff;
+  --bg-secondary: #F9FAFB;
+  --bg-code: #F3F4F6;
+  --bg-callout: #EFF6FF;
+
+  /* Border Colors */
+  --border-color: #E5E7EB;
+  --border-callout: var(--esolia-link);
+  --border-table: #D1D5DB;
+
+  /* Accent Colors */
+  --accent-color: var(--esolia-navy);
+  --primary-color: var(--esolia-navy);
+
+  /* Typography */
+  --font-family: 'IBM Plex Sans JP', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', 'SF Mono', 'Consolas', monospace;
+  --font-size-base: 16px;
+  --line-height: 1.75;
+
+  /* Spacing */
+  --content-max-width: 850px;
+  --paragraph-spacing: 1.25em;
+}
+
+/* ============================================
+   BASE STYLES
+   ============================================ */
+html {
+  font-size: var(--font-size-base);
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-family: var(--font-family);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-family);
+  font-weight: 400;
+  line-height: var(--line-height);
+  color: var(--text-color);
+  background-color: var(--bg-color);
+}
+
+#write {
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  padding: 30px 60px 100px 60px;
+}
+
+/* ============================================
+   HEADINGS
+   ============================================ */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-family);
+  font-weight: 600;
+  color: var(--heading-color);
+  line-height: 1.3;
+  margin-top: 1.5em;
+  margin-bottom: 0.75em;
+}
+
+h1 {
+  font-size: 2.25rem;
+  font-weight: 700;
+  margin-top: 0;
+  padding-bottom: 0.4em;
+  border-bottom: 3px solid var(--esolia-orange);
+}
+
+h2 {
+  font-size: 1.625rem;
+  font-weight: 600;
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid var(--border-color);
+}
+
+h3 {
+  font-size: 1.375rem;
+  font-weight: 600;
+}
+
+h4 {
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+h5 {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+h6 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+/* ============================================
+   PARAGRAPHS & TEXT
+   ============================================ */
+p {
+  margin-top: 0;
+  margin-bottom: var(--paragraph-spacing);
+}
+
+strong, b {
+  font-weight: 600;
+  color: var(--heading-color);
+}
+
+em, i {
+  font-style: italic;
+}
+
+mark {
+  background-color: #FEF3C7;
+  padding: 0.125em 0.25em;
+  border-radius: 2px;
+}
+
+/* ============================================
+   LINKS
+   ============================================ */
+a {
+  color: var(--esolia-link);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+a:hover {
+  color: var(--esolia-link-hover);
+  border-bottom-color: var(--esolia-link-hover);
+}
+
+/* ============================================
+   LISTS
+   ============================================ */
+ul, ol {
+  margin-top: 0;
+  margin-bottom: var(--paragraph-spacing);
+  padding-left: 1.75em;
+}
+
+ul ul, ol ol, ul ol, ol ul {
+  margin-bottom: 0;
+}
+
+li {
+  margin-bottom: 0.35em;
+}
+
+li > p {
+  margin-bottom: 0.5em;
+}
+
+/* Task lists */
+.md-task-list-item {
+  list-style: none;
+  margin-left: -1.25em;
+}
+
+.md-task-list-item > input {
+  margin-right: 0.5em;
+}
+
+/* ============================================
+   BLOCKQUOTES & CALLOUTS
+   ============================================ */
+blockquote {
+  margin: var(--paragraph-spacing) 0;
+  padding: 1em 1.25em;
+  background-color: var(--bg-callout);
+  border-left: 4px solid var(--border-callout);
+  border-radius: 0 4px 4px 0;
+  color: var(--text-color);
+}
+
+blockquote p {
+  margin-bottom: 0.5em;
+}
+
+blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+blockquote blockquote {
+  margin-top: 0.75em;
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+/* ============================================
+   CODE
+   ============================================ */
+/* Inline code */
+code {
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+  background-color: var(--bg-code);
+  padding: 0.2em 0.4em;
+  border-radius: 4px;
+  color: var(--esolia-navy);
+}
+
+/* Code blocks */
+pre {
+  font-family: var(--font-mono);
+  background-color: var(--bg-code);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 1em 1.25em;
+  overflow-x: auto;
+  margin: var(--paragraph-spacing) 0;
+}
+
+pre code {
+  background: none;
+  padding: 0;
+  border-radius: 0;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.md-fences {
+  background-color: var(--bg-code);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 1em;
+  margin: var(--paragraph-spacing) 0;
+}
+
+/* Code language label */
+.md-fences::before {
+  font-family: var(--font-family);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ============================================
+   TABLES
+   ============================================ */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: var(--paragraph-spacing) 0;
+  font-size: 0.9375rem;
+}
+
+thead {
+  background-color: var(--bg-secondary);
+}
+
+th {
+  font-weight: 600;
+  color: var(--heading-color);
+  text-align: left;
+  padding: 0.75em 1em;
+  border: 1px solid var(--border-table);
+}
+
+td {
+  padding: 0.75em 1em;
+  border: 1px solid var(--border-table);
+  vertical-align: top;
+}
+
+tr:nth-child(even) {
+  background-color: var(--bg-secondary);
+}
+
+/* ============================================
+   HORIZONTAL RULE
+   ============================================ */
+hr {
+  border: none;
+  height: 2px;
+  background: linear-gradient(to right, var(--esolia-sky), var(--esolia-navy));  /* sky-600 to navy */
+  margin: 2em 0;
+}
+
+/* ============================================
+   IMAGES
+   ============================================ */
+img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+  margin: var(--paragraph-spacing) 0;
+}
+
+/* ============================================
+   MERMAID DIAGRAMS
+   ============================================ */
+.md-diagram-panel {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 1.5em;
+  margin: var(--paragraph-spacing) 0;
+}
+
+/* Mermaid styling overrides */
+.mermaid {
+  font-family: var(--font-family) !important;
+}
+
+.mermaid .node rect,
+.mermaid .node polygon {
+  fill: var(--bg-secondary) !important;
+  stroke: var(--esolia-navy) !important;
+}
+
+.mermaid .node .label {
+  color: var(--text-color) !important;
+}
+
+.mermaid .edgePath .path {
+  stroke: var(--esolia-navy) !important;
+}
+
+.mermaid .cluster rect {
+  fill: var(--bg-callout) !important;
+  stroke: var(--border-callout) !important;
+}
+
+/* ============================================
+   FOOTNOTES
+   ============================================ */
+.footnotes {
+  margin-top: 2em;
+  padding-top: 1em;
+  border-top: 1px solid var(--border-color);
+  font-size: 0.875rem;
+}
+
+.footnote-line {
+  color: var(--text-muted);
+}
+
+sup.md-footnote {
+  background-color: var(--bg-callout);
+  padding: 0.125em 0.375em;
+  border-radius: 2px;
+  color: var(--esolia-link);
+  font-size: 0.75rem;
+}
+
+/* ============================================
+   TABLE OF CONTENTS
+   ============================================ */
+.md-toc {
+  font-size: 0.9375rem;
+}
+
+.md-toc-content {
+  padding: 1em 0;
+}
+
+.md-toc-item {
+  color: var(--esolia-link);
+}
+
+.md-toc-h1 {
+  font-weight: 600;
+}
+
+/* ============================================
+   YAML FRONT MATTER
+   ============================================ */
+.md-meta-block {
+  background-color: var(--bg-code);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 1em;
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+/* ============================================
+   FOCUS MODE
+   ============================================ */
+.on-focus-mode .md-end-block:not(.md-focus):not(.md-focus-container) * {
+  color: var(--text-muted) !important;
+}
+
+.on-focus-mode .md-end-block:not(.md-focus):not(.md-focus-container) img {
+  opacity: 0.5;
+}
+
+/* ============================================
+   SOURCE CODE MODE
+   ============================================ */
+.cm-s-inner {
+  font-family: var(--font-mono);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+}
+
+.cm-s-inner .cm-header {
+  color: var(--heading-color);
+  font-weight: 600;
+}
+
+.cm-s-inner .cm-link {
+  color: var(--esolia-link);
+}
+
+.cm-s-inner .cm-string {
+  color: #059669;
+}
+
+.cm-s-inner .cm-comment {
+  color: var(--text-muted);
+}
+
+/* ============================================
+   SIDEBAR
+   ============================================ */
+#typora-sidebar {
+  font-family: var(--font-family);
+}
+
+.file-node-title {
+  font-family: var(--font-family);
+}
+
+/* ============================================
+   PRINT / EXPORT STYLES
+   ============================================ */
+@media print {
+  html {
+    font-size: 11pt;
+  }
+
+  #write {
+    max-width: none;
+    padding: 0;
+  }
+
+  /* Page header with logo (first page only) */
+  @page :first {
+    margin-top: 1.5in;
+  }
+
+  /* Add eSolia footer to all pages */
+  @page {
+    margin: 0.75in;
+
+    @bottom-left {
+      content: "eSolia Inc. — CONFIDENTIAL / 機密";
+      font-family: 'IBM Plex Sans JP', sans-serif;
+      font-size: 9pt;
+      color: #6B7280;
+    }
+
+    @bottom-right {
+      content: counter(page) " / " counter(pages);
+      font-family: 'IBM Plex Sans JP', sans-serif;
+      font-size: 9pt;
+      color: #6B7280;
+    }
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+    page-break-inside: avoid;
+  }
+
+  pre, blockquote, table, figure {
+    page-break-inside: avoid;
+  }
+
+  img {
+    page-break-inside: avoid;
+    max-width: 100% !important;
+  }
+
+  a {
+    color: var(--esolia-link);
+    text-decoration: none;
+  }
+
+  /* Show link URLs in print */
+  a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.8em;
+    color: var(--text-muted);
+    word-break: break-all;
+  }
+
+  /* Don't show URLs for internal links */
+  a[href^="#"]::after {
+    content: "";
+  }
+
+  code {
+    border: 1px solid var(--border-color);
+  }
+
+  pre {
+    border: 1px solid var(--border-color);
+    page-break-inside: avoid;
+  }
+
+  blockquote {
+    border-left: 3px solid var(--esolia-link);
+    background-color: #F9FAFB;
+  }
+}
+
+/* ============================================
+   EXPORT-SPECIFIC STYLES
+   ============================================ */
+/* These apply when exporting to PDF/HTML */
+
+/* Add logo before first h1 when exporting */
+#write > h1:first-of-type::before {
+  content: "";
+  display: block;
+  width: 180px;
+  height: 70px;
+  margin-bottom: 1.5em;
+  background-image: url('./esolia/logo.svg');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: left center;
+}
+
+/* ============================================
+   DARK MODE SUPPORT (Optional)
+   ============================================ */
+@media (prefers-color-scheme: dark) {
+  /* Typora handles dark mode internally,
+     but if you want to support it:
+     Uncomment and customize below */
+  /*
+  :root {
+    --bg-color: #1F2937;
+    --bg-secondary: #374151;
+    --bg-code: #111827;
+    --bg-callout: #1E3A5F;
+    --text-color: #F3F4F6;
+    --text-muted: #9CA3AF;
+    --border-color: #4B5563;
+  }
+  */
+}
+
+/* ============================================
+   CUSTOM CLASSES FOR SPECIAL ELEMENTS
+   ============================================ */
+
+/* Info callout - use > **ℹ️ Note:** ... */
+blockquote > p:first-child > strong:first-child {
+  color: var(--esolia-link);
+}
+
+/* Warning callout styling */
+blockquote > p:first-child > strong:first-child:contains("⚠️"),
+blockquote > p:first-child > strong:first-child:contains("Warning") {
+  color: #D97706;
+}
+
+/* ============================================
+   JAPANESE-SPECIFIC TYPOGRAPHY
+   ============================================ */
+/* Ensure proper spacing for Japanese text */
+:lang(ja) {
+  line-height: 1.85;
+  letter-spacing: 0.02em;
+}
+
+/* Japanese quotation marks */
+:lang(ja) blockquote {
+  quotes: "「" "」" "『" "』";
+}
+
+/* ============================================
+   ACCESSIBILITY
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  :root {
+    --text-color: #000000;
+    --heading-color: #000000;
+    --border-color: #000000;
+  }
+}

@@ -8,18 +8,19 @@
 
 <!-- CUSTOMIZE: Update this section for each project -->
 
-| Property | Value |
-|----------|-------|
-| **Name** | [PROJECT_NAME] |
-| **Type** | SvelteKit application |
-| **Svelte Version** | 5.x (Runes) |
-| **Deployment** | Cloudflare Pages |
-| **Database** | D1 |
-| **Storage** | R2 |
+| Property           | Value                 |
+| ------------------ | --------------------- |
+| **Name**           | [PROJECT_NAME]        |
+| **Type**           | SvelteKit application |
+| **Svelte Version** | 5.x (Runes)           |
+| **Deployment**     | Cloudflare Pages      |
+| **Database**       | D1                    |
+| **Storage**        | R2                    |
 
 ### Description
 
 <!-- CUSTOMIZE: Brief description of what this app does -->
+
 [One paragraph describing the application purpose and key functionality]
 
 ---
@@ -156,7 +157,7 @@ const items = await db
 // Use batch for multiple queries
 const [users, settings] = await db.batch([
   db.prepare('SELECT * FROM users WHERE org_id = ?').bind(orgId),
-  db.prepare('SELECT * FROM settings WHERE org_id = ?').bind(orgId)
+  db.prepare('SELECT * FROM settings WHERE org_id = ?').bind(orgId),
 ]);
 ```
 
@@ -171,6 +172,7 @@ const [users, settings] = await db.batch([
 <!-- Choose one and delete the others -->
 
 **Option A: Tailwind CSS**
+
 ```svelte
 <button class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
   Click me
@@ -178,6 +180,7 @@ const [users, settings] = await db.batch([
 ```
 
 **Option B: Component Library (e.g., shadcn-svelte)**
+
 ```svelte
 <script>
   import { Button } from '$lib/components/ui/button';
@@ -186,6 +189,7 @@ const [users, settings] = await db.batch([
 ```
 
 **Option C: CSS Modules / Scoped CSS**
+
 ```svelte
 <button class="btn">Click me</button>
 <style>
@@ -197,11 +201,11 @@ const [users, settings] = await db.batch([
 
 <!-- CUSTOMIZE: List your reusable components -->
 
-| Component | Location | Usage |
-|-----------|----------|-------|
-| `Button` | `$lib/components/ui/Button.svelte` | Primary action buttons |
-| `Input` | `$lib/components/ui/Input.svelte` | Form inputs with validation |
-| `Modal` | `$lib/components/ui/Modal.svelte` | Dialog overlays |
+| Component   | Location                              | Usage                       |
+| ----------- | ------------------------------------- | --------------------------- |
+| `Button`    | `$lib/components/ui/Button.svelte`    | Primary action buttons      |
+| `Input`     | `$lib/components/ui/Input.svelte`     | Form inputs with validation |
+| `Modal`     | `$lib/components/ui/Modal.svelte`     | Dialog overlays             |
 | `DataTable` | `$lib/components/ui/DataTable.svelte` | Sortable, filterable tables |
 
 ---
@@ -215,12 +219,12 @@ const [users, settings] = await db.batch([
 export const handle: Handle = async ({ event, resolve }) => {
   const session = await getSession(event.cookies);
   event.locals.user = session?.user ?? null;
-  
+
   // Protected routes
   if (event.url.pathname.startsWith('/app') && !session) {
     throw redirect(303, '/login');
   }
-  
+
   return resolve(event);
 };
 ```
@@ -234,7 +238,7 @@ cookies.set('session', token, {
   httpOnly: true,
   secure: !dev,
   sameSite: 'lax',
-  maxAge: 60 * 60 * 24 * 7  // 7 days
+  maxAge: 60 * 60 * 24 * 7, // 7 days
 });
 
 // Clear session
@@ -251,27 +255,27 @@ cookies.delete('session', { path: '/' });
 
 ```typescript
 // Success
-return json({ 
+return json({
   data: result,
-  meta: { total: 100, page: 1 }
+  meta: { total: 100, page: 1 },
 });
 
 // Error
-throw error(400, { 
+throw error(400, {
   message: 'Validation failed',
-  errors: { email: 'Invalid email format' }
+  errors: { email: 'Invalid email format' },
 });
 ```
 
 ### Endpoint Naming
 
-| Method | Path | Action |
-|--------|------|--------|
-| GET | `/api/items` | List items |
-| GET | `/api/items/[id]` | Get single item |
-| POST | `/api/items` | Create item |
-| PUT | `/api/items/[id]` | Update item |
-| DELETE | `/api/items/[id]` | Delete item |
+| Method | Path              | Action          |
+| ------ | ----------------- | --------------- |
+| GET    | `/api/items`      | List items      |
+| GET    | `/api/items/[id]` | Get single item |
+| POST   | `/api/items`      | Create item     |
+| PUT    | `/api/items/[id]` | Update item     |
+| DELETE | `/api/items/[id]` | Delete item     |
 
 ---
 
@@ -325,11 +329,13 @@ npx wrangler pages deploy
 <!-- CUSTOMIZE: Your commit/branch conventions -->
 
 ### Branch Naming
+
 - `feature/` - New features
 - `fix/` - Bug fixes
 - `refactor/` - Code refactoring
 
 ### Commit Messages
+
 ```
 type(scope): description
 
@@ -344,9 +350,9 @@ refactor(api): extract validation helpers
 
 <!-- CUSTOMIZE: Track known issues -->
 
-| Issue | Impact | Planned Fix |
-|-------|--------|-------------|
-| Example: No rate limiting on login | Medium | Q1 2025 |
+| Issue                              | Impact | Planned Fix |
+| ---------------------------------- | ------ | ----------- |
+| Example: No rate limiting on login | Medium | Q1 2025     |
 
 ---
 
@@ -363,6 +369,6 @@ refactor(api): extract validation helpers
 
 <!-- Track significant changes to this file -->
 
-| Date | Change |
-|------|--------|
+| Date       | Change           |
+| ---------- | ---------------- |
 | YYYY-MM-DD | Initial creation |
