@@ -4565,10 +4565,10 @@ packages:
         integrity: sha512-yDJTmhydvl5lJzBmy/hyOAA0d+aqCBuwl818haVdYCRrWV84o7YyeVm4QlVHStqNrrJSTb6jKuFAVqAFsr+K3Q==,
       }
 
-  undici@7.18.2:
+  undici@7.20.0:
     resolution:
       {
-        integrity: sha512-y+8YjDFzWdQlSE9N5nzKMT3g4a5UBX1HKowfdXh0uvAnTaqqwqB92Jt4UXBAeKekDs5IaDKyJFR4X1gYVCgXcw==,
+        integrity: sha512-MJZrkjyd7DeC+uPZh+5/YaMDxFiiEEaDgbUSVMXayofAkDWF1088CDo+2RPg7B1BuS1qf1vgNE7xqwPxE0DuSQ==,
       }
     engines: { node: '>=20.18.1' }
 
@@ -6841,7 +6841,7 @@ snapshots:
     dependencies:
       '@cspotcode/source-map-support': 0.8.1
       sharp: 0.34.5
-      undici: 7.18.2
+      undici: 7.20.0
       workerd: 1.20260131.0
       ws: 8.18.0
       youch: 4.1.0-beta.10
@@ -7402,7 +7402,7 @@ snapshots:
 
   ufo@1.6.3: {}
 
-  undici@7.18.2: {}
+  undici@7.20.0: {}
 
   unenv@2.0.0-rc.24:
     dependencies:
