@@ -88,6 +88,41 @@ export interface User {
   updated_at: string;
 }
 
+// Comment types (client-facing subset)
+export interface CommentAuthor {
+  id: string;
+  email: string;
+  name?: string;
+}
+
+export interface CommentData {
+  id: string;
+  content: string;
+  contentHtml?: string;
+  type: 'inline' | 'document' | 'suggestion';
+  status: 'open' | 'resolved' | 'rejected';
+  suggestionText?: string;
+  author: CommentAuthor;
+  createdAt: number;
+  updatedAt: number;
+  reactions?: Record<string, string[]>;
+}
+
+export interface CommentThread {
+  id: string;
+  rootComment: CommentData;
+  replies: CommentData[];
+  status: 'open' | 'resolved' | 'rejected';
+  participantCount: number;
+  lastActivity: number;
+}
+
+export interface CommentCounts {
+  total: number;
+  open: number;
+  resolved: number;
+}
+
 // Editor-specific types
 export type CalloutType = 'info' | 'warning' | 'danger' | 'success';
 export type StatusType =

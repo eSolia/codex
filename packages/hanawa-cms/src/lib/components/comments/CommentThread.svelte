@@ -6,34 +6,7 @@
 
   import CommentEditor from './CommentEditor.svelte';
   import { sanitizeComment } from '$lib/sanitize';
-
-  interface CommentAuthor {
-    id: string;
-    email: string;
-    name?: string;
-  }
-
-  interface Comment {
-    id: string;
-    content: string;
-    contentHtml?: string;
-    type: 'inline' | 'document' | 'suggestion';
-    status: 'open' | 'resolved' | 'rejected';
-    suggestionText?: string;
-    author: CommentAuthor;
-    createdAt: number;
-    updatedAt: number;
-    reactions?: Record<string, string[]>;
-  }
-
-  interface CommentThread {
-    id: string;
-    rootComment: Comment;
-    replies: Comment[];
-    status: 'open' | 'resolved' | 'rejected';
-    participantCount: number;
-    lastActivity: number;
-  }
+  import type { CommentAuthor, CommentData, CommentThread } from '$lib/types';
 
   interface Props {
     thread: CommentThread;
@@ -94,7 +67,7 @@
     return author.email.charAt(0).toUpperCase();
   }
 
-  function isOwnComment(comment: Comment): boolean {
+  function isOwnComment(comment: CommentData): boolean {
     return comment.author.email === currentUserEmail;
   }
 
