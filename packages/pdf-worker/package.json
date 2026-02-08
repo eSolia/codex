@@ -13,13 +13,13 @@
     "format": "prettier --write ."
   },
   "dependencies": {
-    "hono": "^4.6.0",
+    "hono": "^4.11.9",
     "pdf-lib": "^1.17.1"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20241218.0",
     "prettier": "^3.4.0",
     "typescript": "^5.7.0",
-    "wrangler": "^4.54.0"
+    "wrangler": "^4.63.0"
   }
 }
