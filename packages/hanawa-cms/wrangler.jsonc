@@ -81,7 +81,7 @@
   // Environment variables
   "vars": {
     "ENVIRONMENT": "production",
-    "APP_VERSION": "0.4.0",
+    "APP_VERSION": "0.4.1",
   },
 
   // Scheduled publishing handled by hanawa-scheduler Worker
