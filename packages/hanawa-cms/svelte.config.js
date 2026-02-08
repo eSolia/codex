@@ -32,6 +32,21 @@ const config = {
       $components: './src/lib/components',
       $server: './src/lib/server',
     },
+    // InfoSec: CSP with automatic nonces for inline scripts (OWASP A03)
+    // Eliminates 'unsafe-inline' from script-src via SvelteKit's built-in nonce injection
+    csp: {
+      directives: {
+        'default-src': ['self'],
+        'script-src': ['self', 'https://static.cloudflareinsights.com'],
+        'style-src': ['self', 'unsafe-inline', 'https://fonts.googleapis.com'],
+        'font-src': ['self', 'https://fonts.gstatic.com'],
+        'img-src': ['self', 'data:', 'https:'],
+        'connect-src': ['self', 'https://cloudflareinsights.com'],
+        'frame-ancestors': ['none'],
+        'base-uri': ['self'],
+        'form-action': ['self'],
+      },
+    },
     // Disable prerendering in CI to avoid platform proxy auth requirement
     prerender: {
       entries: isCI ? [] : ['*'],

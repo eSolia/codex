@@ -197,21 +197,12 @@ export const handle: Handle = async ({ event, resolve }) => {
   response.headers.set('X-Content-Type-Options', 'nosniff');
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
   response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  // InfoSec: HSTS enforces HTTPS for 1 year including subdomains
+  response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+  // InfoSec: Disable legacy XSS auditors (can introduce vulnerabilities)
+  response.headers.set('X-XSS-Protection', '0');
 
-  // Content Security Policy
-  // Note: 'unsafe-inline' needed for Svelte's runtime styles
-  // InfoSec: Allow Cloudflare Insights for analytics
-  response.headers.set(
-    'Content-Security-Policy',
-    [
-      "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com",
-      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-      "font-src 'self' https://fonts.gstatic.com",
-      "img-src 'self' data: https:",
-      "connect-src 'self' https://cloudflareinsights.com",
-    ].join('; ')
-  );
+  // CSP handled by kit.csp in svelte.config.js with automatic nonces
 
   return response;
 };
