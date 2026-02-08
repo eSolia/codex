@@ -12,6 +12,27 @@ function parseJson<T>(value: string | null, fallback: T): T {
   }
 }
 
+/**
+ * Build dynamic UPDATE SET clauses from a partial update object.
+ * InfoSec: Uses parameterized queries — values are passed via .bind(), never interpolated.
+ */
+function buildUpdate(
+  updates: Record<string, unknown>,
+  allowedFields: string[],
+  jsonFields: Set<string> = new Set()
+): { setClauses: string[]; values: unknown[] } {
+  const setClauses: string[] = [];
+  const values: unknown[] = [];
+  for (const field of allowedFields) {
+    if (updates[field] !== undefined) {
+      setClauses.push(`${field} = ?`);
+      values.push(jsonFields.has(field) ? JSON.stringify(updates[field]) : updates[field]);
+    }
+  }
+  setClauses.push("updated_at = datetime('now')");
+  return { setClauses, values };
+}
+
 // Transform D1 row to typed object
 function transformSite(row: Record<string, unknown>): Site {
   return {
@@ -182,36 +203,15 @@ export async function updateContent(
   id: string,
   updates: Partial<Content>
 ): Promise<Content> {
-  const fields: string[] = [];
-  const values: unknown[] = [];
-
-  if (updates.title !== undefined) {
-    fields.push('title = ?');
-    values.push(updates.title);
-  }
-  if (updates.body !== undefined) {
-    fields.push('body = ?');
-    values.push(updates.body);
-  }
-  if (updates.status !== undefined) {
-    fields.push('status = ?');
-    values.push(updates.status);
-  }
-  if (updates.frontmatter !== undefined) {
-    fields.push('frontmatter = ?');
-    values.push(JSON.stringify(updates.frontmatter));
-  }
-  if (updates.published_at !== undefined) {
-    fields.push('published_at = ?');
-    values.push(updates.published_at);
-  }
-
-  fields.push("updated_at = datetime('now')");
-  values.push(id);
+  const { setClauses, values } = buildUpdate(
+    updates as Record<string, unknown>,
+    ['title', 'body', 'status', 'frontmatter', 'published_at'],
+    new Set(['frontmatter'])
+  );
 
   await db
-    .prepare(`UPDATE content SET ${fields.join(', ')} WHERE id = ?`)
-    .bind(...values)
+    .prepare(`UPDATE content SET ${setClauses.join(', ')} WHERE id = ?`)
+    .bind(...values, id)
     .run();
 
   return (await getContent(db, id))!;
@@ -309,40 +309,15 @@ export async function updateFragment(
   id: string,
   updates: Partial<Fragment>
 ): Promise<Fragment> {
-  const fields: string[] = [];
-  const values: unknown[] = [];
-
-  if (updates.name !== undefined) {
-    fields.push('name = ?');
-    values.push(updates.name);
-  }
-  if (updates.content_en !== undefined) {
-    fields.push('content_en = ?');
-    values.push(updates.content_en);
-  }
-  if (updates.content_ja !== undefined) {
-    fields.push('content_ja = ?');
-    values.push(updates.content_ja);
-  }
-  if (updates.category !== undefined) {
-    fields.push('category = ?');
-    values.push(updates.category);
-  }
-  if (updates.status !== undefined) {
-    fields.push('status = ?');
-    values.push(updates.status);
-  }
-  if (updates.tags !== undefined) {
-    fields.push('tags = ?');
-    values.push(JSON.stringify(updates.tags));
-  }
-
-  fields.push("updated_at = datetime('now')");
-  values.push(id);
+  const { setClauses, values } = buildUpdate(
+    updates as Record<string, unknown>,
+    ['name', 'content_en', 'content_ja', 'category', 'status', 'tags'],
+    new Set(['tags'])
+  );
 
   await db
-    .prepare(`UPDATE fragments SET ${fields.join(', ')} WHERE id = ?`)
-    .bind(...values)
+    .prepare(`UPDATE fragments SET ${setClauses.join(', ')} WHERE id = ?`)
+    .bind(...values, id)
     .run();
 
   return (await getFragment(db, id))!;
