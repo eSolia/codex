@@ -1,0 +1,88 @@
+id: fortinet-small-office-network
+category: products
+version: "2025-01"
+title:
+  en: "Fortinet Small Office Network"
+  ja: "Fortinet 小規模オフィスネットワーク"
+type: product-overview
+tags:
+  - fortinet
+  - fortiwifi
+  - fortiswitch
+  - network
+  - small-office
+  - structured-cabling
+status: active
+created: "2026-02-20"
+author: rick.cogley@esolia.co.jp
+sensitivity: normal
+allowed_collections:
+  - proposals
+  - help
+  - concepts
+content:
+  en: |
+    ## Small Office Network — Fortinet
+
+    A compact, professional-grade network for your office built on Fortinet's integrated security platform. This setup gives a small office the same caliber of network infrastructure used by larger organizations, right-sized for your environment.
+
+    **FortiWifi — Firewall, Router, and Wireless Access Point**
+
+    The FortiWifi is an all-in-one device that serves as your firewall, router, and wireless access point. Your team connects to Wi-Fi directly through it, with enterprise-grade security applied to all traffic — web filtering, intrusion prevention, and application control included. It is managed through Fortinet's FortiCloud or FortiGate interface, giving your parent organization visibility and policy consistency across locations.
+
+    **FortiSwitch — Managed Network Switching**
+
+    The FortiSwitch provides high-performance wired connectivity for devices that need it — desktops, printers, IP phones, and other equipment. Managed directly from the FortiWifi, the switch requires no separate management interface, keeping administration simple. VLANs, QoS, and port security are configured centrally, so your network segmentation aligns with your organization's standards.
+
+    **Structured Cabling**
+
+    A clean, professional cabling installation using high-quality Category 6A or better cabling, properly terminated patch panels, and neat cable management. Good structured cabling is the foundation of a reliable network — it eliminates the intermittent connectivity issues and performance problems that come from ad-hoc cabling. All runs are tested and certified.
+
+    **Compact Rack and UPS**
+
+    All equipment is housed in a small wall-mount or floor-standing rack, keeping everything organized, ventilated, and physically secure. A rack-mount UPS protects against power interruptions, giving the network equipment enough runtime to ride through brief outages and shut down gracefully during longer ones.
+
+    **Why This Combination Works**
+
+    - Unified management — FortiSwitch is managed from FortiWifi, one interface for the whole network
+    - Security built in — not bolted on after the fact
+    - Consistent with larger Fortinet deployments your parent organization may already run
+    - Professional installation with clean cabling means fewer support calls down the road
+    - Power protection keeps you online through the momentary outages that are common in office buildings
+
+  ja: |
+    ## 小規模オフィスネットワーク — Fortinet
+
+    Fortinetの統合セキュリティプラットフォームをベースとした、コンパクトでプロフェッショナルなオフィスネットワーク。大規模組織と同じ水準のネットワークインフラを、お客様の環境に合わせた規模で導入します。
+
+    **FortiWifi — ファイアウォール、ルーター、無線アクセスポイント**
+
+    FortiWifiは、ファイアウォール、ルーター、無線アクセスポイントを一台に統合したデバイスです。チームはFortiWifiから直接Wi-Fiに接続し、すべてのトラフィックにエンタープライズグレードのセキュリティが適用されます。Webフィルタリング、侵入防止、アプリケーション制御が含まれています。FortiCloudまたはFortiGateインターフェースを通じて管理され、親組織からの可視性と拠点間のポリシー一貫性を確保します。
+
+    **FortiSwitch — マネージドネットワークスイッチ**
+
+    FortiSwitchは、デスクトップPC、プリンター、IP電話などの有線接続が必要な機器に高性能な接続を提供します。FortiWifiから直接管理されるため、別途管理インターフェースが不要で、管理がシンプルです。VLAN、QoS、ポートセキュリティは一元的に設定され、組織全体のネットワークセグメンテーション基準に準拠します。
+
+    **構造化ケーブリング**
+
+    高品質なCategory 6A以上のケーブル、適切に端末処理されたパッチパネル、整然としたケーブルマネジメントによるクリーンでプロフェッショナルなケーブリング施工。適切な構造化ケーブリングは、信頼性の高いネットワークの基盤です。場当たり的な配線から生じる断続的な接続問題やパフォーマンス低下を解消します。すべての配線はテスト・認証済みです。
+
+    **コンパクトラックとUPS**
+
+    すべての機器は小型の壁掛けまたは自立型ラックに収納され、整理整頓された状態で適切な換気と物理的セキュリティを確保します。ラックマウントUPSが停電から保護し、短時間の停電はそのまま稼働を継続、長時間の場合は安全にシャットダウンするための十分なランタイムを提供します。
+
+    **この組み合わせが有効な理由**
+
+    - 統合管理 — FortiSwitchはFortiWifiから管理、ネットワーク全体を一つのインターフェースで
+    - セキュリティは最初から組み込み — 後付けではなく
+    - 親組織が既に運用しているFortinet環境との一貫性
+    - クリーンなケーブリングによるプロフェッショナルな施工で、将来のサポートコールを削減
+    - 電源保護により、オフィスビルで頻発する瞬断時もネットワーク稼働を維持
+
+metadata:
+  last_updated: "2026-02-20"
+  author: "eSolia Technical Team"
+  usage_notes: |
+    Use for proposals to small offices (especially branch/subsidiary offices of larger orgs)
+    that need a professional Fortinet-based network. Pairs well with the totalsupport or
+    cosupport fragment depending on the engagement model.

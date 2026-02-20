@@ -8,6 +8,7 @@
   import ArrowLeft from 'phosphor-svelte/lib/ArrowLeft';
   import Star from 'phosphor-svelte/lib/Star';
   import Files from 'phosphor-svelte/lib/Files';
+  import LoadingSpinner from '$lib/components/ui/LoadingSpinner.svelte';
 
   interface Template {
     id: string;
@@ -84,6 +85,7 @@
   let language = $state('en');
   let draggedIndex = $state<number | null>(null);
   let isClientDocument = $state(false); // Default to general document for new documents
+  let submitting = $state(false);
 
   const fragmentsJson = $derived(JSON.stringify(fragments));
 
@@ -140,9 +142,9 @@
   }
 
   function toggleFragment(index: number) {
-    // Don't allow disabling required fragments
-    if (fragments[index].required) return;
-    fragments[index].enabled = !fragments[index].enabled;
+    const frag = fragments[index];
+    if (!frag || frag.required) return;
+    frag.enabled = !frag.enabled;
   }
 
   function handleDragStart(e: DragEvent, index: number) {
@@ -158,7 +160,8 @@
 
     // Reorder fragments
     const newFragments = [...fragments];
-    const [removed] = newFragments.splice(draggedIndex, 1);
+    const removed = newFragments.splice(draggedIndex, 1)[0];
+    if (!removed) return;
     newFragments.splice(index, 0, removed);
 
     // Update order numbers
@@ -188,7 +191,7 @@
 
   // Remove a fragment (only non-required)
   function removeFragment(index: number) {
-    if (fragments[index].required) return;
+    if (fragments[index]?.required) return;
     const newFragments = fragments.filter((_, i) => i !== index);
     newFragments.forEach((f, i) => (f.order = i + 1));
     fragments = newFragments;
@@ -309,7 +312,17 @@
     </div>
   {/if}
 
-  <form method="POST" use:enhance class="space-y-6">
+  <form
+    method="POST"
+    use:enhance={() => {
+      submitting = true;
+      return async ({ update }) => {
+        await update();
+        submitting = false;
+      };
+    }}
+    class="space-y-6"
+  >
     <!-- Hidden fields -->
     <input type="hidden" name="fragments" value={fragmentsJson} />
     <input type="hidden" name="template_id" value={selectedTemplateId || ''} />
@@ -580,15 +593,24 @@
     <div class="flex justify-end gap-4">
       <a
         href="/documents"
-        class="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+        class="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors
+               {submitting ? 'pointer-events-none opacity-50' : ''}"
       >
         Cancel
       </a>
       <button
         type="submit"
-        class="px-6 py-2 bg-esolia-navy text-white rounded-lg hover:bg-esolia-navy/90 transition-colors font-medium"
+        disabled={submitting}
+        class="px-6 py-2 bg-esolia-navy text-white rounded-lg hover:bg-esolia-navy/90 transition-colors font-medium
+               inline-flex items-center gap-2
+               {submitting ? 'opacity-75 cursor-not-allowed' : ''}"
       >
-        Create Document
+        {#if submitting}
+          <LoadingSpinner size="h-4 w-4" />
+          Creating...
+        {:else}
+          Create Document
+        {/if}
       </button>
     </div>
   </form>

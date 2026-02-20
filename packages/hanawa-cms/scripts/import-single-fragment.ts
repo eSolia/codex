@@ -35,7 +35,6 @@ interface DbFragment {
   description: string | null;
   content_en: string | null;
   content_ja: string | null;
-  is_bilingual: number;
   tags: string;
   version: string;
   status: string;
@@ -298,7 +297,6 @@ function parseFragment(filePath: string): DbFragment | null {
       description: yaml.type || null,
       content_en: contentEn,
       content_ja: contentJa,
-      is_bilingual: contentEn && contentJa ? 1 : 0,
       tags: JSON.stringify(yaml.tags || []),
       version: yaml.version || '1.0',
       status: yaml.status || 'active',
@@ -328,7 +326,7 @@ async function main() {
 
   console.log(`✓ Parsed: ${fragment.category}/${fragment.slug}`);
   console.log(`  - Name: ${fragment.name}`);
-  console.log(`  - Bilingual: ${fragment.is_bilingual ? 'Yes' : 'No'}`);
+  console.log(`  - Bilingual: ${fragment.content_en && fragment.content_ja ? 'Yes' : 'No'}`);
   console.log(`  - EN content: ${fragment.content_en?.length || 0} chars`);
   console.log(`  - JA content: ${fragment.content_ja?.length || 0} chars`);
 
@@ -339,7 +337,7 @@ async function main() {
   }
 
   // Generate SQL
-  const sql = `INSERT OR REPLACE INTO fragments (id, name, slug, category, description, content_en, content_ja, is_bilingual, tags, version, status, created_at, updated_at)
+  const sql = `INSERT OR REPLACE INTO fragments (id, name, slug, category, description, content_en, content_ja, tags, version, status, created_at, updated_at)
 VALUES (
   '${escapeSQL(fragment.id)}',
   '${escapeSQL(fragment.name)}',
@@ -348,7 +346,6 @@ VALUES (
   ${fragment.description ? `'${escapeSQL(fragment.description)}'` : 'NULL'},
   '${escapeSQL(fragment.content_en || '')}',
   '${escapeSQL(fragment.content_ja || '')}',
-  ${fragment.is_bilingual},
   '${escapeSQL(fragment.tags)}',
   '${escapeSQL(fragment.version)}',
   '${escapeSQL(fragment.status)}',

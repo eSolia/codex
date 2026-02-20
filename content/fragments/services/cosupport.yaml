@@ -1,0 +1,106 @@
+id: cosupport
+category: services
+version: "2025-01"
+title:
+  en: "Co-Support — Collaborative IT Partnership"
+  ja: "Co-Support — コラボレーティブITパートナーシップ"
+type: service-description
+status: active
+tags:
+  - support
+  - co-support
+  - augmentation
+  - partnership
+created: "2026-02-20"
+author: rick.cogley@esolia.co.jp
+sensitivity: normal
+content:
+  en: |
+    ## eSolia Co-Support
+
+    Work alongside your existing IT team. Co-Support provides flexible, on-demand IT expertise to augment your internal capabilities — filling gaps, handling overflow, and bringing specialized skills when you need them.
+
+    **What You Get**
+
+    - Access to eSolia's bilingual engineering team (EN/JA)
+    - Skill augmentation for areas your team lacks coverage
+    - Overflow and surge capacity for busy periods
+    - After-hours and vacation backup coverage
+    - Specialized project expertise on demand
+    - Knowledge transfer to strengthen your internal team
+
+    **How It Works**
+
+    - Request-based, flexible engagement — scale up or down as needed
+    - Blended rate structure for simplicity
+    - Monthly review meeting with your IT leadership
+    - Shared ticketing for transparency and coordination
+    - Your team stays in control; we support where needed
+    - On-site, remote, or hybrid delivery
+
+    **Ideal For**
+
+    - Organizations with an existing IT team that needs additional capacity
+    - Companies whose IT staff lack specific skills (e.g., networking, security, cloud)
+    - Teams that need reliable backup for leaves, transitions, or emergencies
+    - Businesses undergoing IT transformation who need temporary expertise
+    - IT managers who want a trusted partner rather than a replacement
+
+    **Outcomes**
+
+    - Stronger internal team through knowledge transfer
+    - Flexible costs — pay for what you use
+    - Reduced single-point-of-failure risk for key IT personnel
+    - Access to broad expertise without hiring specialists
+    - Smooth handoffs and continuity during staff changes
+
+    Co-Support clients benefit from eSolia's deep bench of experienced engineers across infrastructure, cloud, security, and end-user computing — all with the bilingual, Japan-market expertise that makes the difference.
+
+  ja: |
+    ## eSolia Co-Support
+
+    既存のITチームと協力して。Co-Supportは、社内の能力を補完するための柔軟なオンデマンドIT専門知識を提供します。ギャップを埋め、オーバーフローを処理し、必要な時に専門スキルを提供します。
+
+    **サービス内容**
+
+    - eSoliaのバイリンガルエンジニアリングチームへのアクセス（英語/日本語）
+    - カバレッジが不足している領域のスキル補強
+    - 繁忙期のオーバーフローおよびサージ対応
+    - 営業時間外や休暇時のバックアップカバレッジ
+    - オンデマンドの専門プロジェクト知識
+    - 社内チームを強化するためのナレッジトランスファー
+
+    **サービスの特徴**
+
+    - リクエストベースの柔軟な契約形態 — 必要に応じてスケールアップ・ダウン
+    - シンプルなブレンドレート体系
+    - IT責任者との月次レビューミーティング
+    - 透明性と連携のための共有チケットシステム
+    - お客様のチームが主導権を維持、必要な部分をサポート
+    - オンサイト、リモート、またはハイブリッドでの提供
+
+    **こんな組織に最適**
+
+    - 追加のキャパシティが必要な既存ITチームを持つ組織
+    - 特定のスキル（ネットワーク、セキュリティ、クラウドなど）が不足しているITスタッフの企業
+    - 休暇、異動、緊急時の信頼できるバックアップが必要なチーム
+    - IT変革期に一時的な専門知識が必要な企業
+    - 代替ではなく信頼できるパートナーを求めるIT管理者
+
+    **期待できる効果**
+
+    - ナレッジトランスファーによる社内チームの強化
+    - 柔軟なコスト — 使用した分だけの支払い
+    - 主要IT人員の単一障害点リスクの低減
+    - 専門家を雇用せずに幅広い専門知識にアクセス
+    - スタッフ交代時のスムーズな引き継ぎと継続性
+
+    Co-Supportのお客様は、インフラ、クラウド、セキュリティ、エンドユーザーコンピューティングにわたるeSoliaの経験豊富なエンジニアの充実した陣容を活用できます。すべてがバイリンガル対応で、日本市場の専門知識を兼ね備えています。
+
+metadata:
+  last_updated: "2026-02-20"
+  author: "eSolia Technical Team"
+  usage_notes: |
+    Use when describing Co-Support as a standalone service.
+    For comparison with TotalSupport, use the esolia-support-types fragment instead.
+    Suitable for proposals to clients who already have IT staff and need augmentation.

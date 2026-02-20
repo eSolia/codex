@@ -51,7 +51,6 @@ interface DbFragment {
   description: string | null;
   content_en: string;
   content_ja: string;
-  is_bilingual: number;
   tags: string;
   version: string;
   status: string;
@@ -166,7 +165,6 @@ function parseFragment(
         description: yaml.type || 'mermaid',
         content_en: contentEn,
         content_ja: contentJa,
-        is_bilingual: 1,
         tags: JSON.stringify(tags),
         version: '1.0',
         status: 'active',
@@ -235,7 +233,7 @@ async function main() {
     }
 
     // Generate SQL
-    const sql = `INSERT OR REPLACE INTO fragments (id, name, slug, category, description, content_en, content_ja, is_bilingual, tags, version, status, created_at, updated_at)
+    const sql = `INSERT OR REPLACE INTO fragments (id, name, slug, category, description, content_en, content_ja, tags, version, status, created_at, updated_at)
 VALUES (
   '${escapeSQL(fragment.id)}',
   '${escapeSQL(fragment.name)}',
@@ -244,7 +242,6 @@ VALUES (
   ${fragment.description ? `'${escapeSQL(fragment.description)}'` : 'NULL'},
   '${escapeSQL(fragment.content_en)}',
   '${escapeSQL(fragment.content_ja)}',
-  ${fragment.is_bilingual},
   '${escapeSQL(fragment.tags)}',
   '${escapeSQL(fragment.version)}',
   '${escapeSQL(fragment.status)}',

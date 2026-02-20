@@ -1,0 +1,79 @@
+id: fortinet-small-office-network-diagram
+category: diagrams
+version: "2025-01"
+title:
+  en: "Fortinet Small Office Network Diagram"
+  ja: "Fortinet 小規模オフィスネットワーク図"
+type: diagram
+tags:
+  - fortinet
+  - network
+  - small-office
+  - diagram
+status: active
+created: "2026-02-20"
+author: rick.cogley@esolia.co.jp
+sensitivity: normal
+allowed_collections:
+  - proposals
+  - help
+  - concepts
+
+diagram:
+  format: mermaid
+  source: |
+    flowchart TB
+        internet["🌐 Fiber Internet<br/>(ISP)"]
+        ont["ONT / ONU"]
+
+        subgraph rack["Office Rack"]
+            ups["UPS<br/>(Rack Mount)"]
+            fw["FortiWifi<br/>Firewall · Router · Wi-Fi"]
+            sw["FortiSwitch<br/>Managed Switch"]
+        end
+
+        subgraph wired["Wired Devices"]
+            desktop["🖥️ Desktops"]
+            printer["🖨️ Printers"]
+            phone["📞 IP Phones"]
+        end
+
+        subgraph wireless["Wireless Devices"]
+            laptop["💻 Laptops"]
+            mobile["📱 Mobile"]
+            tablet["Tablets"]
+        end
+
+        internet --- ont
+        ont --- fw
+        fw --- sw
+        sw --- desktop
+        sw --- printer
+        sw --- phone
+        fw -.-|"Wi-Fi"| laptop
+        fw -.-|"Wi-Fi"| mobile
+        fw -.-|"Wi-Fi"| tablet
+
+        ups ~~~ fw
+        ups ~~~ sw
+
+        style rack fill:#fef3c7,stroke:#f59e0b
+        style wired fill:#dbeafe,stroke:#3b82f6
+        style wireless fill:#d1fae5,stroke:#10b981
+        style fw fill:#e11d48,color:#fff
+        style sw fill:#e11d48,color:#fff
+
+content:
+  en: |
+    Fiber internet connects to the FortiWifi, which handles firewall, routing, and wireless for the office. The FortiSwitch provides wired connections for desktops, printers, and phones. All equipment sits in a compact rack with UPS power protection. Wireless devices connect directly through the FortiWifi's built-in access point.
+
+  ja: |
+    光ファイバーインターネットがFortiWifiに接続し、オフィスのファイアウォール、ルーティング、無線を担います。FortiSwitchはデスクトップPC、プリンター、電話機への有線接続を提供します。すべての機器はUPS電源保護付きのコンパクトラックに収納されます。無線デバイスはFortiWifiの内蔵アクセスポイントから直接接続します。
+
+metadata:
+  last_updated: "2026-02-20"
+  author: "eSolia Technical Team"
+  usage_notes: |
+    Generic network topology diagram for Fortinet small office proposals.
+    Pairs with the fortinet-small-office-network product fragment.
+    Adjust device types in the wired/wireless groups to match actual client needs.

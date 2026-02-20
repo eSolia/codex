@@ -54,6 +54,9 @@
     link: false,
   });
 
+  // Track whether the last content change came from the editor itself
+  let updatingFromEditor = false;
+
   onMount(() => {
     editor = new Editor({
       element: editorElement,
@@ -75,7 +78,9 @@
       content: content || '',
       editable: !disabled,
       onUpdate: ({ editor: e }) => {
+        updatingFromEditor = true;
         content = e.getHTML();
+        updatingFromEditor = false;
       },
       onSelectionUpdate: ({ editor: e }) => {
         updateActiveStates(e);
@@ -88,6 +93,13 @@
 
   onDestroy(() => {
     editor?.destroy();
+  });
+
+  // Sync external content changes (e.g. translation) into the Tiptap editor
+  $effect(() => {
+    if (editor && !updatingFromEditor && content !== editor.getHTML()) {
+      editor.commands.setContent(content || '');
+    }
   });
 
   function updateActiveStates(e: Editor) {
@@ -217,7 +229,7 @@
 
 <svelte:window onclick={handleClickOutside} />
 
-<div class="cover-letter-editor border rounded-lg overflow-hidden bg-white">
+<div class="cover-letter-editor border rounded-lg bg-white">
   <!-- Toolbar -->
   <div class="flex items-center gap-1 p-2 border-b bg-gray-50 flex-wrap">
     <!-- Text formatting -->
@@ -275,7 +287,7 @@
 
         {#if showBoilerplateMenu}
           <div
-            class="absolute left-0 top-full mt-1 w-64 bg-white rounded-lg shadow-lg border z-20 max-h-64 overflow-y-auto"
+            class="absolute left-0 top-full mt-1 w-64 bg-white rounded-lg shadow-lg border z-50 max-h-64 overflow-y-auto"
           >
             {#each boilerplates as bp (bp.id)}
               {@const hasContent = language === 'ja' ? bp.content_ja : bp.content_en}
