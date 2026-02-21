@@ -87,7 +87,7 @@ export const load: PageServerLoad = async ({ platform, url }) => {
       }
     } else if (templates.length > 0) {
       // Use default template if no template specified
-      selectedTemplate = templates.find((t) => t.is_default) || templates[0];
+      selectedTemplate = templates.find((t) => t.is_default) ?? templates[0] ?? null;
       if (selectedTemplate) {
         try {
           defaultFragments = JSON.parse(selectedTemplate.default_fragments);

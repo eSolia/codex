@@ -21,27 +21,30 @@ flowchart TD
     A --> B --> C
 ```
 
-| Property | Default | Compact | Ultra-compact |
-|----------|---------|---------|---------------|
-| `nodeSpacing` | 50 | 25–30 | 15–20 |
-| `rankSpacing` | 50 | 35–40 | 25–30 |
-| `padding` | 8 | 6 | 4 |
+| Property      | Default | Compact | Ultra-compact |
+| ------------- | ------- | ------- | ------------- |
+| `nodeSpacing` | 50      | 25–30   | 15–20         |
+| `rankSpacing` | 50      | 35–40   | 25–30         |
+| `padding`     | 8       | 6       | 4             |
 
 ### Structural Techniques
 
 **Parallel nodes (same rank):**
+
 ```mermaid
 flowchart TD
     A --> B & C & D --> E
 ```
 
 **Horizontal flow (trades height for width):**
+
 ```mermaid
 flowchart LR
     A --> B --> C --> D
 ```
 
 **Invisible links for alignment:**
+
 ```mermaid
 flowchart TD
     A --> B
@@ -51,6 +54,7 @@ flowchart TD
 ```
 
 **Collapsed subgraphs:**
+
 ```mermaid
 flowchart TD
     subgraph S1[" "]
@@ -83,18 +87,19 @@ sequenceDiagram
     B-->>A: Response
 ```
 
-| Property | Default | Compact | Effect |
-|----------|---------|---------|--------|
-| `messageMargin` | 35 | 15–20 | Vertical gap between messages |
-| `boxMargin` | 10 | 4–6 | Margin around activation boxes |
-| `noteMargin` | 10 | 6–8 | Space around notes |
-| `actorMargin` | 50 | 30–40 | Horizontal actor spacing |
-| `mirrorActors` | true | false | Removes bottom actor row |
-| `height` | 65 | 40–50 | Actor box height |
+| Property        | Default | Compact | Effect                         |
+| --------------- | ------- | ------- | ------------------------------ |
+| `messageMargin` | 35      | 15–20   | Vertical gap between messages  |
+| `boxMargin`     | 10      | 4–6     | Margin around activation boxes |
+| `noteMargin`    | 10      | 6–8     | Space around notes             |
+| `actorMargin`   | 50      | 30–40   | Horizontal actor spacing       |
+| `mirrorActors`  | true    | false   | Removes bottom actor row       |
+| `height`        | 65      | 40–50   | Actor box height               |
 
 ### Structural Techniques
 
 **Combine related messages:**
+
 ```mermaid
 sequenceDiagram
     A->>+B: Request + Process
@@ -102,6 +107,7 @@ sequenceDiagram
 ```
 
 **Use shorter participant aliases:**
+
 ```mermaid
 sequenceDiagram
     participant C as Client
@@ -133,6 +139,7 @@ stateDiagram-v2
 ### Structural Techniques
 
 **Horizontal direction:**
+
 ```mermaid
 stateDiagram-v2
     direction LR
@@ -140,6 +147,7 @@ stateDiagram-v2
 ```
 
 **Composite states for grouping:**
+
 ```mermaid
 stateDiagram-v2
     direction LR
@@ -171,6 +179,7 @@ erDiagram
 ### Structural Techniques
 
 **Shorter entity names and minimal attributes:**
+
 ```mermaid
 erDiagram
     U[User] ||--o{ O[Order] : places
@@ -200,6 +209,7 @@ classDiagram
 ### Structural Techniques
 
 **Horizontal direction:**
+
 ```mermaid
 classDiagram
     direction LR
@@ -208,6 +218,7 @@ classDiagram
 ```
 
 **Abbreviated members:**
+
 ```mermaid
 classDiagram
     class User {
@@ -240,12 +251,12 @@ gantt
     Task B :a2, after a1, 3d
 ```
 
-| Property | Default | Compact | Effect |
-|----------|---------|---------|--------|
-| `barHeight` | 20 | 12–15 | Height of task bars |
-| `barGap` | 4 | 2–3 | Gap between bars |
-| `leftPadding` | 75 | 50–60 | Label area width |
-| `fontSize` | 11 | 10–11 | Task label size |
+| Property      | Default | Compact | Effect              |
+| ------------- | ------- | ------- | ------------------- |
+| `barHeight`   | 20      | 12–15   | Height of task bars |
+| `barGap`      | 4       | 2–3     | Gap between bars    |
+| `leftPadding` | 75      | 50–60   | Label area width    |
+| `fontSize`    | 11      | 10–11   | Task label size     |
 
 ---
 
@@ -285,10 +296,10 @@ Apply to any diagram type for overall size reduction:
 }}%%
 ```
 
-| Variable | Default | Compact | Effect |
-|----------|---------|---------|--------|
-| `fontSize` | 16px | 11–13px | All text smaller |
-| `primaryTextColor` | varies | — | Ensure contrast at small sizes |
+| Variable           | Default | Compact | Effect                         |
+| ------------------ | ------- | ------- | ------------------------------ |
+| `fontSize`         | 16px    | 11–13px | All text smaller               |
+| `primaryTextColor` | varies  | —       | Ensure contrast at small sizes |
 
 ---
 
@@ -320,16 +331,19 @@ gantt
 ## Troubleshooting
 
 **Diagram still too tall?**
+
 1. Switch from `TD` to `LR` orientation
 2. Use `&` to place nodes on same rank
 3. Reduce `rankSpacing` further (minimum ~20)
 4. Shorten node labels
 
 **Text getting cut off?**
+
 - Increase `padding` slightly
 - Use explicit node dimensions: `A[Label]:::wide` with custom class
 
 **Arrows overlapping?**
+
 - Increase `nodeSpacing` while keeping `rankSpacing` low
 - Use `curve: 'basis'` for smoother paths
 
@@ -337,15 +351,15 @@ gantt
 
 ## Platform Notes
 
-| Platform | Config Support | Notes |
-|----------|----------------|-------|
-| GitHub | Full | Works in markdown files |
-| GitLab | Full | Works in markdown files |
-| Notion | Partial | Some init options ignored |
-| Confluence | Limited | May need plugin |
-| Obsidian | Full | Native Mermaid support |
-| VS Code | Full | With Mermaid extension |
+| Platform   | Config Support | Notes                     |
+| ---------- | -------------- | ------------------------- |
+| GitHub     | Full           | Works in markdown files   |
+| GitLab     | Full           | Works in markdown files   |
+| Notion     | Partial        | Some init options ignored |
+| Confluence | Limited        | May need plugin           |
+| Obsidian   | Full           | Native Mermaid support    |
+| VS Code    | Full           | With Mermaid extension    |
 
 ---
 
-*Reference version: 1.0*
+_Reference version: 1.0_

@@ -124,7 +124,7 @@
     const regex = /data-svg-path=["']diagrams\/([^"']+)\.svg["']/gi;
     let match;
     while ((match = regex.exec(content)) !== null) {
-      ids.push(match[1]);
+      ids.push(match[1]!);
     }
     return ids;
   }
@@ -790,7 +790,7 @@
         {:else if mermaidSvg}
           <!-- Rendered Mermaid diagram from diagram_source -->
           <div class="border border-gray-200 rounded-lg p-4 bg-white overflow-auto max-h-[600px]">
-            <!-- eslint-disable-next-line svelte/no-at-html-tags -- Sanitized Mermaid SVG from internal renderer -->
+            <!-- eslint-disable-next-line svelte/no-at-html-tags, esolia/no-raw-html -- Sanitized Mermaid SVG from internal renderer -->
             {@html mermaidSvg}
           </div>
         {:else if mermaidError}
@@ -833,7 +833,7 @@
           </div>
         {:else if diagramSvg}
           <div class="border border-gray-200 rounded-lg p-4 bg-white overflow-auto max-h-[600px]">
-            <!-- eslint-disable-next-line svelte/no-at-html-tags -- Trusted SVG from R2 storage -->
+            <!-- eslint-disable-next-line svelte/no-at-html-tags, esolia/no-raw-html -- Trusted SVG from R2 storage -->
             {@html diagramSvg}
           </div>
         {:else}

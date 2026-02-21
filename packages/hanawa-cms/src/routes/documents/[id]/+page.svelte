@@ -186,7 +186,7 @@
       shared: 'bg-blue-100 text-blue-800',
       archived: 'bg-gray-200 text-gray-600',
     };
-    return colors[status] || colors.draft;
+    return colors[status] ?? 'bg-gray-100 text-gray-700';
   }
 
   function getFragmentTitle(id: string): string {
@@ -204,11 +204,15 @@
   }
 
   function toggleFragment(index: number) {
-    fragments[index].enabled = !fragments[index].enabled;
+    const frag = fragments[index];
+    if (!frag) return;
+    frag.enabled = !frag.enabled;
   }
 
   function togglePageBreak(index: number) {
-    fragments[index].pageBreakBefore = !fragments[index].pageBreakBefore;
+    const frag = fragments[index];
+    if (!frag) return;
+    frag.pageBreakBefore = !frag.pageBreakBefore;
   }
 
   function handleDragStart(e: DragEvent, index: number) {
@@ -223,7 +227,8 @@
     if (draggedIndex === null || draggedIndex === index) return;
 
     const newFragments = [...fragments];
-    const [removed] = newFragments.splice(draggedIndex, 1);
+    const removed = newFragments.splice(draggedIndex, 1)[0];
+    if (!removed) return;
     newFragments.splice(index, 0, removed);
     newFragments.forEach((f, i) => (f.order = i + 1));
 

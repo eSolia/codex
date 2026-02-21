@@ -335,14 +335,14 @@ export const SlashCommands = Extension.create<SlashCommandsOptions>({
 
               renderMenuItems(element, items, selectedIndex, selectItem);
 
-              popup[0].setProps({
+              popup[0]!.setProps({
                 getReferenceClientRect: props.clientRect as () => DOMRect,
               });
             },
 
             onKeyDown(props) {
               if (props.event.key === 'Escape') {
-                popup[0].hide();
+                popup[0]!.hide();
                 return true;
               }
 
@@ -367,7 +367,7 @@ export const SlashCommands = Extension.create<SlashCommandsOptions>({
             },
 
             onExit() {
-              popup[0].destroy();
+              popup[0]!.destroy();
               element.remove();
             },
           };

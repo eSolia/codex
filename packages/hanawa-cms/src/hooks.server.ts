@@ -93,19 +93,20 @@ export const handle: Handle = async ({ event, resolve }) => {
   if (!cfAccessEmail && cfAccessJwt) {
     try {
       const parts = cfAccessJwt.split('.');
-      if (parts.length === 3) {
+      if (parts.length === 3 && parts[1]) {
         const payload = JSON.parse(atob(parts[1]));
         cfAccessEmail = payload.email || null;
       }
     } catch {
-      // Invalid JWT format, ignore
+      // InfoSec: Invalid JWT format — safe to ignore, CF Access validates upstream
+      cfAccessEmail = null;
     }
   }
 
   // Set up user in locals if authenticated via CF Access
   // InfoSec: This enables route-level auth checks (OWASP A01)
   if (cfAccessEmail) {
-    const emailName = cfAccessEmail.split('@')[0];
+    const emailName = cfAccessEmail.split('@')[0] ?? cfAccessEmail;
     event.locals.user = {
       id: cfAccessJwt || cfAccessEmail,
       email: cfAccessEmail,
@@ -123,7 +124,7 @@ export const handle: Handle = async ({ event, resolve }) => {
   const auditContext: AuditContext = {
     actorId,
     actorEmail,
-    actorName: actorEmail.split('@')[0],
+    actorName: actorEmail.split('@')[0] ?? actorEmail,
     ipAddress: event.getClientAddress(),
     userAgent: event.request.headers.get('user-agent') || undefined,
     sessionId: event.cookies.get('session_id') || undefined,
@@ -135,6 +136,10 @@ export const handle: Handle = async ({ event, resolve }) => {
   // Initialize services if DB is available
   if (event.platform?.env?.DB) {
     const db = event.platform.env.DB;
+
+    // InfoSec: SiteContext makes unscoped queries structurally visible (OWASP A01)
+    event.locals.siteCtx = { db, siteId: null };
+
     const r2 = event.platform.env.R2;
     const aiBinding = event.platform.env.AI;
     const vectorize = event.platform.env.VECTORIZE || null;

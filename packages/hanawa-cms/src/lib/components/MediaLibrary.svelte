@@ -94,6 +94,7 @@
 
       const data = (await response.json()) as { folders: typeof folders };
       folders = data.folders;
+      // eslint-disable-next-line esolia/no-silent-catch -- Non-critical UI data, safe to ignore
     } catch {
       // Ignore folder load errors
     }

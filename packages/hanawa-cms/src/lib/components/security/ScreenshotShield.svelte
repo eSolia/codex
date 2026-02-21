@@ -115,6 +115,7 @@
           sensitivity,
         }),
       });
+      // eslint-disable-next-line esolia/no-silent-catch -- Audit logging must not block user interaction
     } catch {
       // Silent fail for audit logging
     }

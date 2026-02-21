@@ -3,7 +3,7 @@
 import type { Site, Content, Fragment } from '$lib/types';
 
 // Helper to parse JSON fields from D1
-function parseJson<T>(value: string | null, fallback: T): T {
+export function parseJson<T>(value: string | null, fallback: T): T {
   if (!value) return fallback;
   try {
     return JSON.parse(value) as T;
@@ -16,7 +16,7 @@ function parseJson<T>(value: string | null, fallback: T): T {
  * Build dynamic UPDATE SET clauses from a partial update object.
  * InfoSec: Uses parameterized queries — values are passed via .bind(), never interpolated.
  */
-function buildUpdate(
+export function buildUpdate(
   updates: Record<string, unknown>,
   allowedFields: string[],
   jsonFields: Set<string> = new Set()
@@ -34,7 +34,7 @@ function buildUpdate(
 }
 
 // Transform D1 row to typed object
-function transformSite(row: Record<string, unknown>): Site {
+export function transformSite(row: Record<string, unknown>): Site {
   return {
     id: row.id as string,
     name: row.name as string,
@@ -49,7 +49,7 @@ function transformSite(row: Record<string, unknown>): Site {
   };
 }
 
-function transformContent(row: Record<string, unknown>): Content {
+export function transformContent(row: Record<string, unknown>): Content {
   return {
     id: row.id as string,
     site_id: row.site_id as string,
@@ -71,7 +71,7 @@ function transformContent(row: Record<string, unknown>): Content {
   };
 }
 
-function transformFragment(row: Record<string, unknown>): Fragment {
+export function transformFragment(row: Record<string, unknown>): Fragment {
   return {
     id: row.id as string,
     site_id: row.site_id as string | null,

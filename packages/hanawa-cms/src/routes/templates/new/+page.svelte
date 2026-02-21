@@ -77,11 +77,15 @@
   }
 
   function toggleFragment(index: number) {
-    fragments[index].enabled = !fragments[index].enabled;
+    const frag = fragments[index];
+    if (!frag) return;
+    frag.enabled = !frag.enabled;
   }
 
   function toggleRequired(index: number) {
-    fragments[index].required = !fragments[index].required;
+    const frag = fragments[index];
+    if (!frag) return;
+    frag.required = !frag.required;
   }
 
   function addFragment(fragmentId: string) {
@@ -115,7 +119,8 @@
     if (draggedIndex === null || draggedIndex === index) return;
 
     const newFragments = [...fragments];
-    const [removed] = newFragments.splice(draggedIndex, 1);
+    const removed = newFragments.splice(draggedIndex, 1)[0];
+    if (!removed) return;
     newFragments.splice(index, 0, removed);
     newFragments.forEach((f, i) => (f.order = i + 1));
 

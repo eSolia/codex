@@ -3,7 +3,7 @@
 > **Purpose**: Canonical reference for AI coding assistants (Claude Code, etc.) working on SvelteKit projects. This guide ensures consistent, correct Svelte 5 code generation.
 >
 > **Last Updated**: February 2026
-> **Version**: 2.2
+> **Version**: 2.4
 > **Svelte Version**: 5.46.4+ (Runes)
 > **SvelteKit Version**: 2.49.5+
 > **Svelte CLI**: sv@0.11.0+
@@ -232,6 +232,9 @@ $effect(() => {
 $effect.pre(() => {
   previousHeight = element?.offsetHeight;
 });
+
+// ⚠️ Writing to $state inside $effect requires untrack()
+// See "Common Gotchas > $effect Writing to $state" below
 ```
 
 #### `$props()` - Component Props
@@ -717,6 +720,44 @@ When using client-side navigation with modals, users may need to click twice on 
 
 **Solution:** Use `tick()` to wait for DOM updates to complete.
 
+### `$effect` Writing to `$state` (Navigation Blocking)
+
+When an `$effect` reads reactive data (like SvelteKit's `data` props) and calls a function that writes to `$state`, the write re-triggers the effect on every client-side navigation, creating a reactivity feedback loop that blocks page rendering.
+
+```svelte
+<script>
+  import { untrack } from 'svelte';
+
+  let { data } = $props();
+
+  // ❌ Blocks client-side navigation — page URL changes but content doesn't render
+  // language.init() writes to $state internally, which re-triggers this effect,
+  // which reads `data` again (changed by navigation), causing a feedback loop
+  $effect(() => {
+    language.init(data.user?.preferredLang, data.detectedLanguage);
+  });
+
+  // ✅ Extract reactive reads first, then wrap the $state write in untrack()
+  $effect(() => {
+    const preferredLang = data.user?.preferredLang;
+    const detectedLang = data.detectedLanguage;
+    untrack(() => language.init(preferredLang, detectedLang));
+  });
+</script>
+```
+
+**Common symptoms:**
+
+- Clicking nav links changes the URL but the page content doesn't update
+- Works on full page reload but not on client-side navigation
+- No errors in the console
+
+**Root cause:** `$effect` auto-tracks all reactive reads AND writes. When a function inside the effect writes to `$state`, Svelte treats that as a dependency change and re-runs the effect. If the effect also depends on `data` (which changes on every navigation), it creates a loop: navigation changes `data` -> effect runs -> writes `$state` -> effect re-runs -> reads `data` again.
+
+**Solution:** Use `untrack()` from `svelte` to wrap the function that writes to `$state`. Read the reactive values you want to track BEFORE the `untrack()` call so the effect still re-runs when those inputs genuinely change.
+
+**When this applies:** Any time an `$effect` calls a method on a reactive class (`.svelte.ts`) that sets `$state` properties — common with store initialization, language/theme preferences, or any singleton pattern.
+
 ---
 
 ## Security Requirements
@@ -881,45 +922,137 @@ cookies.set('session', token, {
 
 ### Content Security Policy (CSP)
 
-SvelteKit has built-in CSP support with automatic nonce/hash injection for inline scripts and styles.
+SvelteKit has **built-in CSP support** with automatic nonce generation for inline scripts. This is the recommended approach — it eliminates `'unsafe-inline'` from `script-src` without any manual nonce management.
+
+#### How It Works
+
+SvelteKit generates a unique cryptographic nonce per response and:
+
+1. Adds it to the `Content-Security-Policy` response header (e.g., `script-src 'nonce-abc123...'`)
+2. Injects it into all inline `<script>` tags SvelteKit generates for hydration
+3. Makes it available via `%sveltekit.nonce%` for custom inline scripts in `app.html`
+
+**No code changes needed in components** — it's purely configuration.
+
+#### Configuration
+
+Define CSP directives in `svelte.config.js`. SvelteKit generates the full header automatically:
 
 ```javascript
 // svelte.config.js
 export default {
   kit: {
     csp: {
-      mode: 'auto', // 'hash' for prerendered, 'nonce' for SSR
       directives: {
-        'script-src': ['self'],
+        'default-src': ['self'],
+        'script-src': ['self'], // No 'unsafe-inline' needed!
         'style-src': ['self', 'unsafe-inline'], // Required for Svelte transitions
-        'img-src': ['self', 'data:', 'https:'],
+        'font-src': ['self'],
+        'img-src': ['self', 'data:'],
         'connect-src': ['self'],
+        'frame-ancestors': ['none'],
+        'base-uri': ['self'],
+        'form-action': ['self'],
       },
     },
   },
 };
 ```
 
-**Using nonces in app.html:**
+SvelteKit automatically adds `nonce-<random>` to `script-src` on every SSR response.
+
+#### Adding External Origins
+
+Add CDN domains, analytics, etc. to the relevant directives:
+
+```javascript
+csp: {
+  directives: {
+    'script-src': ['self', 'https://static.cloudflareinsights.com'],
+    'style-src': ['self', 'unsafe-inline', 'https://cdn.jsdelivr.net'],
+    'font-src': ['self', 'https://cdn.jsdelivr.net'],
+    'img-src': ['self', 'https://your-cdn.example.com', 'https://imagedelivery.net', 'data:'],
+    'connect-src': ['self', 'https://api.example.com', 'https://cloudflareinsights.com'],
+    // ...
+  }
+}
+```
+
+#### Custom Inline Scripts in app.html
+
+Use `%sveltekit.nonce%` for any custom inline scripts in `app.html`:
 
 ```html
 <!-- src/app.html -->
 <script nonce="%sveltekit.nonce%">
-  // Custom inline script - nonce auto-injected
+  // This script gets the auto-generated nonce
 </script>
 ```
 
-**CSP Mode behavior:**
+#### PWA Manifest
 
-- `'auto'` — Uses hashes for prerendered pages, nonces for SSR (recommended)
-- `'hash'` — Always use hashes (works with prerendering)
-- `'nonce'` — Always use nonces (incompatible with prerendering)
+If you serve a PWA manifest from an external domain, add `manifest-src`:
 
-**⚠️ Known limitations:**
+```javascript
+'manifest-src': ['self', 'https://your-cdn.example.com'],
+```
 
-- `%sveltekit.nonce%` in `<svelte:head>` components won't be replaced — add scripts in `app.html` instead
-- Svelte transitions require `'unsafe-inline'` in `style-src`
-- Cannot use `%sveltekit.nonce%` with prerendered pages
+Without this, the browser falls back to `default-src 'self'` and blocks external manifests.
+
+#### Combining with hooks.server.ts
+
+Set **non-CSP security headers** in `hooks.server.ts` and let SvelteKit handle CSP entirely:
+
+```typescript
+// hooks.server.ts
+import type { Handle } from '@sveltejs/kit';
+
+export const handle: Handle = async ({ event, resolve }) => {
+  const response = await resolve(event);
+
+  // Non-CSP security headers (CSP is handled by kit.csp)
+  response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+  response.headers.set('X-Content-Type-Options', 'nosniff');
+  response.headers.set('X-Frame-Options', 'DENY');
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  response.headers.set('X-XSS-Protection', '0');
+  // CSP is handled by SvelteKit's kit.csp config with automatic nonces
+
+  return response;
+};
+```
+
+**Do NOT set `Content-Security-Policy` manually in hooks** — it will conflict with or override SvelteKit's nonce-injected header.
+
+#### CSP Mode Behavior
+
+| Mode               | Behavior                               | Prerendering |
+| ------------------ | -------------------------------------- | ------------ |
+| `'auto'` (default) | Hashes for prerendered, nonces for SSR | Yes          |
+| `'hash'`           | Always use hashes                      | Yes          |
+| `'nonce'`          | Always use nonces                      | No           |
+
+For most SSR apps (Cloudflare Workers/Pages, Node), the default `'auto'` mode works.
+
+#### Known Limitations
+
+- `%sveltekit.nonce%` in `<svelte:head>` components **won't be replaced** — add scripts in `app.html` instead
+- Svelte transitions require `'unsafe-inline'` in `style-src` (this is safe — style injection has minimal XSS risk)
+- Cannot use nonces with fully prerendered pages (use `'hash'` mode instead)
+- Third-party scripts loaded via `<script src="...">` need their domain in `script-src`, not a nonce
+
+#### Verification
+
+After deploying, verify CSP is working:
+
+```bash
+# Check the CSP header — should contain nonce-<random>
+curl -sI https://your-site.com/ | grep -i content-security-policy
+
+# Test with securityheaders.com for A+ grade
+# https://securityheaders.com/?q=https://your-site.com
+```
 
 ### Authorization
 
@@ -1279,12 +1412,14 @@ import { PUBLIC_URL } from '$env/static/public';
 
 ## Document Info
 
-**Version**: 2.2
+**Version**: 2.4
 **Maintainer**: eSolia Inc.
 **Applies to**: All SvelteKit projects using Svelte 5
 
 ### Changelog
 
+- **2.4 (Feb 2026)**: Added `$effect` writing to `$state` gotcha (navigation blocking via reactivity feedback loop, fix with `untrack()`), cross-reference in `$effect()` runes reference
+- **2.3 (Feb 2026)**: Expanded CSP section with comprehensive implementation guide: nonce auto-injection pattern, hooks.server.ts separation, PWA manifest-src, external origins, verification steps, and practical examples from production deployment
 - **2.2 (Feb 2026)**: Added critical CVE mitigation guidance (5 vulnerabilities: CVE-2025-15265, CVE-2025-67647, CVE-2026-22775, CVE-2026-22774, CVE-2026-22803), minimum safe version requirements, adapter-node ORIGIN configuration, hydratable XSS prevention with object key injection details, enhanced pre-deployment checklist with security-first ordering
 - **2.1 (Feb 2026)**: Added CSP/nonce hydration guidance, Svelte CLI Cloudflare setup, AI/LLM integration section with MCP server details, deprecated adapter-cloudflare-workers notice
 - **2.0 (Dec 2025)**: Initial Svelte 5 guide

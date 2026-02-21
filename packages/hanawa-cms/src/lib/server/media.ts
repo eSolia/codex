@@ -36,7 +36,7 @@ export interface UploadOptions {
 }
 
 // InfoSec: Allowed MIME types (whitelist approach)
-const ALLOWED_MIME_TYPES = new Set([
+export const ALLOWED_MIME_TYPES = new Set([
   // Images
   'image/jpeg',
   'image/png',
@@ -53,6 +53,18 @@ const ALLOWED_MIME_TYPES = new Set([
 
 // InfoSec: Maximum file size (10MB)
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
+
+/**
+ * Sanitize a filename for safe storage
+ * InfoSec: Remove path traversal, special chars (OWASP A03)
+ */
+export function sanitizeFilename(filename: string): string {
+  return filename
+    .replace(/[^\w\s.-]/g, '')
+    .replace(/\s+/g, '-')
+    .toLowerCase()
+    .slice(0, 100);
+}
 
 export function createMediaService(db: D1Database, r2: R2Bucket, audit?: AuditService) {
   const baseUrl = ''; // Will be set from R2 public URL or CF Images
@@ -332,14 +344,9 @@ export function createMediaService(db: D1Database, r2: R2Bucket, audit?: AuditSe
       return results.map((r) => r.folder as string);
     },
 
-    // Helper: Sanitize filename
+    // Helper: Sanitize filename (delegates to standalone export)
     sanitizeFilename(filename: string): string {
-      // InfoSec: Remove path traversal, special chars
-      return filename
-        .replace(/[^\w\s.-]/g, '')
-        .replace(/\s+/g, '-')
-        .toLowerCase()
-        .slice(0, 100);
+      return sanitizeFilename(filename);
     },
 
     // Helper: Convert DB row to Asset

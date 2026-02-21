@@ -199,7 +199,7 @@ export function sanitizeHtml(dirty: string | null | undefined): string {
     let attrMatch;
 
     while ((attrMatch = attrRegex.exec(attrs)) !== null) {
-      const attrName = attrMatch[1].toLowerCase();
+      const attrName = attrMatch[1]!.toLowerCase();
       const attrValue = attrMatch[2] ?? attrMatch[3] ?? attrMatch[4] ?? '';
 
       // Skip forbidden attributes (event handlers, style)
@@ -220,7 +220,7 @@ export function sanitizeHtml(dirty: string | null | undefined): string {
     const booleanAttrRegex = /\b(checked|disabled|readonly)\b(?!=)/gi;
     let boolMatch;
     while ((boolMatch = booleanAttrRegex.exec(attrs)) !== null) {
-      const attrName = boolMatch[1].toLowerCase();
+      const attrName = boolMatch[1]!.toLowerCase();
       if (ALLOWED_ATTRS.has(attrName)) {
         cleanAttrs.push(attrName);
       }

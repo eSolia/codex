@@ -220,7 +220,7 @@ export function createDeliveryService(
 
       // Parse and validate sort
       const [sortField, sortDir] = sort.split(':');
-      const sortColumn = this.mapSortField(sortField);
+      const sortColumn = this.mapSortField(sortField ?? 'updated_at');
       const sortDirection = sortDir === 'asc' ? 'ASC' : 'DESC';
 
       // Get total count

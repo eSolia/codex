@@ -85,7 +85,7 @@ See `/SECURITY.md` at repo root for full security documentation.
 
 Key security considerations for Hanawa:
 
-- **XSS Prevention**: All `{@html}` usage must pass through `$lib/sanitize.ts`
+- **XSS Prevention**: Enforced by `esolia/no-raw-html: error`
 - **CSRF**: SvelteKit handles via same-origin checks
 - **Auth**: Cloudflare Access protects all routes
 - **Input Validation**: Use Zod schemas for all user input

@@ -216,7 +216,7 @@
 
               <td class="px-4 py-3 text-sm text-gray-600">
                 {#if item.assignedTo}
-                  {item.assignedTo.split('@')[0]}
+                  {item.assignedTo.split('@')[0] ?? item.assignedTo}
                 {:else}
                   <span class="text-gray-400">—</span>
                 {/if}

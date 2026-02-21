@@ -1,0 +1,47 @@
+{
+  "$schema": "https://raw.githubusercontent.com/nicolo-ribaudo/oxlint-config-schema/main/schema.json",
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn",
+    "perf": "warn"
+  },
+  "plugins": ["typescript", "import", "unicorn", "promise"],
+  "rules": {
+    "no-unused-vars": "off",
+    "@typescript-eslint/no-unused-vars": "off",
+    "import/no-unused-modules": "off",
+    "no-console": "warn",
+    "no-debugger": "error",
+    "eqeqeq": "error",
+    "no-var": "error",
+    "prefer-const": "error",
+    "@typescript-eslint/no-explicit-any": "warn",
+    "@typescript-eslint/no-non-null-assertion": "warn",
+    "promise/no-nesting": "warn",
+    "promise/no-return-wrap": "error",
+    "unicorn/no-array-for-each": "warn",
+    "unicorn/prefer-node-protocol": "error",
+    "no-empty-file": "off",
+    "no-useless-fallback-in-spread": "off"
+  },
+  "ignorePatterns": [
+    "build/",
+    ".svelte-kit/",
+    "dist/",
+    "node_modules/",
+    ".wrangler/",
+    "scripts/",
+    "**/*.config.js",
+    "**/*.config.ts"
+  ],
+  "overrides": [
+    {
+      "files": ["*.svelte"],
+      "rules": {
+        "no-undef": "off",
+        "prefer-const": "off",
+        "no-unassigned-vars": "off"
+      }
+    }
+  ]
+}

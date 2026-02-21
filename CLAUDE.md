@@ -284,48 +284,13 @@ metadata:
 
 ## Shared Docs Distribution
 
-The `docs/shared/` directory contains resources that should be available across all eSolia repos.
+The `docs/shared/` directory contains resources available across all eSolia repos.
 
-### Distribution Strategy
+**Source of truth:** `nexus/docs/shared/` — synced to all consuming repos via `nexus/scripts/sync-shared-docs.sh`.
 
-**Source of truth:** `codex/docs/shared/`
+**Consuming repos:** codex, pulse, periodic, chocho, pub-cogley, courier.
 
-```
-docs/shared/
-├── guides/
-│   ├── SVELTEKIT_GUIDE.md          # Canonical Svelte 5/SvelteKit reference
-│   ├── CLAUDE_PROJECT_TEMPLATE.md  # Template for project CLAUDE.md files
-│   └── typescript-practices.md
-└── reference/
-    ├── esolia-branding.md
-    └── esolia-resource-naming.md
-```
-
-**Distribution Options:**
-
-| Option | Method | Notes |
-|--------|--------|-------|
-| A | Git submodule | Complex but automatic |
-| B | CI sync on push | Simpler, one-way |
-| C | npm package `@esolia/dev-docs` | Versioned |
-| **D** | **Symlinks in `.claude/`** | **← Pragmatic start** |
-
-**Consuming Repos:** nexus, courier, pulse, periodic → `.claude/shared/` (symlink or copy)
-
-### Immediate Approach
-
-For Claude Code to reference shared docs across repos:
-
-1. **In each repo's CLAUDE.md**, add a reference section:
-   ```markdown
-   ## Shared Resources (from Codex)
-
-   When working on this project, also consult:
-   - `/Users/rcogley/dev/codex/docs/shared/guides/typescript-practices.md`
-   - `/Users/rcogley/dev/codex/docs/shared/reference/esolia-branding.md`
-   ```
-
-2. **Later:** Implement CI sync or npm package for automated distribution.
+Each consuming repo's `CLAUDE.md` has a **Required Reading** section that directs Claude Code to read the shared guides before working on SvelteKit code.
 
 ## Related Systems Integration
 
@@ -365,6 +330,17 @@ flowchart TB
     style Flows fill:#f3e8ff,stroke:#a855f7
 ```
 
+## Required Reading
+
+Before working on SvelteKit code in this project, read both guides:
+
+1. `docs/shared/guides/SVELTEKIT_GUIDE.md` — Svelte 5 syntax, SvelteKit patterns, security
+2. `docs/shared/guides/SVELTEKIT_BACKPRESSURE.md` — Quality enforcement, verification strategy
+
+After generating code, run the preflight checks (`npm run format && npm run lint && npm run check`) before presenting results.
+
+---
+
 ## Development Guidelines
 
 ### Critical Rules
@@ -372,31 +348,11 @@ flowchart TB
 - **NEVER** add AI attribution to commits
 - **ALWAYS** run preflight checks before commits
 - **ALWAYS** include InfoSec comments for security-relevant code
-- **NEVER** use `any` type in TypeScript
 - **ALWAYS** validate external data with Zod schemas
-- **ALWAYS** use Svelte 5 Runes syntax (never Svelte 3/4)
 
-### Svelte 5 Syntax (Required)
+### Svelte 5 Syntax
 
-```svelte
-<!-- ✅ CORRECT -->
-<script>
-  let count = $state(0);
-  let doubled = $derived(count * 2);
-  let { title, onAction } = $props();
-</script>
-<button onclick={() => count++}>{count}</button>
-
-<!-- ❌ WRONG - Never generate this -->
-<script>
-  export let title;       // Use $props()
-  let count = 0;          // Use $state()
-  $: doubled = count * 2; // Use $derived()
-</script>
-<button on:click={...}>   // Use onclick
-```
-
-For comprehensive Svelte 5 and SvelteKit patterns, see: `docs/shared/guides/SVELTEKIT_GUIDE.md`
+Enforced by `eslint-plugin-svelte`. See `SVELTEKIT_GUIDE.md` for the full reference.
 
 ### Preflight Commands
 
@@ -419,6 +375,20 @@ InfoSec: [security impact if applicable]
 ```
 
 Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
+
+### Mechanical Enforcement
+
+| Constraint | Enforced by |
+|------------|------------|
+| No `any` types | oxlint `no-explicit-any` |
+| No unsanitized `{@html}` | `esolia/no-raw-html: error` |
+| Prefer `.safeParse()` | `esolia/no-schema-parse: warn` |
+| No empty catch blocks | `esolia/no-silent-catch: error` |
+| No platform.env leaks | `esolia/no-binding-leak: error` |
+| Site-scoped queries | `esolia/no-raw-db-prepare: warn` |
+| Svelte 5 runes + onclick | `eslint-plugin-svelte` |
+
+If a constraint can be a lint rule or type, it belongs here, not in prose.
 
 ## Hanawa Editor Markdown Syntax
 
@@ -681,16 +651,19 @@ const [content, fragments] = await db.batch([
 
 ## Pre-Deployment Checklist
 
-Before deploying any SvelteKit package:
+Mechanical (enforced by `npm run verify`):
+- `esolia/no-raw-html` — unsanitized {@html} (XSS)
+- `esolia/no-binding-leak` — platform.env leaks
+- `esolia/no-schema-parse` — .parse() without .safeParse()
+- `esolia/no-silent-catch` — empty catch blocks
+- `esolia/no-raw-db-prepare` — unscoped db.prepare()
+- `svelte-check` — types + Svelte 5 syntax
 
-- [ ] No `{@html}` with unsanitized content
-- [ ] All DB queries use parameterized bindings (`.bind()`)
+Human review (judgment):
 - [ ] Authorization checks on protected routes/data
 - [ ] CSRF protection on API routes (+server.ts)
 - [ ] Cookies set with `httpOnly`, `secure`, `sameSite`
 - [ ] No secrets in `PUBLIC_` environment variables
-- [ ] Browser APIs guarded with `browser` check
-- [ ] Types regenerated (`npm run check`)
 - [ ] Error pages don't leak stack traces
 - [ ] InfoSec comments on security-relevant code
 

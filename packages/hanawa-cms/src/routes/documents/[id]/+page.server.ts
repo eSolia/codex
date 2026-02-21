@@ -33,14 +33,14 @@ function processCallouts(
 
   while ((match = calloutStartRegex.exec(html)) !== null) {
     const startTag = match[0];
-    const type = match[1];
+    const type = match[1]!;
     const startPos = match.index;
 
     // Extract title from the start tag
     const titleMatch =
       startTag.match(/data-callout-title="([^"]+)"/i) ||
       startTag.match(/data-callout-title='([^']+)'/i);
-    const title = titleMatch ? titleMatch[1] : null;
+    const title = titleMatch ? titleMatch[1]! : null;
 
     // Find the matching closing </div> by counting nested divs
     let depth = 1;
@@ -73,8 +73,8 @@ function processCallouts(
 
   // Process callouts in reverse order to preserve positions
   for (let i = callouts.length - 1; i >= 0; i--) {
-    const callout = callouts[i];
-    const style = styles[callout.type] || styles.info;
+    const callout = callouts[i]!;
+    const style = (styles[callout.type] || styles.info)!;
 
     // Extract the content between the outer div tags
     const innerHtml = callout.fullMatch.replace(/^<div[^>]*>/, '').replace(/<\/div>$/, '');
@@ -89,7 +89,7 @@ function processCallouts(
       ? `<div style="font-weight: bold; margin-bottom: 8px; color: ${style.border};">${style.icon}${callout.title}</div>`
       : '';
 
-    const replacement = `<div style="margin: 16px 0; padding: 16px; background-color: ${style.bg}; border-left: 4px solid ${style.border}; border-radius: 4px;">
+    const replacement = `<div style="margin: 16px 0; padding: 16px; background-color: ${style.bg}; border-left: 4px solid ${style.border}; border-radius: 4px; font-size: 0.9em;">
 ${titleHtml}
 <div>${innerContent}</div>
 </div>`;
@@ -120,7 +120,7 @@ function extractSvgPathsFromFragment(
   const regex = /data-svg-path=["']([^"']+)["']/gi;
   let match;
   while ((match = regex.exec(content)) !== null) {
-    paths.push(match[1]); // e.g., "diagrams/mermaid-xxx.svg"
+    paths.push(match[1]!); // e.g., "diagrams/mermaid-xxx.svg"
   }
   return paths;
 }
@@ -177,7 +177,7 @@ function resolveFragmentReferences(
         </div>`;
       }
 
-      const svgPath = svgPaths[0];
+      const svgPath = svgPaths[0]!;
       const id = svgPath.replace('diagrams/', '').replace('.svg', '');
       const svgContent = imageResolver.get(`/api/diagrams/${id}`);
       if (svgContent) {
@@ -393,13 +393,13 @@ function markdownToHtml(markdown: string, imageResolver?: Map<string, string>): 
     processed = processed.replace(
       /:::(info|warning|danger|success|note|tip)(?:\{title="(.+)"\})?<br\s*\/?>([\s\S]*?)<br\s*\/?>:::(?:<\/p>)?/gi,
       (match, type, title, content) => {
-        const style = htmlCalloutStyles[type.toLowerCase()] || htmlCalloutStyles.info;
+        const style = (htmlCalloutStyles[type.toLowerCase()] || htmlCalloutStyles.info)!;
         const cleanTitle = title?.replace(/\\"/g, '"') || style.label;
         const cleanContent = content
           .replace(/^<\/p>\s*/i, '')
           .replace(/\s*<p>$/i, '')
           .trim();
-        return `<div class="callout callout-${type}" style="margin: 16px 0; padding: 16px; background-color: ${style.bg}; border-left: 4px solid ${style.border}; border-radius: 4px;">
+        return `<div class="callout callout-${type}" style="margin: 16px 0; padding: 16px; background-color: ${style.bg}; border-left: 4px solid ${style.border}; border-radius: 4px; font-size: 0.9em;">
 <div style="font-weight: bold; margin-bottom: 8px; color: ${style.border};">${style.icon}${cleanTitle}</div>
 <div>${cleanContent}</div>
 </div>`;
@@ -494,18 +494,57 @@ function markdownToHtml(markdown: string, imageResolver?: Map<string, string>): 
   // First, decode HTML entities for easier matching
   let processedHtml = html.replace(/&quot;/g, '"').replace(/&amp;/g, '&');
 
+  // Helper: apply inline markdown formatting (bold, italic, links, code)
+  const inlineMarkdown = (text: string): string =>
+    text
+      .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g, '<em>$1</em>')
+      .replace(/`([^`\n]+)`/g, '<code>$1</code>')
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
+
+  // Helper: convert markdown tables to HTML tables within a string
+  // Handles both \n and <br> as line separators (D1 stores content with <br>)
+  const convertMarkdownTables = (text: string): string => {
+    // Normalize <br> variants to \n for table matching
+    const normalized = text.replace(/<br\s*\/?>/gi, '\n');
+    const tblRegex = /\|(.+)\|\n\|[-:|]+\|\n((?:\|.+\|\n?)+)/g;
+    return normalized.replace(tblRegex, (_, header, rows) => {
+      const headerCells = header
+        .split('|')
+        .filter((c: string) => c.trim())
+        .map((c: string) => `<th>${inlineMarkdown(c.trim())}</th>`)
+        .join('');
+      const bodyRows = rows
+        .trim()
+        .split('\n')
+        .map((row: string) => {
+          const cells = row
+            .split('|')
+            .filter((c: string) => c.trim())
+            .map((c: string) => `<td>${inlineMarkdown(c.trim())}</td>`)
+            .join('');
+          return `<tr>${cells}</tr>`;
+        })
+        .join('');
+      return `<table><thead><tr>${headerCells}</tr></thead><tbody>${bodyRows}</tbody></table>`;
+    });
+  };
+
   // Helper function to create callout HTML
   const createCallout = (type: string, title: string | undefined, content: string) => {
-    const style = calloutStyles[type] || calloutStyles.info;
+    const style = (calloutStyles[type] || calloutStyles.info)!;
     const displayTitle = title || style.label;
     // Clean up content - remove leading/trailing p tags, keep internal HTML structure
-    const cleanContent = content
+    let cleanContent = content
       .replace(/^<\/p>\s*/i, '') // Remove closing p tag at start (from split)
       .replace(/\s*<p>$/i, '') // Remove opening p tag at end (before :::)
       .replace(/^<br\s*\/?>/i, '') // Remove leading br
       .replace(/<br\s*\/?>$/i, '') // Remove trailing br
       .trim();
-    return `<div class="callout callout-${type}" style="margin: 16px 0; padding: 16px; background-color: ${style.bg}; border-left: 4px solid ${style.border}; border-radius: 4px;">
+    // Convert any markdown tables inside the callout to HTML tables
+    cleanContent = convertMarkdownTables(cleanContent);
+    return `<div class="callout callout-${type}" style="margin: 16px 0; padding: 16px; background-color: ${style.bg}; border-left: 4px solid ${style.border}; border-radius: 4px; font-size: 0.9em;">
 <div style="font-weight: bold; margin-bottom: 8px; color: ${style.border};">${style.icon}${displayTitle}</div>
 <div>${cleanContent}</div>
 </div>`;
@@ -1061,11 +1100,11 @@ export const actions: Actions = {
         const referencedFragmentIds = new Set<string>();
 
         while ((fragmentRefMatch = fragmentRefRegex.exec(coverLettersToScan)) !== null) {
-          referencedFragmentIds.add(fragmentRefMatch[1]);
+          referencedFragmentIds.add(fragmentRefMatch[1]!);
         }
         fragmentRefRegex.lastIndex = 0;
         while ((fragmentRefMatch = fragmentRefRegex.exec(fragmentContentToScan)) !== null) {
-          referencedFragmentIds.add(fragmentRefMatch[1]);
+          referencedFragmentIds.add(fragmentRefMatch[1]!);
         }
 
         // InfoSec: Parameterized query for D1 fragment fetch (OWASP A03)
@@ -1109,7 +1148,7 @@ export const actions: Actions = {
 
         let match;
         while ((match = svgPathRegex.exec(allContentToScan)) !== null) {
-          const svgPath = match[1]; // "diagrams/mermaid-xxx.svg"
+          const svgPath = match[1]!; // "diagrams/mermaid-xxx.svg"
           const id = svgPath.replace('diagrams/', '').replace('.svg', '');
           const url = `/api/diagrams/${id}`;
           diagramEntries.set(url, svgPath);
@@ -1119,8 +1158,8 @@ export const actions: Actions = {
         // (These come from inline content, not mermaid blocks)
         const imgRegex = /(?:src=["']|!\[[^\]]*\]\()(\/api\/diagrams\/([^"')]+))/gi;
         while ((match = imgRegex.exec(allContentToScan)) !== null) {
-          const url = match[1];
-          const id = match[2];
+          const url = match[1]!;
+          const id = match[2]!;
           const r2Key = `diagrams/${id.endsWith('.svg') ? id : id + '.svg'}`;
           diagramEntries.set(url, r2Key);
         }
@@ -1281,7 +1320,7 @@ export const actions: Actions = {
                 continue;
               }
 
-              const svgPath = svgPaths[0];
+              const svgPath = svgPaths[0]!;
               const id = svgPath.replace('diagrams/', '').replace('.svg', '');
               const svgContent = imageResolver.get(`/api/diagrams/${id}`);
               if (svgContent) {
@@ -1401,7 +1440,7 @@ export const actions: Actions = {
     h3 { color: #4a4c7a; margin-top: 0.9em; margin-bottom: 0.3em; }
     /* Reduce gap when heading immediately precedes list */
     h2 + ul, h2 + ol, h3 + ul, h3 + ol { margin-top: 0.25em; }
-    table { border-collapse: collapse; width: 100%; margin: 0.8em 0; }
+    table { border-collapse: collapse; width: 100%; margin: 0.8em 0; font-size: 0.9em; }
     th, td { border: 1px solid #ddd; padding: 5px 8px; text-align: left; }
     th { background-color: #f5f5f5; }
     /* Compact list styling - balanced */
@@ -1826,7 +1865,7 @@ export const actions: Actions = {
       // InfoSec: Generate secure PIN using crypto.getRandomValues (OWASP A02)
       const array = new Uint32Array(1);
       crypto.getRandomValues(array);
-      const pin = String(100000 + (array[0] % 900000));
+      const pin = String(100000 + (array[0]! % 900000));
 
       // Calculate expiry
       const expiresAt = new Date();

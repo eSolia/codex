@@ -1,0 +1,45 @@
+id: pool-depletion-diagram
+category: diagrams
+version: "2025-01"
+title:
+  en: "Pool Depletion Over Time"
+  ja: "プール残高の推移"
+type: diagram
+tags:
+  - pool
+  - support
+  - hours
+  - diagram
+status: active
+created: "2026-02-20"
+author: rick.cogley@esolia.co.jp
+sensitivity: normal
+allowed_collections:
+  - proposals
+  - help
+  - concepts
+
+diagram:
+  format: mermaid
+  source: |
+    xychart-beta
+        title "200-Hour Pool — Example Usage Over 12 Months"
+        x-axis ["Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar"]
+        y-axis "Hours" 0 --> 210
+        bar [5, 12, 3, 20, 8, 15, 25, 10, 18, 22, 30, 32]
+        line [195, 183, 180, 160, 152, 137, 112, 102, 84, 62, 32, 0]
+
+content:
+  en: |
+    Example of a 200-hour pool consumed over 12 months. Bars show monthly usage (varying from 3 to 32 hours) while the line tracks the declining balance. Usage is uneven — some months are light, others heavy — reflecting real-world demand patterns. The pool is fully consumed by year end. Monthly reporting keeps you informed of remaining hours and projected depletion.
+
+  ja: |
+    200時間プールの12ヶ月間の消費例。棒グラフは月ごとの使用量（3〜32時間）を示し、折れ線グラフは残高の推移を追跡しています。使用量は均一ではなく、軽い月もあれば多い月もあり、実際の需要パターンを反映しています。プールは年度末までに完全に消費されます。月次レポートにより、残時間と枯渇予測を常に把握できます。
+
+metadata:
+  last_updated: "2026-02-20"
+  author: "eSolia Technical Team"
+  usage_notes: |
+    Illustrates uneven pool depletion over a fiscal year.
+    Pairs with the pool-mechanics service fragment.
+    Adjust the numbers in the diagram source to match actual client pool size.

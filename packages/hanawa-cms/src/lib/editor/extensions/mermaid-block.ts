@@ -2,6 +2,9 @@
  * Mermaid Block Extension for Tiptap
  * Renders Mermaid diagrams with live preview and code editing
  *
+ * Preview: mermaid.js (client-side DOM rendering for interactive editing)
+ * Export:  beautiful-mermaid (clean themed SVGs for R2/PDF delivery)
+ *
  * InfoSec: Mermaid code sanitized by library (OWASP A03)
  * Note: Uses dynamic import to avoid Vite bundling issues in production
  */
@@ -9,6 +12,7 @@
 import { Node, mergeAttributes } from '@tiptap/core';
 import type { Node as ProseMirrorNode } from '@tiptap/pm/model';
 import type { NodeView, EditorView } from '@tiptap/pm/view';
+import { renderDiagramSvg, isBeautifulMermaidSupported } from '../diagram-renderer';
 
 // Lazy-loaded mermaid instance
 let mermaidInstance: typeof import('mermaid').default | null = null;
@@ -282,25 +286,33 @@ class MermaidNodeView implements NodeView {
     this.view.dispatch(tr);
   }
 
-  private async exportToR2() {
-    const pos = this.getPos();
-    if (pos === undefined) return;
+  /**
+   * Get SVG string for export. Uses beautiful-mermaid for supported diagram types
+   * (produces clean themed output), falls back to DOM extraction for others.
+   */
+  private async getSvgForExport(): Promise<string> {
+    const source = this.node.attrs.source as string;
 
-    // Get the rendered SVG from the diagram container
-    const svgElement = this.diagramContainer.querySelector('svg');
-    if (!svgElement) {
-      this.errorDisplay.textContent = 'No diagram to export. Please render the diagram first.';
-      this.errorDisplay.classList.remove('hidden');
-      return;
+    // Use beautiful-mermaid for supported types (flowchart, sequence, class, ER, state)
+    if (isBeautifulMermaidSupported(source)) {
+      return renderDiagramSvg(source);
     }
 
-    // Clone and clean up the SVG
+    // Fallback: extract from DOM for unsupported types (xychart, pie, gantt, etc.)
+    const svgElement = this.diagramContainer.querySelector('svg');
+    if (!svgElement) {
+      throw new Error('No diagram to export. Please render the diagram first.');
+    }
     const svgClone = svgElement.cloneNode(true) as SVGElement;
-    // Add XML declaration and namespace if missing
     if (!svgClone.getAttribute('xmlns')) {
       svgClone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
     }
-    const svgString = new XMLSerializer().serializeToString(svgClone);
+    return new XMLSerializer().serializeToString(svgClone);
+  }
+
+  private async exportToR2() {
+    const pos = this.getPos();
+    if (pos === undefined) return;
 
     // Generate a unique ID for this diagram
     const diagramId = `mermaid-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
@@ -312,6 +324,8 @@ class MermaidNodeView implements NodeView {
     exportBtn.disabled = true;
 
     try {
+      const svgString = await this.getSvgForExport();
+
       // Upload SVG to R2 via API
       const response = await fetch('/api/diagrams/upload', {
         method: 'POST',

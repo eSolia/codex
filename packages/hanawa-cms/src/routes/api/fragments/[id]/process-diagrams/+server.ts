@@ -50,7 +50,7 @@ function extractMermaidBlocks(content: string): Array<{ source: string; match: s
   while ((match = MERMAID_BLOCK_REGEX.exec(content)) !== null) {
     blocks.push({
       match: match[0],
-      source: match[1].trim(),
+      source: match[1]!.trim(),
     });
   }
 

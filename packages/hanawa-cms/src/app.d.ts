@@ -11,6 +11,7 @@ import type { CodexService } from '$lib/server/codex';
 import type { MediaService } from '$lib/server/media';
 import type { WebhookService } from '$lib/server/webhooks';
 import type { DeliveryService } from '$lib/server/delivery';
+import type { SiteContext } from '$lib/server/site-context';
 
 declare global {
   namespace App {
@@ -26,6 +27,8 @@ declare global {
         name: string;
         role: 'admin' | 'editor' | 'viewer';
       };
+      // Site-scoped query context
+      siteCtx?: SiteContext;
       // Core services
       requestId?: string;
       auditContext?: AuditContext;
@@ -68,5 +71,3 @@ declare global {
     }
   }
 }
-
-export {};

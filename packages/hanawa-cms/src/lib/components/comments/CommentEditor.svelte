@@ -77,7 +77,7 @@
       if (e.key === 'Tab' || e.key === 'Enter') {
         if (filteredSuggestions.length > 0) {
           e.preventDefault();
-          insertMention(filteredSuggestions[0]);
+          insertMention(filteredSuggestions[0]!);
         }
         return;
       }
@@ -91,7 +91,7 @@
 
     if (mentionMatch) {
       showMentionMenu = true;
-      mentionQuery = mentionMatch[1];
+      mentionQuery = mentionMatch[1] ?? '';
       mentionStartPos = cursorPos - mentionMatch[0].length;
     } else {
       showMentionMenu = false;

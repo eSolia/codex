@@ -509,7 +509,7 @@ export function createCommentsService(db: D1Database, audit?: AuditService) {
     extractMentions(content: string): string[] {
       const mentionRegex = /@(\S+@\S+\.\S+)/g;
       const matches = content.matchAll(mentionRegex);
-      return [...new Set([...matches].map((m) => m[1]))];
+      return [...new Set([...matches].map((m) => m[1]!))];
     },
 
     renderMarkdown(content: string): string {

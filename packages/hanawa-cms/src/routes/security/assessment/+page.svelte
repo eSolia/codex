@@ -108,7 +108,7 @@
             if (!acc[check.category]) {
               acc[check.category] = [];
             }
-            acc[check.category].push(check);
+            acc[check.category]!.push(check);
             return acc;
           },
           {} as Record<string, CheckResult[]>

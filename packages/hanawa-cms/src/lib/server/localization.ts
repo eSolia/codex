@@ -51,6 +51,40 @@ export interface TranslationMemoryEntry {
 }
 
 /**
+ * Hash text for translation memory lookup
+ * InfoSec: Uses SHA-256 for content-addressable keys
+ */
+export async function hashText(text: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(text.toLowerCase().trim());
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+/**
+ * Convert a D1 row to a TranslationStatusRecord
+ */
+export function rowToTranslationStatus(row: Record<string, unknown>): TranslationStatusRecord {
+  return {
+    id: row.id as string,
+    documentId: row.document_id as string,
+    documentType: row.document_type as DocumentType,
+    locale: row.locale as Locale,
+    status: row.status as TranslationStatus,
+    progressPercent: (row.progress_percent as number) || 0,
+    translatedFields: JSON.parse((row.translated_fields as string) || '[]'),
+    pendingFields: JSON.parse((row.pending_fields as string) || '[]'),
+    assignedTo: row.assigned_to as string | undefined,
+    assignedAt: row.assigned_at as number | undefined,
+    createdAt: row.created_at as number,
+    lastUpdated: row.last_updated as number,
+    completedAt: row.completed_at as number | undefined,
+    notes: row.notes as string | undefined,
+  };
+}
+
+/**
  * Create a localization service instance
  */
 export function createLocalizationService(db: D1Database, audit?: AuditService) {
@@ -640,33 +674,14 @@ export function createLocalizationService(db: D1Database, audit?: AuditService) 
       };
     },
 
-    // Helper: Hash text for translation memory lookup
+    // Helper: Hash text (delegates to standalone export)
     async hashText(text: string): Promise<string> {
-      const encoder = new TextEncoder();
-      const data = encoder.encode(text.toLowerCase().trim());
-      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+      return hashText(text);
     },
 
-    // Helper: Convert row to TranslationStatusRecord
+    // Helper: Convert row to TranslationStatusRecord (delegates to standalone export)
     rowToTranslationStatus(row: Record<string, unknown>): TranslationStatusRecord {
-      return {
-        id: row.id as string,
-        documentId: row.document_id as string,
-        documentType: row.document_type as DocumentType,
-        locale: row.locale as Locale,
-        status: row.status as TranslationStatus,
-        progressPercent: (row.progress_percent as number) || 0,
-        translatedFields: JSON.parse((row.translated_fields as string) || '[]'),
-        pendingFields: JSON.parse((row.pending_fields as string) || '[]'),
-        assignedTo: row.assigned_to as string | undefined,
-        assignedAt: row.assigned_at as number | undefined,
-        createdAt: row.created_at as number,
-        lastUpdated: row.last_updated as number,
-        completedAt: row.completed_at as number | undefined,
-        notes: row.notes as string | undefined,
-      };
+      return rowToTranslationStatus(row);
     },
   };
 }

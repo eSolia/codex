@@ -307,6 +307,7 @@ export function createContentIntelligenceService(db: D1Database) {
 
       for (const match of matches) {
         const url = match[1];
+        if (!url) continue;
 
         if (url.startsWith('http://') || url.startsWith('https://')) {
           external++;

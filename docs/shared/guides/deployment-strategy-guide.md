@@ -335,14 +335,14 @@ This section tracks the migration status of eSolia projects from GitHub Actions 
 
 ### Project Status
 
-| Project      | Type    | CI Workflow | wrangler.jsonc          | CF Git Integration | Deploy Hooks     | Status                   |
-| ------------ | ------- | ----------- | ----------------------- | ------------------ | ---------------- | ------------------------ |
-| **Nexus**    | Workers | ✅ Created  | ✅ Updated              | ✅ Enabled         | ⏳ Waiting on CF | **Complete**             |
-| **Periodic** | Workers | ✅ Created  | ✅ Has preview_urls     | ✅ Enabled         | ⏳ Waiting on CF | **Complete**             |
-| **Pulse**    | Workers | ✅ Created  | ✅ Has preview_urls     | ✅ Enabled         | ⏳ Waiting on CF | **Complete**             |
-| **Courier**  | Workers | ✅ Created  | ✅ Has preview_urls     | ✅ Enabled         | N/A              | **Complete**             |
-| **Hanawa**   | Workers | ✅ Created  | ✅ Converted to Workers | ✅ Enabled         | ⏳ Waiting on CF | **Complete**             |
-| **Chocho**   | Workers | ✅ Created  | ✅ Converted to Workers | ⏳ Pending         | N/A              | **Complete**             |
+| Project      | Type    | CI Workflow | wrangler.jsonc          | CF Git Integration | Deploy Hooks     | Status       |
+| ------------ | ------- | ----------- | ----------------------- | ------------------ | ---------------- | ------------ |
+| **Nexus**    | Workers | ✅ Created  | ✅ Updated              | ✅ Enabled         | ⏳ Waiting on CF | **Complete** |
+| **Periodic** | Workers | ✅ Created  | ✅ Has preview_urls     | ✅ Enabled         | ⏳ Waiting on CF | **Complete** |
+| **Pulse**    | Workers | ✅ Created  | ✅ Has preview_urls     | ✅ Enabled         | ⏳ Waiting on CF | **Complete** |
+| **Courier**  | Workers | ✅ Created  | ✅ Has preview_urls     | ✅ Enabled         | N/A              | **Complete** |
+| **Hanawa**   | Workers | ✅ Created  | ✅ Converted to Workers | ✅ Enabled         | ⏳ Waiting on CF | **Complete** |
+| **Chocho**   | Workers | ✅ Created  | ✅ Converted to Workers | ⏳ Pending         | N/A              | **Complete** |
 
 ### Completed Tasks
 

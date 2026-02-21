@@ -190,6 +190,7 @@ function searchPattern(
           });
         }
       }
+      // eslint-disable-next-line esolia/no-silent-catch -- Unreadable files are non-fatal
     } catch {
       // Skip unreadable files
     }
@@ -1644,6 +1645,7 @@ function generateReport(checks: CheckResult[]): Report {
   try {
     const pkg = JSON.parse(readFileSync(join(process.cwd(), 'package.json'), 'utf-8'));
     version = pkg.version || 'unknown';
+    // eslint-disable-next-line esolia/no-silent-catch -- Fallback to 'unknown' version is fine
   } catch {
     // package.json not found
   }

@@ -286,7 +286,7 @@ ${text}`,
           });
 
           const content = response.content[0];
-          const translatedText = content.type === 'text' ? content.text.trim() : '';
+          const translatedText = content && content.type === 'text' ? content.text.trim() : '';
 
           // Record usage
           await recordUsage(

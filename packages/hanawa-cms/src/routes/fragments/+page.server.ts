@@ -64,6 +64,7 @@ export const load: PageServerLoad = async ({ platform, url }) => {
         if (Array.isArray(parsed)) {
           parsed.forEach((t: string) => allTags.add(t));
         }
+        // eslint-disable-next-line esolia/no-silent-catch -- Invalid JSON in tags is non-fatal
       } catch {
         // Skip invalid JSON
       }

@@ -224,7 +224,7 @@
       if (!groups[cmd.category]) {
         groups[cmd.category] = [];
       }
-      groups[cmd.category].push(cmd);
+      groups[cmd.category]!.push(cmd);
     }
     return groups;
   });

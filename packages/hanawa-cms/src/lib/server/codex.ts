@@ -118,7 +118,7 @@ export function createCodexService(
             type: 'content',
           });
         }
-        currentPath = headingMatch[2];
+        currentPath = headingMatch[2]!;
         currentSection = line + '\n';
       } else {
         currentSection += line + '\n';
@@ -261,7 +261,7 @@ export function createCodexService(
 
         // Process each chunk
         for (let i = 0; i < chunks.length; i++) {
-          const chunk = chunks[i];
+          const chunk = chunks[i]!;
           const hash = await hashContent(chunk.content);
 
           // Skip if unchanged
@@ -613,7 +613,7 @@ export function createCodexService(
       if (vectors.length === 0) return [];
 
       // Search for similar
-      const vectorResults = await vectorize.query(vectors[0].values, {
+      const vectorResults = await vectorize.query(vectors[0]!.values, {
         topK: topK + 10, // Get extra to filter out same document
         returnMetadata: 'all',
       });
