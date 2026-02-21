@@ -13,8 +13,13 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const CJK_RE = /[\u3000-\u9FFF\uF900-\uFAFF\uFF00-\uFFEF]/;
 
 const theme = {
-  bg: '#FFFFFF', fg: '#2D2F63', accent: '#e11d48', line: '#2D2F63',
-  muted: '#6b7280', surface: '#fef3c7', border: '#FFBC68',
+  bg: '#FFFFFF',
+  fg: '#2D2F63',
+  accent: '#e11d48',
+  line: '#2D2F63',
+  muted: '#6b7280',
+  surface: '#fef3c7',
+  border: '#FFBC68',
   font: 'IBM Plex Sans, -apple-system, BlinkMacSystemFont, Hiragino Sans, Noto Sans JP, sans-serif',
   transparent: true,
 };
@@ -48,7 +53,9 @@ function padCjkLabels(source) {
   let counter = 0;
   function makeWidthPlaceholder(text) {
     let latinEquivLen = 0;
-    for (const ch of text) { latinEquivLen += CJK_RE.test(ch) ? 1.75 : 1; }
+    for (const ch of text) {
+      latinEquivLen += CJK_RE.test(ch) ? 1.75 : 1;
+    }
     const len = Math.ceil(latinEquivLen);
     const id = `PH${String(counter++).padStart(3, '0')}`;
     return `${id}${'M'.repeat(len)}`.substring(0, len);
@@ -74,44 +81,60 @@ function restoreCjkText(svg, textMap) {
 }
 
 function smoothPolylines(svg, radius = 12) {
-  return svg.replace(
-    /<polyline\s+points="([^"]+)"([^/]*?)\/>/g,
-    (match, pointsStr, attrs) => {
-      const points = pointsStr.trim().split(/\s+/).map((p) => {
+  return svg.replace(/<polyline\s+points="([^"]+)"([^/]*?)\/>/g, (match, pointsStr, attrs) => {
+    const points = pointsStr
+      .trim()
+      .split(/\s+/)
+      .map((p) => {
         const [x, y] = p.split(',').map(Number);
         return { x, y };
       });
-      if (points.length <= 2) {
-        const d = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ');
-        return `<path d="${d}"${attrs}/>`;
-      }
-      const segments = [`M${points[0].x},${points[0].y}`];
-      for (let i = 1; i < points.length - 1; i++) {
-        const prev = points[i - 1], curr = points[i], next = points[i + 1];
-        const dxP = prev.x - curr.x, dyP = prev.y - curr.y;
-        const dxN = next.x - curr.x, dyN = next.y - curr.y;
-        const dP = Math.sqrt(dxP * dxP + dyP * dyP);
-        const dN = Math.sqrt(dxN * dxN + dyN * dyN);
-        const r = Math.min(radius, dP / 2, dN / 2);
-        segments.push(`L${curr.x + (dxP / dP) * r},${curr.y + (dyP / dP) * r}`);
-        segments.push(`Q${curr.x},${curr.y} ${curr.x + (dxN / dN) * r},${curr.y + (dyN / dN) * r}`);
-      }
-      segments.push(`L${points[points.length - 1].x},${points[points.length - 1].y}`);
-      return `<path d="${segments.join(' ')}"${attrs}/>`;
+    if (points.length <= 2) {
+      const d = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ');
+      return `<path d="${d}"${attrs}/>`;
     }
-  );
+    const segments = [`M${points[0].x},${points[0].y}`];
+    for (let i = 1; i < points.length - 1; i++) {
+      const prev = points[i - 1],
+        curr = points[i],
+        next = points[i + 1];
+      const dxP = prev.x - curr.x,
+        dyP = prev.y - curr.y;
+      const dxN = next.x - curr.x,
+        dyN = next.y - curr.y;
+      const dP = Math.sqrt(dxP * dxP + dyP * dyP);
+      const dN = Math.sqrt(dxN * dxN + dyN * dyN);
+      const r = Math.min(radius, dP / 2, dN / 2);
+      segments.push(`L${curr.x + (dxP / dP) * r},${curr.y + (dyP / dP) * r}`);
+      segments.push(`Q${curr.x},${curr.y} ${curr.x + (dxN / dN) * r},${curr.y + (dyN / dN) * r}`);
+    }
+    segments.push(`L${points[points.length - 1].x},${points[points.length - 1].y}`);
+    return `<path d="${segments.join(' ')}"${attrs}/>`;
+  });
 }
 
 function resolveVariables(svg) {
   const { bg, fg, accent, line, muted, surface, border } = theme;
   const vars = {
-    '--bg': bg, '--fg': fg, '--line': line, '--accent': accent,
-    '--muted': muted, '--surface': surface, '--border': border,
-    '--_text': fg, '--_text-sec': muted, '--_text-muted': muted,
-    '--_text-faint': colorMix(fg, bg, 25), '--_line': line,
-    '--_arrow': accent, '--_node-fill': surface, '--_node-stroke': border,
-    '--_group-fill': bg, '--_group-hdr': colorMix(fg, bg, 5),
-    '--_inner-stroke': colorMix(fg, bg, 12), '--_key-badge': colorMix(fg, bg, 10),
+    '--bg': bg,
+    '--fg': fg,
+    '--line': line,
+    '--accent': accent,
+    '--muted': muted,
+    '--surface': surface,
+    '--border': border,
+    '--_text': fg,
+    '--_text-sec': muted,
+    '--_text-muted': muted,
+    '--_text-faint': colorMix(fg, bg, 25),
+    '--_line': line,
+    '--_arrow': accent,
+    '--_node-fill': surface,
+    '--_node-stroke': border,
+    '--_group-fill': bg,
+    '--_group-hdr': colorMix(fg, bg, 5),
+    '--_inner-stroke': colorMix(fg, bg, 12),
+    '--_key-badge': colorMix(fg, bg, 10),
   };
   let result = svg;
   const sortedVars = Object.entries(vars).sort((a, b) => b[0].length - a[0].length);

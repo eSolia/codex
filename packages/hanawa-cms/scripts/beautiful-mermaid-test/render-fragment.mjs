@@ -34,14 +34,16 @@ const esoliaTheme = {
  * Strips quotes, replaces <br/>, converts unsupported shapes, removes style directives.
  */
 function preprocessForBeautiful(source) {
-  return source
-    .replace(/\["([^"]*?)"\]/g, '[$1]')
-    .replace(/\|"([^"]*?)"\|/g, '|$1|')
-    .replace(/\[\/\"([^"]*?)\"\/\]/g, '[$1]')
-    .replace(/\[\/([^\]]*?)\/\]/g, '[$1]')
-    .replace(/<br\s*\/?>/g, ' ')
-    // Remove style directives (beautiful-mermaid uses CSS vars for theming)
-    .replace(/^\s*style\s+\w+\s+fill:.*$/gm, '');
+  return (
+    source
+      .replace(/\["([^"]*?)"\]/g, '[$1]')
+      .replace(/\|"([^"]*?)"\|/g, '|$1|')
+      .replace(/\[\/\"([^"]*?)\"\/\]/g, '[$1]')
+      .replace(/\[\/([^\]]*?)\/\]/g, '[$1]')
+      .replace(/<br\s*\/?>/g, ' ')
+      // Remove style directives (beautiful-mermaid uses CSS vars for theming)
+      .replace(/^\s*style\s+\w+\s+fill:.*$/gm, '')
+  );
 }
 
 /**
@@ -94,53 +96,50 @@ function restoreCjkText(svg, textMap) {
  * Post-process SVG to convert straight polylines into smooth curved paths.
  */
 function smoothPolylines(svg, radius = 12) {
-  return svg.replace(
-    /<polyline\s+points="([^"]+)"([^/]*?)\/>/g,
-    (match, pointsStr, attrs) => {
-      const points = pointsStr
-        .trim()
-        .split(/\s+/)
-        .map((p) => {
-          const [x, y] = p.split(',').map(Number);
-          return { x, y };
-        });
+  return svg.replace(/<polyline\s+points="([^"]+)"([^/]*?)\/>/g, (match, pointsStr, attrs) => {
+    const points = pointsStr
+      .trim()
+      .split(/\s+/)
+      .map((p) => {
+        const [x, y] = p.split(',').map(Number);
+        return { x, y };
+      });
 
-      if (points.length <= 2) {
-        const d = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ');
-        return `<path d="${d}"${attrs}/>`;
-      }
-
-      const segments = [];
-      segments.push(`M${points[0].x},${points[0].y}`);
-
-      for (let i = 1; i < points.length - 1; i++) {
-        const prev = points[i - 1];
-        const curr = points[i];
-        const next = points[i + 1];
-
-        const dxPrev = prev.x - curr.x;
-        const dyPrev = prev.y - curr.y;
-        const dxNext = next.x - curr.x;
-        const dyNext = next.y - curr.y;
-
-        const distPrev = Math.sqrt(dxPrev * dxPrev + dyPrev * dyPrev);
-        const distNext = Math.sqrt(dxNext * dxNext + dyNext * dyNext);
-
-        const r = Math.min(radius, distPrev / 2, distNext / 2);
-
-        const startX = curr.x + (dxPrev / distPrev) * r;
-        const startY = curr.y + (dyPrev / distPrev) * r;
-        const endX = curr.x + (dxNext / distNext) * r;
-        const endY = curr.y + (dyNext / distNext) * r;
-
-        segments.push(`L${startX},${startY}`);
-        segments.push(`Q${curr.x},${curr.y} ${endX},${endY}`);
-      }
-
-      segments.push(`L${points[points.length - 1].x},${points[points.length - 1].y}`);
-      return `<path d="${segments.join(' ')}"${attrs}/>`;
+    if (points.length <= 2) {
+      const d = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ');
+      return `<path d="${d}"${attrs}/>`;
     }
-  );
+
+    const segments = [];
+    segments.push(`M${points[0].x},${points[0].y}`);
+
+    for (let i = 1; i < points.length - 1; i++) {
+      const prev = points[i - 1];
+      const curr = points[i];
+      const next = points[i + 1];
+
+      const dxPrev = prev.x - curr.x;
+      const dyPrev = prev.y - curr.y;
+      const dxNext = next.x - curr.x;
+      const dyNext = next.y - curr.y;
+
+      const distPrev = Math.sqrt(dxPrev * dxPrev + dyPrev * dyPrev);
+      const distNext = Math.sqrt(dxNext * dxNext + dyNext * dyNext);
+
+      const r = Math.min(radius, distPrev / 2, distNext / 2);
+
+      const startX = curr.x + (dxPrev / distPrev) * r;
+      const startY = curr.y + (dyPrev / distPrev) * r;
+      const endX = curr.x + (dxNext / distNext) * r;
+      const endY = curr.y + (dyNext / distNext) * r;
+
+      segments.push(`L${startX},${startY}`);
+      segments.push(`Q${curr.x},${curr.y} ${endX},${endY}`);
+    }
+
+    segments.push(`L${points[points.length - 1].x},${points[points.length - 1].y}`);
+    return `<path d="${segments.join(' ')}"${attrs}/>`;
+  });
 }
 
 /**
