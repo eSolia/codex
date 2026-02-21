@@ -101,7 +101,7 @@ export interface AuditLogRow {
  * Compute SHA-256 checksum for tamper detection
  * InfoSec: Ensures audit log integrity
  */
-async function computeChecksum(data: Record<string, unknown>): Promise<string> {
+export async function computeChecksum(data: Record<string, unknown>): Promise<string> {
   const { checksum: _checksum, ...rest } = data;
   const json = JSON.stringify(rest, Object.keys(rest).sort());
   const buffer = new TextEncoder().encode(json);
@@ -166,7 +166,9 @@ export function createAuditService(db: D1Database) {
         .bind(
           id,
           timestamp,
-          context.actorId,
+          // InfoSec: user_id is legacy; set null to avoid FK violation against empty users table.
+          // Actor identity is carried by the actor + actor_email columns instead.
+          null,
           context.actorId,
           context.actorEmail,
           context.actorName || null,
