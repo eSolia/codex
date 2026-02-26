@@ -1,8 +1,18 @@
 #!/bin/bash
-# bump-version.sh - Update version across all Nexus files
+# bump-version.sh - Update version across all project files
 # Usage: ./scripts/bump-version.sh 0.4.0
+#
+# Discovers and updates version in:
+#   - package.json (root + immediate subdirectories)
+#   - wrangler.jsonc APP_VERSION (anywhere in project)
+#   - openapi.yaml (anywhere in project)
+#   - wrangler dependency (all packages)
 
 set -e
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+cd "$PROJECT_ROOT"
 
 if [ -z "$1" ]; then
   echo "Usage: $0 <new-version>"
@@ -13,18 +23,50 @@ fi
 NEW_VERSION="$1"
 
 echo "Bumping version to $NEW_VERSION..."
+echo ""
 
-# 1. package.json
-echo "  → package.json"
-sed -i '' "s/\"version\": \"[^\"]*\"/\"version\": \"$NEW_VERSION\"/" package.json
+# 1. Update "version" in package.json files (root + one level deep)
+echo "  → Updating package.json version"
+FOUND_PKG=false
+while IFS= read -r pkg; do
+  if grep -q '"version"' "$pkg"; then
+    rel="${pkg#./}"
+    echo "    → $rel"
+    sed -i '' "s/\"version\": \"[^\"]*\"/\"version\": \"$NEW_VERSION\"/" "$pkg"
+    FOUND_PKG=true
+  fi
+done < <(find . -maxdepth 2 -name 'package.json' -not -path '*/node_modules/*' | sort)
+if ! $FOUND_PKG; then
+  echo "    (no package.json with version field found)"
+fi
 
-# 2. wrangler.jsonc (APP_VERSION)
-echo "  → wrangler.jsonc"
-sed -i '' "s/\"APP_VERSION\": \"[^\"]*\"/\"APP_VERSION\": \"$NEW_VERSION\"/" wrangler.jsonc
+# 2. Update APP_VERSION in all wrangler.jsonc files
+echo "  → Updating wrangler.jsonc APP_VERSION"
+FOUND_WRANGLER=false
+while IFS= read -r wrangler; do
+  if grep -q 'APP_VERSION' "$wrangler"; then
+    rel="${wrangler#./}"
+    echo "    → $rel"
+    sed -i '' "s/\"APP_VERSION\": \"[^\"]*\"/\"APP_VERSION\": \"$NEW_VERSION\"/" "$wrangler"
+    FOUND_WRANGLER=true
+  fi
+done < <(find . -name 'wrangler.jsonc' -not -path '*/node_modules/*' | sort)
+if ! $FOUND_WRANGLER; then
+  echo "    (no wrangler.jsonc with APP_VERSION found)"
+fi
 
-# 3. static/openapi.yaml (served at /openapi.yaml, used by ReDoc)
-echo "  → static/openapi.yaml"
-sed -i '' "s/version: [0-9]\.[0-9]\.[0-9]/version: $NEW_VERSION/" static/openapi.yaml
+# 3. Update version in openapi.yaml files
+echo "  → Updating openapi.yaml version"
+FOUND_SPEC=false
+while IFS= read -r spec; do
+  rel="${spec#./}"
+  echo "    → $rel"
+  sed -E -i '' "s/version: [0-9]+\.[0-9]+\.[0-9]+/version: $NEW_VERSION/" "$spec"
+  FOUND_SPEC=true
+done < <(find . -name 'openapi.yaml' -not -path '*/node_modules/*' | sort)
+if ! $FOUND_SPEC; then
+  echo "    (no openapi.yaml found — skipping)"
+fi
 
 # 4. Update wrangler to latest in all packages
 echo "  → Updating wrangler to latest (all packages)"
@@ -44,28 +86,11 @@ pnpm install --lockfile-only --silent
 echo ""
 echo "✓ Version bumped to $NEW_VERSION"
 echo ""
-echo "Files updated:"
-echo "  - package.json"
-echo "  - pnpm-lock.yaml"
-echo "  - wrangler.jsonc"
-echo "  - static/openapi.yaml"
-echo "  - wrangler (updated to latest in all packages)"
-echo ""
 echo "Next steps:"
-echo "  1. Update SECURITY.md version history"
+echo "  1. Update SECURITY.md version history (if applicable)"
 echo "  2. git add . && git commit -m 'chore: bump version to $NEW_VERSION'"
 echo "  3. git tag -a v$NEW_VERSION -m 'v$NEW_VERSION'"
 echo "  4. git push origin main --tags"
-echo "  5. pnpm run deploy"
+echo "  5. Deploy"
+echo "  6. Create release WITH DETAILED NOTES (never use --generate-notes alone)"
 echo ""
-echo "  6. Create release WITH DETAILED NOTES:"
-echo "     gh release create v$NEW_VERSION --title 'v$NEW_VERSION - Description' --notes '\$(cat <<EOF"
-echo "     ## Features"
-echo "     - Feature description"
-echo "     ## Improvements"
-echo "     - Improvement description"
-echo "     **Full Changelog**: https://github.com/eSolia/nexus/compare/vPREV...v$NEW_VERSION"
-echo "     EOF"
-echo "     )'"
-echo ""
-echo "⚠️  NEVER use --generate-notes alone. Always write detailed release notes!"
