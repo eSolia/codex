@@ -35,7 +35,7 @@
     "diagram:backup:all": "npx tsx scripts/export-diagram-yaml.ts"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20241218.0",
+    "@cloudflare/workers-types": "^4.20260305.0",
     "@eslint/js": "^9.39.3",
     "@sveltejs/adapter-cloudflare": "^7.2.4",
     "@sveltejs/kit": "^2.53.0",

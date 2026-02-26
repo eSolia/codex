@@ -162,7 +162,7 @@ Record the bookmark value. If the migration fails, restore to it:
 npx wrangler d1 time-travel restore acme-d1 --bookmark=<BOOKMARK>
 ```
 
-**Important:** Restoring overwrites the database in place. Always grab a *current* bookmark before restoring to an older one, so you can undo the restore if needed.
+**Important:** Restoring overwrites the database in place. Always grab a _current_ bookmark before restoring to an older one, so you can undo the restore if needed.
 
 ### Long-term backups beyond 30 days
 
@@ -197,16 +197,16 @@ For client-facing dashboards with globally distributed users, enable D1 read rep
 
 ## Recommended cadence
 
-| Task | Frequency | Command / action |
-|------|-----------|------------------|
-| Review `d1 insights` | Monthly | `wrangler d1 insights <db> --sort-by=time` |
-| `PRAGMA optimize` | After migrations or bulk imports | `wrangler d1 execute <db> --remote --command='PRAGMA optimize'` |
-| `PRAGMA quick_check` | Quarterly | `wrangler d1 execute <db> --remote --command='PRAGMA quick_check'` |
-| `PRAGMA foreign_key_check` | Quarterly | `wrangler d1 execute <db> --remote --command='PRAGMA foreign_key_check'` |
-| Database size check | Monthly | `wrangler d1 info <db>` |
-| Time Travel bookmark | Every migration | `wrangler d1 time-travel info <db>` |
-| Archive old audit/telemetry | Quarterly | Export to R2, delete from D1 |
-| Index audit on hot paths | Quarterly | `EXPLAIN QUERY PLAN` on top queries from insights |
+| Task                        | Frequency                        | Command / action                                                         |
+| --------------------------- | -------------------------------- | ------------------------------------------------------------------------ |
+| Review `d1 insights`        | Monthly                          | `wrangler d1 insights <db> --sort-by=time`                               |
+| `PRAGMA optimize`           | After migrations or bulk imports | `wrangler d1 execute <db> --remote --command='PRAGMA optimize'`          |
+| `PRAGMA quick_check`        | Quarterly                        | `wrangler d1 execute <db> --remote --command='PRAGMA quick_check'`       |
+| `PRAGMA foreign_key_check`  | Quarterly                        | `wrangler d1 execute <db> --remote --command='PRAGMA foreign_key_check'` |
+| Database size check         | Monthly                          | `wrangler d1 info <db>`                                                  |
+| Time Travel bookmark        | Every migration                  | `wrangler d1 time-travel info <db>`                                      |
+| Archive old audit/telemetry | Quarterly                        | Export to R2, delete from D1                                             |
+| Index audit on hot paths    | Quarterly                        | `EXPLAIN QUERY PLAN` on top queries from insights                        |
 
 ---
 
@@ -228,6 +228,7 @@ A Claude Code slash command (`/d1-health`) automates the discovery and execution
 ---
 
 ## お問い合わせ
+
 **株式会社イソリア**
 〒105-7105　東京都港区東新橋一丁目５番２号
 汐留シティセンター５階（Work Styling）

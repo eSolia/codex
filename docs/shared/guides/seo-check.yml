@@ -1,0 +1,61 @@
+# .github/workflows/seo-check.yml
+#
+# SEO quality gate — runs on push and PR.
+# Checks trailing slashes, meta tag presence/length, JSON-LD, and more.
+#
+# Prerequisites:
+#   1. Copy seo-check.test.ts to your test directory
+#      - SvelteKit: src/lib/seo/seo-check.test.ts
+#      - Hono/other: tests/seo-check.test.ts (or src/lib/seo/)
+#   2. Edit SITE_CONFIG in the test file for your site
+#   3. Ensure vitest is in devDependencies
+#   4. For SvelteKit: uncomment the svelte-kit sync step
+#
+# This workflow runs the SEO tests alongside your normal test suite.
+
+name: SEO Check
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'content/**'
+      - 'static/**'
+      - 'package.json'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'content/**'
+      - 'static/**'
+      - 'package.json'
+
+jobs:
+  seo-check:
+    name: SEO Quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Uncomment the next line for SvelteKit projects:
+      # - name: SvelteKit sync (generates types)
+      #   run: pnpm svelte-kit sync
+
+      - name: Run SEO checks
+        run: pnpm vitest run --reporter=verbose src/lib/seo/seo-check.test.ts
