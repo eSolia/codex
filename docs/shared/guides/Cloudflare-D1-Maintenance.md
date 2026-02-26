@@ -177,7 +177,7 @@ Use `db.batch()` to execute multiple queries in a single round-trip. This is esp
 ```typescript
 const results = await db.batch([
   db.prepare('INSERT INTO audit_log (event, user_id) VALUES (?, ?)').bind('login', userId),
-  db.prepare('UPDATE users SET last_login = ? WHERE id = ?').bind(now, userId),
+  db.prepare('UPDATE users SET last_login = ? WHERE id = ?').bind(now, userId)
 ]);
 ```
 

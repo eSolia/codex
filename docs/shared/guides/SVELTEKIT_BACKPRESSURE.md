@@ -80,7 +80,7 @@ const UserSchema = z.object({
   id: z.string(),
   org_id: z.string(),
   email: z.string().email(),
-  role: z.enum(['admin', 'member']),
+  role: z.enum(['admin', 'member'])
 });
 
 type User = z.infer<typeof UserSchema>;
@@ -109,7 +109,7 @@ export const actions = {
     // result.data is fully typed from here
     await saveRecord(result.data);
     return { success: true };
-  },
+  }
 };
 ```
 
@@ -133,7 +133,7 @@ export const load: PageServerLoad = async ({ locals, platform }) => {
   return {
     user,
     items,
-    stats: { total, active },
+    stats: { total, active }
   } satisfies DashboardData;
 };
 ```
@@ -240,8 +240,8 @@ Add a single command that chains all deterministic checks. This becomes the firs
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "lint": "eslint . --ext .ts,.svelte",
     "test:unit": "vitest run",
-    "test:e2e": "playwright test",
-  },
+    "test:e2e": "playwright test"
+  }
 }
 ```
 
@@ -437,7 +437,7 @@ export const handle: Handle = async ({ event, resolve }) => {
     event.locals.auth = { authenticated: true, user: session.user };
     event.locals.tenantCtx = {
       db: event.platform.env.DB,
-      orgId: session.user.orgId,
+      orgId: session.user.orgId
     };
   } else {
     event.locals.auth = { authenticated: false, user: null };
@@ -487,10 +487,10 @@ Now the lint rule becomes trivial. Instead of parsing SQL, it just flags raw `db
       "error",
       {
         "message": "Use tenantFirst/tenantAll from $lib/server/db instead of raw db.prepare(). Use unscopedQuery() for intentionally cross-tenant queries.",
-        "allowedFiles": ["src/lib/server/db.ts"],
-      },
-    ],
-  },
+        "allowedFiles": ["src/lib/server/db.ts"]
+      }
+    ]
+  }
 }
 ```
 

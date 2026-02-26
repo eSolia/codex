@@ -73,8 +73,8 @@ In `package.json`, chain them:
 {
   "scripts": {
     "lint": "oxlint --config .oxlintrc.json && eslint .",
-    "lint:fix": "oxlint --fix --config .oxlintrc.json && eslint --fix .",
-  },
+    "lint:fix": "oxlint --fix --config .oxlintrc.json && eslint --fix ."
+  }
 }
 ```
 
@@ -98,7 +98,7 @@ Oxlint uses a JSON config (JSONC with comments is supported). For SvelteKit proj
   "categories": {
     "correctness": "error",
     "suspicious": "warn",
-    "perf": "warn",
+    "perf": "warn"
   },
   "plugins": ["typescript", "import", "unicorn", "promise"],
   "rules": {
@@ -125,7 +125,7 @@ Oxlint uses a JSON config (JSONC with comments is supported). For SvelteKit proj
 
     // Unicorn quality rules
     "unicorn/no-array-for-each": "warn",
-    "unicorn/prefer-node-protocol": "error",
+    "unicorn/prefer-node-protocol": "error"
   },
   "ignorePatterns": [
     "build/",
@@ -134,7 +134,7 @@ Oxlint uses a JSON config (JSONC with comments is supported). For SvelteKit proj
     "node_modules/",
     ".wrangler/",
     "**/*.config.js",
-    "**/*.config.ts",
+    "**/*.config.ts"
   ],
   "overrides": [
     {
@@ -142,10 +142,10 @@ Oxlint uses a JSON config (JSONC with comments is supported). For SvelteKit proj
       "rules": {
         // Relax rules that oxlint can't fully understand in .svelte files
         // ESLint + svelte plugin handles these instead
-        "no-undef": "off",
-      },
-    },
-  ],
+        "no-undef": "off"
+      }
+    }
+  ]
 }
 ```
 
@@ -173,8 +173,8 @@ const esoliaPlugin = {
     'no-raw-html': noRawHtml,
     'no-binding-leak': noBindingLeak,
     'no-schema-parse': noSchemaParse,
-    'no-silent-catch': noSilentCatch,
-  },
+    'no-silent-catch': noSilentCatch
+  }
 };
 
 export default ts.config(
@@ -188,11 +188,11 @@ export default ts.config(
     languageOptions: {
       globals: {
         ...globals.browser,
-        ...globals.node,
-      },
+        ...globals.node
+      }
     },
     plugins: {
-      esolia: esoliaPlugin,
+      esolia: esoliaPlugin
     },
     rules: {
       // Unused vars: let eslint handle this (not oxlint) for Svelte awareness
@@ -202,16 +202,16 @@ export default ts.config(
           argsIgnorePattern: '^_',
           varsIgnorePattern: '^_',
           caughtErrorsIgnorePattern: '^_',
-          destructuredArrayIgnorePattern: '^_',
-        },
+          destructuredArrayIgnorePattern: '^_'
+        }
       ],
 
       // Backpressure rules (from SVELTEKIT_BACKPRESSURE.md)
       'esolia/no-raw-html': 'error',
       'esolia/no-binding-leak': 'error',
       'esolia/no-schema-parse': 'warn',
-      'esolia/no-silent-catch': 'error',
-    },
+      'esolia/no-silent-catch': 'error'
+    }
   },
 
   // Svelte file handling
@@ -219,9 +219,9 @@ export default ts.config(
     files: ['**/*.svelte'],
     languageOptions: {
       parserOptions: {
-        parser: ts.parser,
-      },
-    },
+        parser: ts.parser
+      }
+    }
   },
 
   // Server-only files: enable stricter rules
@@ -229,8 +229,8 @@ export default ts.config(
     files: ['**/*.server.ts', '**/server/**/*.ts', '**/hooks.*.ts'],
     rules: {
       // Server files should never use browser globals
-      'no-restricted-globals': ['error', 'window', 'document', 'localStorage', 'sessionStorage'],
-    },
+      'no-restricted-globals': ['error', 'window', 'document', 'localStorage', 'sessionStorage']
+    }
   },
 
   // Test files: relax some rules
@@ -238,13 +238,13 @@ export default ts.config(
     files: ['**/*.test.ts', '**/*.spec.ts', '**/tests/**'],
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',
-      'esolia/no-silent-catch': 'off',
-    },
+      'esolia/no-silent-catch': 'off'
+    }
   },
 
   // Ignores
   {
-    ignores: ['build/', '.svelte-kit/', 'dist/', 'node_modules/', '.wrangler/'],
+    ignores: ['build/', '.svelte-kit/', 'dist/', 'node_modules/', '.wrangler/']
   },
 
   // Oxlint compat: MUST be last — disables rules oxlint already covers
@@ -263,8 +263,8 @@ export default ts.config(
     "test:unit": "vitest run",
     "verify": "npm run lint && npm run check && npm run test:unit",
     "format": "prettier --write .",
-    "format:check": "prettier --check .",
-  },
+    "format:check": "prettier --check ."
+  }
 }
 ```
 
@@ -293,7 +293,7 @@ Hono workers get a stricter configuration since there are no framework quirks to
     "correctness": "error",
     "suspicious": "warn",
     "pedantic": "warn",
-    "perf": "warn",
+    "perf": "warn"
   },
   "plugins": ["typescript", "import", "unicorn", "promise", "node"],
   "rules": {
@@ -305,8 +305,8 @@ Hono workers get a stricter configuration since there are no framework quirks to
       {
         "argsIgnorePattern": "^_",
         "varsIgnorePattern": "^_",
-        "caughtErrorsIgnorePattern": "^_",
-      },
+        "caughtErrorsIgnorePattern": "^_"
+      }
     ],
 
     // Code quality
@@ -327,9 +327,9 @@ Hono workers get a stricter configuration since there are no framework quirks to
     "unicorn/no-array-for-each": "warn",
     "unicorn/prefer-node-protocol": "error",
     "unicorn/no-null": "off",
-    "unicorn/prefer-top-level-await": "off",
+    "unicorn/prefer-top-level-await": "off"
   },
-  "ignorePatterns": ["dist/", "node_modules/", ".wrangler/", "**/*.config.js", "**/*.config.ts"],
+  "ignorePatterns": ["dist/", "node_modules/", ".wrangler/", "**/*.config.js", "**/*.config.ts"]
 }
 ```
 
@@ -345,8 +345,8 @@ Hono workers get a stricter configuration since there are no framework quirks to
     "typecheck": "tsc --noEmit",
     "verify": "npm run lint && npm run typecheck",
     "format": "prettier --write .",
-    "format:check": "prettier --check .",
-  },
+    "format:check": "prettier --check ."
+  }
 }
 ```
 
@@ -372,13 +372,13 @@ export const noRawHtml = {
   meta: {
     type: 'problem',
     docs: {
-      description: 'Disallow {@html} without sanitizeHtml() wrapper',
+      description: 'Disallow {@html} without sanitizeHtml() wrapper'
     },
     messages: {
       unsanitized:
-        'Raw HTML rendering detected. Wrap with sanitizeHtml() or nlToBr() from $lib/sanitize. See SVELTEKIT_GUIDE.md § XSS Prevention.',
+        'Raw HTML rendering detected. Wrap with sanitizeHtml() or nlToBr() from $lib/sanitize. See SVELTEKIT_GUIDE.md § XSS Prevention.'
     },
-    schema: [],
+    schema: []
   },
   create(context) {
     // This rule works on .svelte files parsed by eslint-plugin-svelte
@@ -396,9 +396,9 @@ export const noRawHtml = {
         }
 
         context.report({ node, messageId: 'unsanitized' });
-      },
+      }
     };
-  },
+  }
 };
 ```
 
@@ -412,13 +412,13 @@ export const noBindingLeak = {
   meta: {
     type: 'problem',
     docs: {
-      description: 'Disallow returning platform.env bindings from load functions',
+      description: 'Disallow returning platform.env bindings from load functions'
     },
     messages: {
       bindingLeak:
-        'Do not return platform.env bindings to the client. Query the binding and return the data instead. See SVELTEKIT_GUIDE.md § Cloudflare Integration.',
+        'Do not return platform.env bindings to the client. Query the binding and return the data instead. See SVELTEKIT_GUIDE.md § Cloudflare Integration.'
     },
-    schema: [],
+    schema: []
   },
   create(context) {
     // Only apply to load function files
@@ -443,9 +443,9 @@ export const noBindingLeak = {
             context.report({ node: prop, messageId: 'bindingLeak' });
           }
         }
-      },
+      }
     };
-  },
+  }
 };
 ```
 
@@ -459,13 +459,13 @@ export const noSchemaParse = {
   meta: {
     type: 'suggestion',
     docs: {
-      description: 'Prefer safeParse() over parse() for schema validation',
+      description: 'Prefer safeParse() over parse() for schema validation'
     },
     messages: {
       useSafeParse:
-        'Use .safeParse() instead of .parse() for explicit error handling. If you intentionally want to throw, rename to .unsafeParse() or add a suppression comment. See SVELTEKIT_BACKPRESSURE.md § Layer 1.',
+        'Use .safeParse() instead of .parse() for explicit error handling. If you intentionally want to throw, rename to .unsafeParse() or add a suppression comment. See SVELTEKIT_BACKPRESSURE.md § Layer 1.'
     },
-    schema: [],
+    schema: []
   },
   create(context) {
     return {
@@ -488,9 +488,9 @@ export const noSchemaParse = {
             context.report({ node: node.callee.property, messageId: 'useSafeParse' });
           }
         }
-      },
+      }
     };
-  },
+  }
 };
 ```
 
@@ -504,13 +504,13 @@ export const noSilentCatch = {
   meta: {
     type: 'problem',
     docs: {
-      description: 'Disallow empty catch blocks that swallow errors',
+      description: 'Disallow empty catch blocks that swallow errors'
     },
     messages: {
       silentCatch:
-        'Empty catch block silently swallows errors. Log the error, rethrow, or handle it explicitly.',
+        'Empty catch block silently swallows errors. Log the error, rethrow, or handle it explicitly.'
     },
-    schema: [],
+    schema: []
   },
   create(context) {
     return {
@@ -518,9 +518,9 @@ export const noSilentCatch = {
         if (node.body.type === 'BlockStatement' && node.body.body.length === 0) {
           context.report({ node, messageId: 'silentCatch' });
         }
-      },
+      }
     };
-  },
+  }
 };
 ```
 
@@ -614,8 +614,8 @@ rm eslint.config.js
   "scripts": {
     "lint": "oxlint --config .oxlintrc.json",
     "typecheck": "tsc --noEmit",
-    "verify": "npm run lint && npm run typecheck",
-  },
+    "verify": "npm run lint && npm run typecheck"
+  }
 }
 ```
 

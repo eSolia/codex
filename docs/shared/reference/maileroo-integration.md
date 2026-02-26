@@ -86,9 +86,9 @@ export async function sendMailerooEmail(
     method: 'POST',
     headers: {
       'X-API-Key': apiKey,
-      'Content-Type': 'application/json',
+      'Content-Type': 'application/json'
     },
-    body: JSON.stringify(email),
+    body: JSON.stringify(email)
   });
 
   if (!response.ok) {
@@ -206,7 +206,7 @@ export async function sendMagicLink(
     to: { address: to },
     subject,
     html: htmlBody,
-    tags: ['magic-link', 'authentication'],
+    tags: ['magic-link', 'authentication']
   });
 }
 ```
@@ -431,7 +431,7 @@ Use tags for filtering in Maileroo dashboard:
 return await sendMailerooEmail(apiKey, {
   // ...
   tags: ['magic-link', 'authentication'], // or ["dns-alert", "unauthorized"]
-  tracking: { opens: true, clicks: true }, // For lead capture emails
+  tracking: { opens: true, clicks: true } // For lead capture emails
 });
 ```
 

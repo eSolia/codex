@@ -280,7 +280,7 @@ cookies.set('session', sessionId, {
   httpOnly: true, // Prevents XSS access
   secure: !dev, // HTTPS only in production
   sameSite: 'lax', // CSRF protection
-  maxAge: 60 * 60 * 24 * 7, // 7 days
+  maxAge: 60 * 60 * 24 * 7 // 7 days
 });
 ```
 
@@ -301,7 +301,7 @@ export const actions = {
     cookies.delete('session', { path: '/' });
 
     throw redirect(303, '/');
-  },
+  }
 };
 ```
 
@@ -369,7 +369,7 @@ async function auditLog(event: AuditEvent, env: Env): Promise<void> {
       type: 'AUDIT',
       ...event,
       // Redact sensitive fields
-      details: event.details ? redactSensitive(event.details) : undefined,
+      details: event.details ? redactSensitive(event.details) : undefined
     })
   );
 
@@ -462,7 +462,7 @@ import { z } from 'zod';
 const CreateShareSchema = z.object({
   recipientEmail: z.string().email(),
   expiresIn: z.number().min(1).max(30), // Days
-  pin: z.string().length(6).regex(/^\d+$/),
+  pin: z.string().length(6).regex(/^\d+$/)
 });
 
 export const actions = {
@@ -478,7 +478,7 @@ export const actions = {
 
     // Use validated data
     const { recipientEmail, expiresIn, pin } = result.data;
-  },
+  }
 };
 ```
 

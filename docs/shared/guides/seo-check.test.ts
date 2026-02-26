@@ -58,14 +58,14 @@ const SITE_CONFIG = {
   /** Title length limits by language */
   titleLimits: {
     en: { min: 10, max: 70 },
-    ja: { min: 2, max: 40 },
+    ja: { min: 2, max: 40 }
   },
 
   /** Description length limits by language */
   descriptionLimits: {
     en: { min: 50, max: 160 },
-    ja: { min: 20, max: 160 },
-  },
+    ja: { min: 20, max: 160 }
+  }
 };
 
 // ============================================================================
@@ -79,7 +79,7 @@ const STATIC_PREFIXES = [
   '/favicon',
   '/.well-known/',
   '/_app/',
-  '/static/',
+  '/static/'
 ];
 const STATIC_EXTENSIONS = [
   '.pdf',
@@ -100,7 +100,7 @@ const STATIC_EXTENSIONS = [
   '.js',
   '.mjs',
   '.yaml',
-  '.yml',
+  '.yml'
 ];
 
 function isStaticAsset(href: string): boolean {
@@ -172,7 +172,7 @@ function checkTrailingSlashes(filePath: string, content: string): LinkViolation[
           file: relFile,
           line: i + 1,
           href,
-          issue: 'missing trailing slash',
+          issue: 'missing trailing slash'
         });
       }
     }
@@ -193,7 +193,7 @@ function checkTrailingSlashes(filePath: string, content: string): LinkViolation[
           file: relFile,
           line: i + 1,
           href,
-          issue: 'missing trailing slash',
+          issue: 'missing trailing slash'
         });
       }
     }
@@ -210,7 +210,7 @@ function checkTrailingSlashes(filePath: string, content: string): LinkViolation[
           file: relFile,
           line: i + 1,
           href,
-          issue: 'missing trailing slash',
+          issue: 'missing trailing slash'
         });
       }
     }
@@ -502,7 +502,7 @@ describe('SEO: JSON-LD structured data', () => {
       if (SITE_CONFIG.framework === 'sveltekit') {
         return [
           path.join(SITE_CONFIG.routesDir, '+page.svelte'),
-          path.join(SITE_CONFIG.routesDir, '+layout.svelte'),
+          path.join(SITE_CONFIG.routesDir, '+layout.svelte')
         ];
       }
       // For hono/generic, check htmlRenderFiles

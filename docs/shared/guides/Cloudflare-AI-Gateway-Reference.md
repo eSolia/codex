@@ -50,19 +50,19 @@ import OpenAI from 'openai';
 
 const client = new OpenAI({
   apiKey: 'YOUR_PROVIDER_API_KEY',
-  baseURL: 'https://gateway.ai.cloudflare.com/v1/{account_id}/{gateway_name}/compat',
+  baseURL: 'https://gateway.ai.cloudflare.com/v1/{account_id}/{gateway_name}/compat'
 });
 
 // Call Anthropic through the OpenAI-compatible endpoint
 const response = await client.chat.completions.create({
   model: 'anthropic/claude-sonnet-4-20250514',
-  messages: [{ role: 'user', content: 'Summarize this report.' }],
+  messages: [{ role: 'user', content: 'Summarize this report.' }]
 });
 
 // Switch to Google by changing the model string
 const response2 = await client.chat.completions.create({
   model: 'google-ai-studio/gemini-2.0-flash',
-  messages: [{ role: 'user', content: 'Summarize this report.' }],
+  messages: [{ role: 'user', content: 'Summarize this report.' }]
 });
 ```
 
@@ -75,12 +75,12 @@ const response = await fetch(
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: 'Bearer YOUR_PROVIDER_API_KEY',
+      Authorization: 'Bearer YOUR_PROVIDER_API_KEY'
     },
     body: JSON.stringify({
       model: 'openai/gpt-4.1',
-      messages: [{ role: 'user', content: 'Hello' }],
-    }),
+      messages: [{ role: 'user', content: 'Hello' }]
+    })
   }
 );
 ```
@@ -99,13 +99,13 @@ const response = await fetch(
     headers: {
       'Content-Type': 'application/json',
       'x-api-key': ANTHROPIC_API_KEY,
-      'anthropic-version': '2023-06-01',
+      'anthropic-version': '2023-06-01'
     },
     body: JSON.stringify({
       model: 'claude-sonnet-4-20250514',
       max_tokens: 1024,
-      messages: [{ role: 'user', content: 'Hello' }],
-    }),
+      messages: [{ role: 'user', content: 'Hello' }]
+    })
   }
 );
 ```
@@ -119,14 +119,14 @@ import Anthropic from '@anthropic-ai/sdk';
 
 const client = new Anthropic({
   apiKey: ANTHROPIC_API_KEY,
-  baseURL: 'https://gateway.ai.cloudflare.com/v1/{account_id}/{gateway_name}/anthropic',
+  baseURL: 'https://gateway.ai.cloudflare.com/v1/{account_id}/{gateway_name}/anthropic'
 });
 
 // All calls now route through AI Gateway — no other changes needed
 const response = await client.messages.create({
   model: 'claude-sonnet-4-20250514',
   max_tokens: 1024,
-  messages: [{ role: 'user', content: 'Hello' }],
+  messages: [{ role: 'user', content: 'Hello' }]
 });
 ```
 
@@ -139,12 +139,12 @@ import OpenAI from 'openai';
 
 const client = new OpenAI({
   apiKey: OPENAI_API_KEY,
-  baseURL: 'https://gateway.ai.cloudflare.com/v1/{account_id}/{gateway_name}/openai',
+  baseURL: 'https://gateway.ai.cloudflare.com/v1/{account_id}/{gateway_name}/openai'
 });
 
 const response = await client.chat.completions.create({
   model: 'gpt-4.1',
-  messages: [{ role: 'user', content: 'Hello' }],
+  messages: [{ role: 'user', content: 'Hello' }]
 });
 ```
 
@@ -157,8 +157,8 @@ When calling Workers AI models from a Cloudflare Worker, use the AI binding with
 ```jsonc
 {
   "ai": {
-    "binding": "AI",
-  },
+    "binding": "AI"
+  }
 }
 ```
 
@@ -172,8 +172,8 @@ const response = await env.AI.run(
     gateway: {
       id: '{gateway_name}',
       skipCache: false,
-      cacheTtl: 3600,
-    },
+      cacheTtl: 3600
+    }
   }
 );
 ```
@@ -187,8 +187,8 @@ For more control from Workers, use the `run` method on the AI Gateway binding di
 ```jsonc
 {
   "ai": {
-    "binding": "AI",
-  },
+    "binding": "AI"
+  }
 }
 ```
 
@@ -201,13 +201,13 @@ const gwResponse = await env.AI.gateway('{gateway_name}').run({
   headers: {
     'x-api-key': env.ANTHROPIC_API_KEY,
     'anthropic-version': '2023-06-01',
-    'Content-Type': 'application/json',
+    'Content-Type': 'application/json'
   },
   query: {
     model: 'claude-sonnet-4-20250514',
     max_tokens: 1024,
-    messages: [{ role: 'user', content: 'Hello' }],
-  },
+    messages: [{ role: 'user', content: 'Hello' }]
+  }
 });
 ```
 
@@ -234,9 +234,9 @@ const response = await fetch(gatewayUrl, {
   headers: {
     'Content-Type': 'application/json',
     Authorization: `Bearer ${apiKey}`,
-    'cf-aig-cache-ttl': '3600',
+    'cf-aig-cache-ttl': '3600'
   },
-  body: JSON.stringify({ model: 'gpt-4.1', messages }),
+  body: JSON.stringify({ model: 'gpt-4.1', messages })
 });
 ```
 
@@ -247,8 +247,8 @@ const response = await env.AI.run(model, input, {
   gateway: {
     id: 'my-gateway',
     skipCache: false,
-    cacheTtl: 3600,
-  },
+    cacheTtl: 3600
+  }
 });
 ```
 
@@ -302,23 +302,23 @@ const response = await fetch(`https://gateway.ai.cloudflare.com/v1/{account_id}/
       headers: { Authorization: `Bearer ${OPENAI_KEY}` },
       query: {
         model: 'gpt-4.1',
-        messages: [{ role: 'user', content: 'Hello' }],
-      },
+        messages: [{ role: 'user', content: 'Hello' }]
+      }
     },
     {
       provider: 'anthropic',
       endpoint: 'v1/messages',
       headers: {
         'x-api-key': ANTHROPIC_KEY,
-        'anthropic-version': '2023-06-01',
+        'anthropic-version': '2023-06-01'
       },
       query: {
         model: 'claude-sonnet-4-20250514',
         max_tokens: 1024,
-        messages: [{ role: 'user', content: 'Hello' }],
-      },
-    },
-  ]),
+        messages: [{ role: 'user', content: 'Hello' }]
+      }
+    }
+  ])
 });
 ```
 
@@ -363,7 +363,7 @@ const log = await env.AI.gateway('my-gateway').getLog(logId);
 ```typescript
 await env.AI.gateway('my-gateway').patchLog(logId, {
   feedback: 1, // 1 = positive, -1 = negative
-  metadata: { userId: 'abc', context: 'quiz-answer' },
+  metadata: { userId: 'abc', context: 'quiz-answer' }
 });
 ```
 
@@ -425,8 +425,8 @@ export function getClient(env: {
     apiKey: env.ANTHROPIC_API_KEY,
     ...(env.AI_GATEWAY_URL && { baseURL: env.AI_GATEWAY_URL }),
     ...(env.AI_GATEWAY_TOKEN && {
-      defaultHeaders: { 'cf-aig-authorization': `Bearer ${env.AI_GATEWAY_TOKEN}` },
-    }),
+      defaultHeaders: { 'cf-aig-authorization': `Bearer ${env.AI_GATEWAY_TOKEN}` }
+    })
   });
 }
 ```
@@ -454,7 +454,7 @@ export function getAnthropicHeaders(
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     'x-api-key': env.ANTHROPIC_API_KEY,
-    'anthropic-version': '2023-06-01',
+    'anthropic-version': '2023-06-01'
   };
   if (env.AI_GATEWAY_URL) {
     if (env.AI_GATEWAY_TOKEN) {
@@ -471,7 +471,7 @@ export function getAnthropicHeaders(
 const response = await fetch(`${getAnthropicBaseUrl(aiEnv)}/v1/messages`, {
   method: 'POST',
   headers: getAnthropicHeaders(aiEnv, { cacheTtl: 3600 }),
-  body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1024, messages }),
+  body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1024, messages })
 });
 ```
 

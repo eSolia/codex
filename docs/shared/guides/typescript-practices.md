@@ -156,7 +156,7 @@ const UserSchema = z.object({
   id: z.string(),
   email: z.string().email(),
   name: z.string(),
-  orgId: z.string(),
+  orgId: z.string()
 });
 
 type User = z.infer<typeof UserSchema>;
@@ -294,7 +294,7 @@ interface UserProfile {
 enum AuthStatus {
   PENDING = 'pending',
   AUTHENTICATED = 'authenticated',
-  EXPIRED = 'expired',
+  EXPIRED = 'expired'
 }
 
 function validateUserInput(input: unknown): UserProfile {
@@ -429,7 +429,7 @@ async function loadDashboard(userId: string) {
   const [user, stats, notifications] = await Promise.all([
     getUser(userId),
     getStats(userId),
-    getNotifications(userId),
+    getNotifications(userId)
   ]);
   return { user, stats, notifications };
 }
@@ -592,7 +592,7 @@ describe('createShare', () => {
   it('creates a share with valid input', async () => {
     const result = await createShare({
       recipientEmail: 'test@example.com',
-      expiresIn: 7,
+      expiresIn: 7
     });
 
     expect(result.success).toBe(true);
@@ -602,7 +602,7 @@ describe('createShare', () => {
   it('fails with invalid email', async () => {
     const result = await createShare({
       recipientEmail: 'not-an-email',
-      expiresIn: 7,
+      expiresIn: 7
     });
 
     expect(result.success).toBe(false);

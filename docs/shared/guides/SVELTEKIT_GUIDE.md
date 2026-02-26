@@ -82,8 +82,8 @@ export default {
     // ❌ Avoid in production until fully stable
     experimental: {
       // remoteFunctions: true,
-    },
-  },
+    }
+  }
 };
 ```
 
@@ -114,10 +114,10 @@ import adapter from '@sveltejs/adapter-node';
 export default {
   kit: {
     adapter: adapter({
-      out: 'build',
+      out: 'build'
       // Timeouts can be overridden by env vars above
-    }),
-  },
+    })
+  }
 };
 ```
 
@@ -435,7 +435,7 @@ export const load = async ({ params, fetch, parent }) => {
   const response = await fetch(`/api/items/${params.id}`);
   return {
     item: await response.json(),
-    ...parentData,
+    ...parentData
   };
 };
 
@@ -447,7 +447,7 @@ export const load = async ({ params, platform, locals, cookies }) => {
 
   // This data is serialized and sent to client
   return {
-    secretData: await db.query('...'),
+    secretData: await db.query('...')
   };
 };
 ```
@@ -479,7 +479,7 @@ export const actions = {
   // Named action
   delete: async ({ request }) => {
     // ...
-  },
+  }
 };
 ```
 
@@ -617,7 +617,7 @@ export async function load() {
     items: new Map(), // ❌ Maps become empty objects
 
     user: { ...userData }, // ✅ Plain objects work
-    items: [...itemsArray], // ✅ Plain arrays work
+    items: [...itemsArray] // ✅ Plain arrays work
   };
 }
 ```
@@ -850,7 +850,7 @@ const ALLOWED_KEYS = new Set([
   'email',
   'title',
   'description',
-  'category',
+  'category'
   // ... add your valid keys
 ]);
 
@@ -916,7 +916,7 @@ cookies.set('session', token, {
   httpOnly: true, // Prevents XSS access
   secure: !dev, // HTTPS only in production
   sameSite: 'lax', // CSRF protection
-  maxAge: 60 * 60 * 24, // Explicit expiry
+  maxAge: 60 * 60 * 24 // Explicit expiry
 });
 ```
 
@@ -952,10 +952,10 @@ export default {
         'connect-src': ['self'],
         'frame-ancestors': ['none'],
         'base-uri': ['self'],
-        'form-action': ['self'],
-      },
-    },
-  },
+        'form-action': ['self']
+      }
+    }
+  }
 };
 ```
 
@@ -1103,10 +1103,10 @@ import adapter from '@sveltejs/adapter-node';
 export default {
   kit: {
     adapter: adapter({
-      out: 'build',
+      out: 'build'
       // Environment variables above take precedence
-    }),
-  },
+    })
+  }
 };
 ```
 
@@ -1184,7 +1184,7 @@ const { results } = await db.prepare('SELECT * FROM users WHERE org_id = ?').bin
 // Batch operations (reduces round trips)
 const [users, orders] = await db.batch([
   db.prepare('SELECT * FROM users WHERE org_id = ?').bind(orgId),
-  db.prepare('SELECT * FROM orders WHERE org_id = ?').bind(orgId),
+  db.prepare('SELECT * FROM orders WHERE org_id = ?').bind(orgId)
 ]);
 
 // Insert with returning
@@ -1199,7 +1199,7 @@ const result = await db
 ```typescript
 // Upload
 await bucket.put(`${orgId}/files/${fileId}`, fileBuffer, {
-  httpMetadata: { contentType: 'application/pdf' },
+  httpMetadata: { contentType: 'application/pdf' }
 });
 
 // Download
@@ -1208,8 +1208,8 @@ if (!object) throw error(404, 'File not found');
 
 return new Response(object.body, {
   headers: {
-    'Content-Type': object.httpMetadata?.contentType || 'application/octet-stream',
-  },
+    'Content-Type': object.httpMetadata?.contentType || 'application/octet-stream'
+  }
 });
 
 // ⚠️ R2 is eventually consistent - immediate GET after PUT may fail
@@ -1226,14 +1226,14 @@ export default {
     adapter: adapter({
       routes: {
         include: ['/*'],
-        exclude: ['<all>'], // Let Cloudflare handle static assets
+        exclude: ['<all>'] // Let Cloudflare handle static assets
       },
       platformProxy: {
         configPath: './wrangler.toml',
-        persist: { path: '.wrangler/state/v3' },
-      },
-    }),
-  },
+        persist: { path: '.wrangler/state/v3' }
+      }
+    })
+  }
 };
 ```
 

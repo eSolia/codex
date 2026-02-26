@@ -331,7 +331,7 @@ import type { RequestHandler } from './$types';
 const SITE_URL = 'https://your-domain.com';
 const pages = [
   { path: '/', priority: '1.0', changefreq: 'weekly' },
-  { path: '/en/', priority: '1.0', changefreq: 'weekly' },
+  { path: '/en/', priority: '1.0', changefreq: 'weekly' }
   // ... all your pages
 ];
 
@@ -367,7 +367,7 @@ export const prerender = true;
 const SITE_URL = 'https://your-domain.com';
 const pages = [
   { path: '/', priority: '1.0', changefreq: 'weekly' },
-  { path: '/en/', priority: '1.0', changefreq: 'weekly' },
+  { path: '/en/', priority: '1.0', changefreq: 'weekly' }
 ];
 
 app.get('/sitemap.xml', (c) => {
@@ -431,7 +431,7 @@ Disallow: /dash/
 
 Sitemap: https://your-domain.com/sitemap.xml`,
     {
-      headers: { 'Content-Type': 'text/plain' },
+      headers: { 'Content-Type': 'text/plain' }
     }
   );
 };
@@ -487,7 +487,7 @@ const securityHeaders: Record<string, string> = {
   'X-Content-Type-Options': 'nosniff',
   'X-Frame-Options': 'DENY',
   'Referrer-Policy': 'strict-origin-when-cross-origin',
-  'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
+  'Permissions-Policy': 'camera=(), microphone=(), geolocation=()'
 };
 
 for (const [key, value] of Object.entries(securityHeaders)) {
@@ -512,8 +512,8 @@ app.use(
     permissionsPolicy: {
       camera: [],
       microphone: [],
-      geolocation: [],
-    },
+      geolocation: []
+    }
   })
 );
 ```
@@ -666,7 +666,7 @@ const SITE_CONFIG = {
   // For Hono/generic: files that render public HTML
   htmlRenderFiles: [], // e.g. ['src/routes/landing/index.ts']
   titleLimits: { en: { min: 10, max: 70 }, ja: { min: 2, max: 40 } },
-  descriptionLimits: { en: { min: 50, max: 160 }, ja: { min: 20, max: 160 } },
+  descriptionLimits: { en: { min: 50, max: 160 }, ja: { min: 20, max: 160 } }
 };
 ```
 

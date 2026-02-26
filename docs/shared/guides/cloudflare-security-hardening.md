@@ -592,7 +592,7 @@ const API_KEY = 'sk-1234567890abcdef';
 export default {
   async fetch(request, env) {
     const apiKey = env.API_KEY; // Injected by Cloudflare
-  },
+  }
 };
 ```
 
@@ -648,7 +648,7 @@ export default {
     }
 
     // Process request...
-  },
+  }
 };
 ```
 
@@ -876,7 +876,7 @@ async function addSecurityHeaders(response) {
 
   return new Response(response.body, {
     status: response.status,
-    headers,
+    headers
   });
 }
 ```

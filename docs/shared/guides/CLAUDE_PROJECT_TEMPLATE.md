@@ -157,7 +157,7 @@ const items = await db
 // Use batch for multiple queries
 const [users, settings] = await db.batch([
   db.prepare('SELECT * FROM users WHERE org_id = ?').bind(orgId),
-  db.prepare('SELECT * FROM settings WHERE org_id = ?').bind(orgId),
+  db.prepare('SELECT * FROM settings WHERE org_id = ?').bind(orgId)
 ]);
 ```
 
@@ -238,7 +238,7 @@ cookies.set('session', token, {
   httpOnly: true,
   secure: !dev,
   sameSite: 'lax',
-  maxAge: 60 * 60 * 24 * 7, // 7 days
+  maxAge: 60 * 60 * 24 * 7 // 7 days
 });
 
 // Clear session
@@ -257,13 +257,13 @@ cookies.delete('session', { path: '/' });
 // Success
 return json({
   data: result,
-  meta: { total: 100, page: 1 },
+  meta: { total: 100, page: 1 }
 });
 
 // Error
 throw error(400, {
   message: 'Validation failed',
-  errors: { email: 'Invalid email format' },
+  errors: { email: 'Invalid email format' }
 });
 ```
 

@@ -164,8 +164,8 @@ const config = {
       //   configPath: 'wrangler.jsonc',
       //   persist: { path: '.wrangler/state/v3' }
       // }
-    }),
-  },
+    })
+  }
 };
 
 export default config;
@@ -288,7 +288,7 @@ In your `wrangler.jsonc`, add the routes configuration:
 
 ```jsonc
 {
-  "routes": [{ "pattern": "myapp.example.com", "custom_domain": true }],
+  "routes": [{ "pattern": "myapp.example.com", "custom_domain": true }]
 }
 ```
 
@@ -300,7 +300,7 @@ Workers now supports Pages-style preview deployments:
 
 ```jsonc
 {
-  "preview_urls": true,
+  "preview_urls": true
 }
 ```
 
@@ -367,9 +367,9 @@ wrangler secrets-store secret create \
     {
       "binding": "MAILEROO_API_KEY",
       "store_id": "<STORE_ID>",
-      "secret_name": "maileroo-api-key",
-    },
-  ],
+      "secret_name": "maileroo-api-key"
+    }
+  ]
 }
 ```
 
@@ -409,9 +409,9 @@ Now that you're on Workers, you can use features that weren't available on Pages
   "triggers": {
     "crons": [
       "0 * * * *", // Hourly
-      "0 0 * * *", // Daily at midnight
-    ],
-  },
+      "0 0 * * *" // Daily at midnight
+    ]
+  }
 }
 ```
 
@@ -427,7 +427,7 @@ export default {
         await runDailyCleanup(env);
         break;
     }
-  },
+  }
 };
 ```
 
@@ -437,8 +437,8 @@ export default {
 {
   "queues": {
     "producers": [{ "binding": "MY_QUEUE", "queue": "my-queue" }],
-    "consumers": [{ "queue": "my-queue", "max_batch_size": 10 }],
-  },
+    "consumers": [{ "queue": "my-queue", "max_batch_size": 10 }]
+  }
 }
 ```
 
@@ -447,9 +447,9 @@ export default {
 ```jsonc
 {
   "durable_objects": {
-    "bindings": [{ "name": "COUNTER", "class_name": "Counter" }],
+    "bindings": [{ "name": "COUNTER", "class_name": "Counter" }]
   },
-  "migrations": [{ "tag": "v1", "new_classes": ["Counter"] }],
+  "migrations": [{ "tag": "v1", "new_classes": ["Counter"] }]
 }
 ```
 
@@ -457,7 +457,7 @@ export default {
 
 ```jsonc
 {
-  "analytics_engine_datasets": [{ "binding": "ANALYTICS", "dataset": "my_app_events" }],
+  "analytics_engine_datasets": [{ "binding": "ANALYTICS", "dataset": "my_app_events" }]
 }
 ```
 
@@ -479,9 +479,9 @@ Service Bindings allow one Worker to call another Worker directly without going 
   "services": [
     {
       "binding": "API",
-      "service": "my-api-worker", // Name of the target Worker
-    },
-  ],
+      "service": "my-api-worker" // Name of the target Worker
+    }
+  ]
 }
 ```
 
@@ -582,8 +582,8 @@ Smart Placement automatically moves your Worker closer to backend services (data
 ```jsonc
 {
   "placement": {
-    "mode": "smart",
-  },
+    "mode": "smart"
+  }
 }
 ```
 
@@ -677,8 +677,8 @@ Workers now support up to 5 minutes of CPU time per request (up from 30 seconds)
 ```jsonc
 {
   "limits": {
-    "cpu_ms": 300000, // 5 minutes (default is 30000)
-  },
+    "cpu_ms": 300000 // 5 minutes (default is 30000)
+  }
 }
 ```
 
@@ -693,9 +693,9 @@ If you're connecting to PostgreSQL or MySQL outside Cloudflare, Hyperdrive provi
   "hyperdrive": [
     {
       "binding": "DB",
-      "id": "<HYPERDRIVE_CONFIG_ID>",
-    },
-  ],
+      "id": "<HYPERDRIVE_CONFIG_ID>"
+    }
+  ]
 }
 ```
 
@@ -716,9 +716,9 @@ Enable automatic log collection, storage, and querying:
     "logs": {
       "enabled": true,
       "invocation_logs": true,
-      "head_sampling_rate": 1, // 1 = 100%, 0.1 = 10%
-    },
-  },
+      "head_sampling_rate": 1 // 1 = 100%, 0.1 = 10%
+    }
+  }
 }
 ```
 
@@ -737,7 +737,7 @@ console.log(
     event: 'share_created',
     shareId: share.id,
     userId: user.id,
-    fileCount: files.length,
+    fileCount: files.length
   })
 );
 ```
@@ -748,7 +748,7 @@ For custom log processing or sending to external services (Datadog, Sentry):
 
 ```jsonc
 {
-  "tail_consumers": [{ "service": "my-log-processor" }],
+  "tail_consumers": [{ "service": "my-log-processor" }]
 }
 ```
 
@@ -918,7 +918,7 @@ Ensure in `wrangler.jsonc`:
 ```jsonc
 {
   "preview_urls": true,
-  "workers_dev": true, // Required for *.workers.dev URLs
+  "workers_dev": true // Required for *.workers.dev URLs
 }
 ```
 
@@ -1106,8 +1106,8 @@ Create a base wrangler config that can be extended:
   "compatibility_flags": ["nodejs_compat"],
   "preview_urls": true,
   "observability": {
-    "logs": { "enabled": true, "invocation_logs": true },
-  },
+    "logs": { "enabled": true, "invocation_logs": true }
+  }
 }
 ```
 

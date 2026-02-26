@@ -204,7 +204,7 @@ const esoliaClient: Client = {
     errorColor: '#d946ef', // Fuschia
 
     displayFont: 'IBM Plex Sans, IBM Plex Sans JP, sans-serif',
-    bodyFont: 'IBM Plex Sans, IBM Plex Sans JP, sans-serif',
+    bodyFont: 'IBM Plex Sans, IBM Plex Sans JP, sans-serif'
   },
 
   checks: [
@@ -219,13 +219,13 @@ const esoliaClient: Client = {
       requireDualAuthorization: true,
       requireMFA: true,
       alertOnNSChange: true,
-      checkNSFirst: true,
+      checkNSFirst: true
       // ... rest of config
-    },
+    }
   ],
 
   users: [],
-  createdAt: new Date().toISOString(),
+  createdAt: new Date().toISOString()
 };
 ```
 

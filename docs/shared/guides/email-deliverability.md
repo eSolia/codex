@@ -37,31 +37,31 @@ const response = await fetch('https://smtp.maileroo.com/api/v2/emails', {
   method: 'POST',
   headers: {
     'X-API-Key': env.MAILEROO_API_KEY,
-    'Content-Type': 'application/json',
+    'Content-Type': 'application/json'
   },
   body: JSON.stringify({
     from: {
       address: 'noreply@your-domain.co.jp',
-      display_name: 'Your App Name',
+      display_name: 'Your App Name'
     },
     to: {
       address: recipientEmail,
-      display_name: recipientName, // Optional
+      display_name: recipientName // Optional
     },
     subject: emailSubject,
     html: htmlContent,
     plain: plainTextContent,
     reply_to: {
-      address: replyToEmail ?? 'support@your-domain.co.jp',
+      address: replyToEmail ?? 'support@your-domain.co.jp'
     },
     tracking: { clicks: false, opens: false }, // Disable for transactional
     headers: {
       'Auto-Submitted': 'auto-generated',
       'X-Auto-Response-Suppress': 'All',
-      'X-Entity-Ref-ID': `txn-${shareId}-${Date.now()}`,
+      'X-Entity-Ref-ID': `txn-${shareId}-${Date.now()}`
       // Add your app-specific forensic headers here
-    },
-  }),
+    }
+  })
 });
 ```
 
@@ -243,7 +243,7 @@ export async function sendEmail(
     // App forensic headers
     [`X-${APP_NAME}-Version`]: env.APP_VERSION,
     [`X-${APP_NAME}-Timestamp`]: timestamp,
-    ...options.forensicData,
+    ...options.forensicData
   };
 
   // Email threading
@@ -255,7 +255,7 @@ export async function sendEmail(
   const payload = {
     from: {
       address: `noreply@${APP_NAME.toLowerCase()}.esolia.co.jp`,
-      display_name: `eSolia ${APP_NAME}`,
+      display_name: `eSolia ${APP_NAME}`
     },
     to: options.to,
     subject: options.subject,
@@ -263,16 +263,16 @@ export async function sendEmail(
     plain: options.plain,
     reply_to: { address: options.replyTo ?? 'support@esolia.co.jp' },
     tracking: { clicks: false, opens: false },
-    headers: customHeaders,
+    headers: customHeaders
   };
 
   const response = await fetch('https://smtp.maileroo.com/api/v2/emails', {
     method: 'POST',
     headers: {
       'X-API-Key': env.MAILEROO_API_KEY,
-      'Content-Type': 'application/json',
+      'Content-Type': 'application/json'
     },
-    body: JSON.stringify(payload),
+    body: JSON.stringify(payload)
   });
 
   if (!response.ok) {
@@ -302,7 +302,7 @@ const customHeaders: Record<string, string> = {
   'X-Nexus-Share-Id': shareId,
   'X-Nexus-Queue-Id': queueId,
   'X-Nexus-Triggered-At': triggeredAt,
-  'X-Nexus-Signature': hmacSignature, // For integrity verification
+  'X-Nexus-Signature': hmacSignature // For integrity verification
 };
 ```
 
@@ -318,7 +318,7 @@ const customHeaders: Record<string, string> = {
   'X-Periodic-Version': env.APP_VERSION,
   'X-Periodic-Check-Id': checkId,
   'X-Periodic-Domain': domain,
-  'X-Periodic-Check-Type': checkType, // dns, dmarc, ssl, etc.
+  'X-Periodic-Check-Type': checkType // dns, dmarc, ssl, etc.
 };
 ```
 
@@ -333,7 +333,7 @@ const customHeaders: Record<string, string> = {
 
   'X-Courier-Version': env.APP_VERSION,
   'X-Courier-Share-Id': shareId,
-  'X-Courier-Org-Id': orgId,
+  'X-Courier-Org-Id': orgId
 };
 ```
 

@@ -294,7 +294,7 @@ Ensure `wrangler.jsonc` includes:
 ```jsonc
 {
   "preview_urls": true,
-  "workers_dev": true,
+  "workers_dev": true
 }
 ```
 
