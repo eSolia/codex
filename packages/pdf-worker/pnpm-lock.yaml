@@ -9,7 +9,7 @@ importers:
   .:
     dependencies:
       hono:
-        specifier: ^4.11.10
+        specifier: ^4.12.2
         version: 4.12.2
       pdf-lib:
         specifier: ^1.17.1
