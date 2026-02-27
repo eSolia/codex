@@ -821,8 +821,6 @@ export const load: PageServerLoad = async ({ params, platform }) => {
         client_name_ja: result.client_name_ja || '',
         contact_name: result.contact_name || '',
         contact_name_ja: result.contact_name_ja || '',
-        scope: result.scope || '',
-        scope_ja: result.scope_ja || '',
         language_mode: result.language_mode as 'en' | 'ja' | 'both_en_first' | 'both_ja_first',
         fragments: result.fragments || '',
         cover_letter_en: result.cover_letter_en || '',
@@ -878,8 +876,6 @@ export const actions: Actions = {
       client_name_ja,
       contact_name,
       contact_name_ja,
-      scope,
-      scope_ja,
       language_mode,
       fragments,
       cover_letter_en,
@@ -893,7 +889,7 @@ export const actions: Actions = {
           `UPDATE proposals SET
             client_code = ?, client_name = ?, client_name_ja = ?,
             contact_name = ?, contact_name_ja = ?,
-            title = ?, title_ja = ?, scope = ?, scope_ja = ?, language_mode = ?,
+            title = ?, title_ja = ?, language_mode = ?,
             fragments = ?, cover_letter_en = ?, cover_letter_ja = ?,
             updated_at = datetime('now')
            WHERE id = ?`
@@ -906,8 +902,6 @@ export const actions: Actions = {
           contact_name_ja || null,
           title,
           title_ja || null,
-          scope || null,
-          scope_ja || null,
           language_mode,
           fragments || '[]',
           cover_letter_en || null,
@@ -1290,14 +1284,6 @@ export const actions: Actions = {
           section += `<div class="cover-letter">${markdownToHtml(proposalData.custom_sections, imageResolver)}</div>\n`;
         }
 
-        // Scope (use language-specific scope)
-        // Wrapped in scope-section class to ensure it starts on a new page
-        const scopeContent =
-          lang === 'ja' ? proposalData.scope_ja || proposalData.scope : proposalData.scope;
-        if (scopeContent) {
-          section += `<div class="scope-section">\n<h2>${lang === 'ja' ? 'スコープ' : 'Scope'}</h2>\n<p>${scopeContent}</p>\n</div>\n`;
-        }
-
         // Fragments in order (with page break support)
         for (const frag of enabledFragments) {
           const content = contentMap.get(frag.id);
@@ -1463,7 +1449,6 @@ export const actions: Actions = {
     .client-name { font-size: 1.05em; color: #666; margin-top: 8px; }
     .cover-letter { margin-bottom: 15px; page-break-after: always; }
     .cover-letter p { margin: 0.4em 0; }
-    .scope-section { margin-top: 0; }
     .footer { margin-top: 30px; padding-top: 15px; border-top: 1px solid #ddd; font-size: 0.9em; color: #666; display: flex; justify-content: space-between; align-items: center; }
     h2 { page-break-before: auto; page-break-after: avoid; }
     h3 { page-break-after: avoid; }

@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { PageData, ActionData } from './$types';
-  import { enhance, deserialize } from '$app/forms';
+  import { enhance } from '$app/forms';
   import { goto } from '$app/navigation';
   import FilePdf from 'phosphor-svelte/lib/FilePdf';
   import Share from 'phosphor-svelte/lib/Share';
@@ -14,7 +14,6 @@
   import Copy from 'phosphor-svelte/lib/Copy';
   import Clock from 'phosphor-svelte/lib/Clock';
   import Plus from 'phosphor-svelte/lib/Plus';
-  import Translate from 'phosphor-svelte/lib/Translate';
   import CoverLetterEditor from '$lib/components/editor/CoverLetterEditor.svelte';
   import { sanitizeHtml } from '$lib/sanitize';
 
@@ -87,62 +86,7 @@
   }
   /* eslint-disable svelte/valid-compile -- Form fields intentionally capture initial values */
   let languageMode = $state(data.proposal.language_mode || 'en');
-
-  // Scope state (for translation)
-  let scopeEn = $state(data.proposal.scope || '');
-  let scopeJa = $state(data.proposal.scope_ja || '');
   /* eslint-enable svelte/valid-compile */
-  let isTranslatingScopeEn = $state(false);
-  let isTranslatingScopeJa = $state(false);
-
-  // Translate scope text
-  async function translateScope(sourceLocale: 'en' | 'ja') {
-    const isEn = sourceLocale === 'en';
-    if (isEn) {
-      isTranslatingScopeEn = true;
-    } else {
-      isTranslatingScopeJa = true;
-    }
-
-    const text = isEn ? scopeEn : scopeJa;
-    const formData = new FormData();
-    formData.set('text', text);
-    formData.set('source_locale', sourceLocale);
-
-    try {
-      const response = await fetch('?/aiTranslate', {
-        method: 'POST',
-        body: formData,
-      });
-
-      const result = deserialize(await response.text());
-
-      if (result.type === 'success') {
-        const resultData = result.data as { translated?: string; error?: string };
-        if (resultData?.translated) {
-          if (isEn) {
-            scopeJa = resultData.translated;
-          } else {
-            scopeEn = resultData.translated;
-          }
-        } else if (resultData?.error) {
-          alert(resultData.error);
-        }
-      } else if (result.type === 'failure') {
-        const resultData = result.data as { error?: string };
-        alert(resultData?.error || 'Translation failed');
-      }
-    } catch (err) {
-      console.error('Scope translation error:', err);
-      alert('Translation failed');
-    } finally {
-      if (isEn) {
-        isTranslatingScopeEn = false;
-      } else {
-        isTranslatingScopeJa = false;
-      }
-    }
-  }
 
   // Derived
   const fragmentsJson = $derived(JSON.stringify(fragments));
@@ -153,7 +97,6 @@
   // Language mode helpers
   const showEnglish = $derived(languageMode === 'en' || languageMode.startsWith('both_'));
   const showJapanese = $derived(languageMode === 'ja' || languageMode.startsWith('both_'));
-  const isBilingual = $derived(languageMode.startsWith('both_'));
 
   // Fragments not yet in the proposal
   const unusedFragments = $derived(
@@ -597,66 +540,6 @@
             />
           </div>
 
-          <!-- Scope fields (conditional on language mode) -->
-          <div class="grid grid-cols-1 gap-4" class:md:grid-cols-2={isBilingual}>
-            {#if showEnglish}
-              <div>
-                <div class="flex items-center justify-between mb-1">
-                  <label for="scope" class="block text-sm font-medium text-gray-700">
-                    Scope {isBilingual ? '(EN)' : ''}
-                  </label>
-                  {#if isBilingual}
-                    <button
-                      type="button"
-                      onclick={() => translateScope('en')}
-                      disabled={isTranslatingScopeEn || !scopeEn}
-                      class="flex items-center gap-1 px-2 py-1 text-xs text-blue-600 hover:bg-blue-50 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <Translate size={14} />
-                      {isTranslatingScopeEn ? '...' : '→ JA'}
-                    </button>
-                  {/if}
-                </div>
-                <textarea
-                  id="scope"
-                  name="scope"
-                  rows="3"
-                  bind:value={scopeEn}
-                  placeholder="Brief description of project scope..."
-                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-esolia-navy focus:ring-esolia-navy"
-                ></textarea>
-              </div>
-            {/if}
-            {#if showJapanese}
-              <div>
-                <div class="flex items-center justify-between mb-1">
-                  <label for="scope_ja" class="block text-sm font-medium text-gray-700">
-                    Scope {isBilingual ? '(JA)' : ''}
-                  </label>
-                  {#if isBilingual}
-                    <button
-                      type="button"
-                      onclick={() => translateScope('ja')}
-                      disabled={isTranslatingScopeJa || !scopeJa}
-                      class="flex items-center gap-1 px-2 py-1 text-xs text-blue-600 hover:bg-blue-50 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <Translate size={14} />
-                      {isTranslatingScopeJa ? '...' : '→ EN'}
-                    </button>
-                  {/if}
-                </div>
-                <textarea
-                  id="scope_ja"
-                  name="scope_ja"
-                  rows="3"
-                  bind:value={scopeJa}
-                  placeholder="プロジェクトスコープの概要..."
-                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-esolia-navy focus:ring-esolia-navy"
-                ></textarea>
-              </div>
-            {/if}
-          </div>
-
           <div class="flex justify-end">
             <button
               type="submit"
@@ -701,20 +584,6 @@
               <dd class="font-medium">{new Date(proposal.updated_at).toLocaleDateString()}</dd>
             </div>
           </dl>
-
-          {#if proposal.scope}
-            <div>
-              <h3 class="text-sm font-medium text-gray-500">Scope (EN)</h3>
-              <p class="mt-1 text-gray-900">{proposal.scope}</p>
-            </div>
-          {/if}
-
-          {#if proposal.scope_ja}
-            <div>
-              <h3 class="text-sm font-medium text-gray-500">Scope (JA)</h3>
-              <p class="mt-1 text-gray-900">{proposal.scope_ja}</p>
-            </div>
-          {/if}
 
           {#if proposal.cover_letter_en}
             <div>
@@ -884,11 +753,6 @@
             <h1>
               {proposal.language === 'ja' && proposal.title_ja ? proposal.title_ja : proposal.title}
             </h1>
-
-            {#if proposal.scope}
-              <h2>Scope</h2>
-              <p>{proposal.scope}</p>
-            {/if}
 
             {#each fragments.filter((f) => f.enabled).sort((a, b) => a.order - b.order) as fragment}
               {@const content = contentMap.get(fragment.id)}

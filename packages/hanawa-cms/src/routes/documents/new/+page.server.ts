@@ -139,7 +139,6 @@ export const actions: Actions = {
       client_code,
       client_name,
       client_name_ja,
-      scope,
       language,
       template_id,
       fragments,
@@ -154,8 +153,8 @@ export const actions: Actions = {
         .prepare(
           `INSERT INTO proposals (
             id, client_code, client_name, client_name_ja,
-            title, title_ja, scope, language, template_id, fragments, status
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'draft')`
+            title, title_ja, language, template_id, fragments, status
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'draft')`
         )
         .bind(
           id,
@@ -164,7 +163,6 @@ export const actions: Actions = {
           client_name_ja || null,
           title,
           title_ja || null,
-          scope || null,
           language,
           template_id || null,
           fragments || '[]'

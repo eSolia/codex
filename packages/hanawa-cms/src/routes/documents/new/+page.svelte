@@ -440,18 +440,6 @@
           />
         </div>
 
-        <!-- Scope -->
-        <div>
-          <label for="scope" class="block text-sm font-medium text-gray-700"> Scope Summary </label>
-          <textarea
-            id="scope"
-            name="scope"
-            rows="3"
-            placeholder="Brief description of services being proposed..."
-            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-esolia-navy focus:ring-esolia-navy"
-          ></textarea>
-        </div>
-
         <!-- Language -->
         <div>
           <label for="language" class="block text-sm font-medium text-gray-700">

@@ -8,7 +8,6 @@
     client_code: string;
     client_name: string | null;
     title: string;
-    scope: string | null;
     language: string;
     status: string;
     share_id: string | null;
@@ -128,9 +127,6 @@
                   <FileText size={18} weight="duotone" class="text-gray-400" />
                   {doc.title}
                 </a>
-                {#if doc.scope}
-                  <div class="text-sm text-gray-500">{doc.scope}</div>
-                {/if}
               </td>
               <td class="px-6 py-4">
                 {#if doc.client_code}

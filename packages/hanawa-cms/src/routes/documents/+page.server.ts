@@ -18,7 +18,7 @@ export const load: PageServerLoad = async ({ platform, url }) => {
   try {
     let query = `
       SELECT
-        id, client_code, client_name, title, scope, language, status,
+        id, client_code, client_name, title, language, status,
         share_id, shared_at, created_at, updated_at
       FROM proposals
       WHERE 1=1
