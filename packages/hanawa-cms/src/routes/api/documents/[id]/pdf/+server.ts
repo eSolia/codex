@@ -65,10 +65,25 @@ export const GET: RequestHandler = async ({ params, platform, url }) => {
   }
 
   // Fetch from R2
+  console.log(
+    `PDF serve: Fetching R2 key="${r2Key}" for doc=${params.id} lang=${lang || 'combined'}`
+  );
   const object = await r2.get(r2Key);
 
   if (!object) {
+    console.error(`PDF serve: R2 object not found for key="${r2Key}"`);
     throw error(404, 'PDF file not found in storage');
+  }
+
+  // Read full body into ArrayBuffer to ensure Content-Length is set correctly.
+  // Streaming object.body directly omits Content-Length, which can cause
+  // browsers to show "Loading..." indefinitely (especially with nosniff header).
+  const pdfBytes = await object.arrayBuffer();
+  console.log(`PDF serve: R2 object loaded, ${pdfBytes.byteLength} bytes`);
+
+  if (pdfBytes.byteLength === 0) {
+    console.error(`PDF serve: R2 object is empty for key="${r2Key}"`);
+    throw error(500, 'PDF file is empty');
   }
 
   // Format date as YYYYMMDD
@@ -102,12 +117,13 @@ export const GET: RequestHandler = async ({ params, platform, url }) => {
   // RFC 5987 encoding for non-ASCII filenames
   const encodedFilename = encodeURIComponent(filename).replace(/'/g, '%27');
 
-  // Return PDF with appropriate headers
+  // Return PDF with explicit Content-Length for reliable browser rendering
   // InfoSec: no-store ensures fresh PDF after regeneration
   // Use both filename (ASCII fallback) and filename* (UTF-8) for compatibility
-  return new Response(object.body, {
+  return new Response(pdfBytes, {
     headers: {
       'Content-Type': 'application/pdf',
+      'Content-Length': String(pdfBytes.byteLength),
       'Content-Disposition': `inline; filename="${asciiFilename}"; filename*=UTF-8''${encodedFilename}`,
       'Cache-Control': 'no-store, must-revalidate',
     },
