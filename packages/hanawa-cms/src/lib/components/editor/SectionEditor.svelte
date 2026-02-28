@@ -33,6 +33,7 @@
     contentJa: string;
     languageMode: string;
     index: number;
+    collapsed?: boolean;
     disabled?: boolean;
     oncontentchange?: (index: number, lang: 'en' | 'ja', content: string) => void;
     onremove?: (index: number) => void;
@@ -48,6 +49,7 @@
     contentJa,
     languageMode,
     index,
+    collapsed = $bindable(section.locked),
     disabled = false,
     oncontentchange,
     onremove,
@@ -56,9 +58,6 @@
     ondragover,
     ondragend,
   }: Props = $props();
-
-  // eslint-disable-next-line svelte/valid-compile -- Intentionally captures initial locked state
-  let collapsed = $state(section.locked);
   let confirmRemove = $state(false);
 
   // Local editor content — $effect syncs from parent when props change (e.g., after refresh)

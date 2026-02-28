@@ -14,6 +14,8 @@
   import Copy from 'phosphor-svelte/lib/Copy';
   import Clock from 'phosphor-svelte/lib/Clock';
   import Plus from 'phosphor-svelte/lib/Plus';
+  import ArrowsIn from 'phosphor-svelte/lib/ArrowsIn';
+  import ArrowsOut from 'phosphor-svelte/lib/ArrowsOut';
   import CoverLetterEditor from '$lib/components/editor/CoverLetterEditor.svelte';
   import SectionEditor from '$lib/components/editor/SectionEditor.svelte';
   import FragmentPicker from '$lib/components/FragmentPicker.svelte';
@@ -55,6 +57,26 @@
     (data.sectionContents as SectionContentData[]) || []
   );
   /* eslint-enable svelte/valid-compile */
+
+  // Section collapse state
+  let sectionCollapsed = $state<boolean[]>([]);
+
+  // Initialize collapse state when manifest loads
+  $effect(() => {
+    if (manifest?.sections && sectionCollapsed.length !== manifest.sections.length) {
+      sectionCollapsed = manifest.sections.map((s) => s.locked);
+    }
+  });
+
+  const allCollapsed = $derived(sectionCollapsed.length > 0 && sectionCollapsed.every(Boolean));
+
+  function collapseAll() {
+    sectionCollapsed = sectionCollapsed.map(() => true);
+  }
+
+  function expandAll() {
+    sectionCollapsed = sectionCollapsed.map(() => false);
+  }
 
   // Derived values from data (reactive to page data changes)
   const initialFragments = $derived(data.fragments as Fragment[]);
@@ -497,6 +519,23 @@
 
           <!-- Section Editors -->
           <div class="space-y-4">
+            <!-- Collapse/Expand All -->
+            <div class="flex justify-end">
+              <button
+                type="button"
+                onclick={() => (allCollapsed ? expandAll() : collapseAll())}
+                class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+              >
+                {#if allCollapsed}
+                  <ArrowsOut size={14} />
+                  Expand All
+                {:else}
+                  <ArrowsIn size={14} />
+                  Collapse All
+                {/if}
+              </button>
+            </div>
+
             {#each manifest.sections as section, index (section.file)}
               {@const content = sectionContents[index]}
               <!-- Hidden inputs for section content -->
@@ -509,6 +548,7 @@
                 contentJa={content?.content_ja ?? ''}
                 languageMode={manifest.language_mode}
                 {index}
+                bind:collapsed={sectionCollapsed[index]}
                 oncontentchange={handleSectionContentChange}
                 onremove={(idx) => {
                   // Submit removeSection form action
