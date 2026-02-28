@@ -365,4 +365,34 @@ export const actions: Actions = {
       return fail(500, { form });
     }
   },
+
+  aiTranslate: async ({ request, locals }) => {
+    if (!locals.ai) {
+      return fail(500, { error: 'AI service not available' });
+    }
+
+    const formData = await request.formData();
+    const text = formData.get('text')?.toString() || '';
+    const sourceLocale = formData.get('source_locale')?.toString() as 'en' | 'ja';
+
+    if (!text || !sourceLocale) {
+      return fail(400, { error: 'Text and source locale are required' });
+    }
+
+    // InfoSec: Validate locale enum (OWASP A03)
+    if (!['en', 'ja'].includes(sourceLocale)) {
+      return fail(400, { error: 'Invalid source locale' });
+    }
+
+    const targetLocale = sourceLocale === 'en' ? 'ja' : 'en';
+    const userEmail = locals.user?.email || 'anonymous';
+
+    try {
+      const translated = await locals.ai.translate(text, sourceLocale, targetLocale, userEmail);
+      return { success: true, translated, targetLocale };
+    } catch (err) {
+      console.error('Translation failed:', err);
+      return fail(500, { error: 'Translation failed' });
+    }
+  },
 };

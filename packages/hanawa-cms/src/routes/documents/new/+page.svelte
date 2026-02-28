@@ -88,6 +88,43 @@
   let isClientDocument = $state(false); // Default to general document for new documents
   let submitting = $state(false);
 
+  // Title translate state
+  let titleEn = $state('');
+  let titleJa = $state('');
+  let isTranslating = $state<string | null>(null);
+
+  async function aiTranslateTitle(sourceText: string, sourceLocale: 'en' | 'ja') {
+    if (!sourceText.trim()) return;
+    const targetField = sourceLocale === 'en' ? 'title_ja' : 'title_en';
+    isTranslating = targetField;
+
+    try {
+      const formData = new FormData();
+      formData.set('text', sourceText);
+      formData.set('source_locale', sourceLocale);
+
+      const response = await fetch('?/aiTranslate', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const result = await response.json();
+      const resultData = (result as { data?: string })?.data;
+      const parsed =
+        typeof resultData === 'string' ? (JSON.parse(resultData) as Record<string, unknown>) : {};
+
+      if (parsed?.translated) {
+        const translated = parsed.translated as string;
+        if (sourceLocale === 'en') titleJa = translated;
+        else titleEn = translated;
+      }
+    } catch (err) {
+      console.error('Translation request failed:', err);
+    } finally {
+      isTranslating = null;
+    }
+  }
+
   const fragmentsJson = $derived(JSON.stringify(fragments));
 
   // Get selected template object
@@ -415,29 +452,56 @@
 
         <!-- Document Titles -->
         <div>
-          <label for="title" class="block text-sm font-medium text-gray-700">
-            Document Title <span class="text-red-500">*</span>
-          </label>
+          <div class="flex items-center justify-between">
+            <label for="title" class="block text-sm font-medium text-gray-700">
+              Document Title <span class="text-red-500">*</span>
+            </label>
+            {#if titleEn.trim()}
+              <button
+                type="button"
+                disabled={isTranslating === 'title_ja'}
+                class="text-xs text-blue-600 hover:text-blue-800 disabled:opacity-50"
+                title="Translate to Japanese"
+                onclick={() => aiTranslateTitle(titleEn, 'en')}
+              >
+                {isTranslating === 'title_ja' ? 'Translating...' : '→ JA'}
+              </button>
+            {/if}
+          </div>
           <input
             type="text"
             id="title"
             name="title"
             required
             placeholder="IT Support Services Proposal"
-            value={form?.title ?? ''}
+            bind:value={titleEn}
             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-esolia-navy focus:ring-esolia-navy"
           />
         </div>
 
         <div>
-          <label for="title_ja" class="block text-sm font-medium text-gray-700">
-            Document Title (JA)
-          </label>
+          <div class="flex items-center justify-between">
+            <label for="title_ja" class="block text-sm font-medium text-gray-700">
+              Document Title (JA)
+            </label>
+            {#if titleJa.trim()}
+              <button
+                type="button"
+                disabled={isTranslating === 'title_en'}
+                class="text-xs text-blue-600 hover:text-blue-800 disabled:opacity-50"
+                title="Translate to English"
+                onclick={() => aiTranslateTitle(titleJa, 'ja')}
+              >
+                {isTranslating === 'title_en' ? 'Translating...' : '→ EN'}
+              </button>
+            {/if}
+          </div>
           <input
             type="text"
             id="title_ja"
             name="title_ja"
             placeholder="ITサポートサービス提案書"
+            bind:value={titleJa}
             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-esolia-navy focus:ring-esolia-navy"
           />
         </div>
