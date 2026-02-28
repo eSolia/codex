@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { PageData } from './$types';
-  import { enhance } from '$app/forms';
+  import { enhance, applyAction } from '$app/forms';
+  import { goto } from '$app/navigation';
   import FileText from 'phosphor-svelte/lib/FileText';
   import DotsSixVertical from 'phosphor-svelte/lib/DotsSixVertical';
   import Check from 'phosphor-svelte/lib/Check';
@@ -35,13 +36,10 @@
     category: string;
   }
 
-  interface FormResult {
-    error?: string;
-    clientCode?: string;
-    title?: string;
-  }
+  let { data }: { data: PageData } = $props();
 
-  let { data, form }: { data: PageData; form: FormResult | null } = $props();
+  // Error state — set explicitly from enhance callback
+  let actionError = $state<string | null>(null);
 
   // Template data
   const templates = $derived((data.templates as Template[]) || []);
@@ -272,9 +270,9 @@
   </div>
 
   <!-- Error display -->
-  {#if form?.error}
+  {#if actionError}
     <div class="bg-red-50 border border-red-200 rounded-lg p-4 text-red-800">
-      {form.error}
+      {actionError}
     </div>
   {/if}
 
@@ -352,11 +350,21 @@
 
   <form
     method="POST"
+    action="?/create"
     use:enhance={() => {
       submitting = true;
-      return async ({ update }) => {
-        await update();
-        submitting = false;
+      actionError = null;
+      return async ({ result }) => {
+        if (result.type === 'redirect') {
+          goto(result.location);
+        } else if (result.type === 'failure') {
+          const formData = result.data as { form?: { message?: string } } | undefined;
+          actionError = formData?.form?.message || `Server error (${result.status})`;
+          submitting = false;
+        } else {
+          await applyAction(result);
+          submitting = false;
+        }
       };
     }}
     class="space-y-6"
@@ -416,7 +424,7 @@
                 id="client_code"
                 name="client_code"
                 placeholder="e.g., ACME"
-                value={form?.clientCode ?? ''}
+                value=""
                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-esolia-navy focus:ring-esolia-navy"
               />
             </div>

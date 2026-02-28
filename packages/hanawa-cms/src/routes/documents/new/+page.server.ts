@@ -5,7 +5,7 @@
  */
 
 import type { PageServerLoad, Actions } from './$types';
-import { fail, redirect } from '@sveltejs/kit';
+import { fail, redirect, isRedirect } from '@sveltejs/kit';
 import { superValidate } from 'sveltekit-superforms';
 import { zod4 } from 'sveltekit-superforms/adapters';
 import { createDocumentSchema } from '$lib/schemas';
@@ -158,7 +158,7 @@ export const load: PageServerLoad = async ({ platform, url }) => {
 };
 
 export const actions: Actions = {
-  default: async ({ request, platform, locals }) => {
+  create: async ({ request, platform, locals }) => {
     if (!platform?.env?.DB || !platform?.env?.R2) {
       const form = await superValidate(request, zod4(createDocumentSchema));
       form.message = 'Database or storage not available';
@@ -358,10 +358,12 @@ export const actions: Actions = {
 
       redirect(303, `/documents/${docId}`);
     } catch (err) {
-      if (err instanceof Response) throw err;
+      // Re-throw SvelteKit redirect (it's not a Response in SvelteKit 2)
+      if (isRedirect(err)) throw err;
 
-      console.error('Failed to create document:', err);
-      form.message = 'Failed to create document';
+      const errMsg = err instanceof Error ? err.message : String(err);
+      console.error('Failed to create document:', errMsg, err);
+      form.message = `Failed to create document: ${errMsg}`;
       return fail(500, { form });
     }
   },
