@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "esolia-standards": {
+      "type": "url",
+      "url": "https://esolia-standards-mcp.YOUR_SUBDOMAIN.workers.dev/sse",
+      "headers": {
+        "Authorization": "Bearer YOUR_SHARED_SECRET"
+      },
+      "note": "Replace YOUR_SUBDOMAIN and YOUR_SHARED_SECRET. If no auth is configured, remove the headers block."
+    }
+  }
+}
