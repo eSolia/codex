@@ -14,6 +14,12 @@ import type { Node as ProseMirrorNode } from '@tiptap/pm/model';
 import type { NodeView, EditorView } from '@tiptap/pm/view';
 import { renderDiagramSvg, isBeautifulMermaidSupported } from '../diagram-renderer';
 
+/** Minimal type for @tiptap/markdown serializer state */
+interface MarkdownSerializerState {
+  write(text: string): void;
+  ensureNewLine(): void;
+}
+
 // Lazy-loaded mermaid instance
 let mermaidInstance: typeof import('mermaid').default | null = null;
 let mermaidInitialized = false;
@@ -452,6 +458,31 @@ export const MermaidBlock = Node.create<MermaidBlockOptions>({
   atom: true,
 
   draggable: true,
+
+  addStorage() {
+    return {
+      markdown: {
+        serialize(state: MarkdownSerializerState, node: ProseMirrorNode) {
+          const source = (node.attrs.source as string) || '';
+          state.write('```mermaid\n');
+          state.write(source);
+          if (!source.endsWith('\n')) state.write('\n');
+          state.write('```\n');
+          // Include metadata as HTML comments if present
+          const caption = node.attrs.caption as string;
+          const captionJa = node.attrs.caption_ja as string;
+          const svgPath = node.attrs.svgPath as string;
+          if (caption) state.write(`<!-- caption: ${caption} -->\n`);
+          if (captionJa) state.write(`<!-- caption_ja: ${captionJa} -->\n`);
+          if (svgPath) state.write(`<!-- svgPath: ${svgPath} -->\n`);
+          state.write('\n');
+        },
+        parse: {
+          // Fenced code blocks with mermaid language are handled via parseHTML
+        },
+      },
+    };
+  },
 
   addAttributes() {
     return {

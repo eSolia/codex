@@ -7,6 +7,13 @@
  */
 
 import { Node, mergeAttributes } from '@tiptap/core';
+import type { Node as ProseMirrorNode } from '@tiptap/pm/model';
+
+/** Minimal type for @tiptap/markdown serializer state */
+interface MarkdownSerializerState {
+  write(text: string): void;
+  ensureNewLine(): void;
+}
 
 export interface FragmentReferenceOptions {
   HTMLAttributes: Record<string, unknown>;
@@ -35,6 +42,21 @@ export const FragmentReference = Node.create<FragmentReferenceOptions>({
   group: 'block',
 
   atom: true,
+
+  addStorage() {
+    return {
+      markdown: {
+        serialize(state: MarkdownSerializerState, node: ProseMirrorNode) {
+          const id = node.attrs.fragmentId as string;
+          const lang = (node.attrs.lang as string) || 'en';
+          state.write(`{{fragment:${id} lang="${lang}"}}\n\n`);
+        },
+        parse: {
+          // Fragment references are parsed from HTML fallback (data-fragment-id)
+        },
+      },
+    };
+  },
 
   addAttributes() {
     return {

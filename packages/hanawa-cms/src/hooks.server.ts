@@ -125,7 +125,13 @@ export const handle: Handle = async ({ event, resolve }) => {
     actorId,
     actorEmail,
     actorName: actorEmail.split('@')[0] ?? actorEmail,
-    ipAddress: event.getClientAddress(),
+    ipAddress: (() => {
+      try {
+        return event.getClientAddress();
+      } catch {
+        return '127.0.0.1';
+      }
+    })(),
     userAgent: event.request.headers.get('user-agent') || undefined,
     sessionId: event.cookies.get('session_id') || undefined,
     requestId,

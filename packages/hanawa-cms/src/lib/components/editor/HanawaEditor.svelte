@@ -7,7 +7,7 @@
    */
   import { onMount, onDestroy } from 'svelte';
   import type { Editor } from '@tiptap/core';
-  import { createEditor, destroyEditor } from '$lib/editor/editor';
+  import { createEditor, destroyEditor, getEditorMarkdown } from '$lib/editor/editor';
   import EditorToolbar from './EditorToolbar.svelte';
   import SaveIndicator from './SaveIndicator.svelte';
   import MediaPicker from '../MediaPicker.svelte';
@@ -16,6 +16,7 @@
   // Props using Svelte 5 runes
   let {
     content = $bindable(''),
+    contentType = 'html' as 'html' | 'markdown',
     editable = true,
     placeholder = 'Start writing...',
     privacyMode = false,
@@ -26,13 +27,14 @@
     onsave,
   }: {
     content?: string;
+    contentType?: 'html' | 'markdown';
     editable?: boolean;
     placeholder?: string;
     privacyMode?: boolean;
     sensitivity?: 'normal' | 'confidential' | 'embargoed';
     autosave?: boolean;
     autosaveDelay?: number;
-    onchange?: (html: string) => void;
+    onchange?: (content: string) => void;
     onsave?: () => Promise<void> | void;
   } = $props();
 
@@ -65,22 +67,36 @@
     embargoed: '🔒 Embargoed',
   };
 
+  /**
+   * Get the current content from the editor in the appropriate format.
+   * In markdown mode, returns markdown; otherwise returns HTML.
+   */
+  function getEditorContent(): string {
+    if (!editor) return '';
+    if (contentType === 'markdown') {
+      return getEditorMarkdown(editor);
+    }
+    return editor.getHTML();
+  }
+
   onMount(() => {
     initialContent = content;
     editor = createEditor({
       element: editorElement,
       content,
+      contentType,
       placeholder,
       privacyMode,
       editable,
-      onUpdate: ({ html, text }) => {
-        content = html;
+      onUpdate: ({ text }) => {
+        const currentContent = getEditorContent();
+        content = currentContent;
         wordCount = text.trim() ? text.trim().split(/\s+/).length : 0;
         charCount = text.length;
-        if (onchange) onchange(html);
+        if (onchange) onchange(currentContent);
 
         // Track unsaved changes
-        if (html !== initialContent && saveStatus !== 'saving') {
+        if (currentContent !== initialContent && saveStatus !== 'saving') {
           saveStatus = 'unsaved';
 
           // Autosave logic
@@ -189,9 +205,17 @@
   }
 
   // Reactive: Update editor content when prop changes externally
+  // Tiptap 3: setContent emits updates by default — use emitUpdate: false to prevent loops
   $effect(() => {
-    if (editor && !editor.isDestroyed && editor.getHTML() !== content) {
-      editor.commands.setContent(content);
+    if (editor && !editor.isDestroyed) {
+      const currentContent = getEditorContent();
+      if (currentContent !== content) {
+        if (contentType === 'markdown') {
+          editor.commands.setContent(content, { emitUpdate: false, contentType: 'markdown' });
+        } else {
+          editor.commands.setContent(content, { emitUpdate: false });
+        }
+      }
     }
   });
 
