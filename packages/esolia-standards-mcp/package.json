@@ -1,0 +1,26 @@
+{
+  "name": "@esolia/standards-mcp",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Remote MCP server exposing eSolia coding standards to Claude Code and other MCP clients",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "tail": "wrangler tail",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write .",
+    "inspect": "npx @modelcontextprotocol/inspector@latest"
+  },
+  "dependencies": {
+    "agents": "^0.0.98",
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260305.0",
+    "prettier": "^3.4.0",
+    "typescript": "^5.7.0",
+    "wrangler": "^4.63.0"
+  }
+}
