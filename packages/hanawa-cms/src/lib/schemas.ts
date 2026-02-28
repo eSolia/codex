@@ -220,3 +220,48 @@ export const saveTemplateSchema = z.object({
 export const deleteTemplateSchema = z.object({
   confirm: z.literal('delete'),
 });
+
+// ===========================================================================
+// STANDARD SCHEMAS (monolingual, R2-backed coding/workflow standards)
+// ===========================================================================
+
+// Standard slug: lowercase, hyphens, digits. No leading/trailing hyphens.
+const standardSlug = z
+  .string()
+  .min(2, 'Slug must be at least 2 characters')
+  .max(150)
+  .regex(
+    /^[a-z0-9][a-z0-9-]*[a-z0-9]$/,
+    'Slug must be lowercase with hyphens, no leading/trailing hyphens'
+  )
+  .trim();
+
+const standardStatus = z.enum(['production', 'draft', 'deprecated', 'archived'], {
+  message: 'Invalid standard status',
+});
+
+export const saveStandardSchema = z.object({
+  title: z.string().min(1, 'Title is required').trim(),
+  category: z.string().trim().optional().or(z.literal('')),
+  status: standardStatus.default('production'),
+  tags: z.string().trim().optional().or(z.literal('')), // JSON array string
+  summary: z.string().trim().optional().or(z.literal('')),
+  author: z.string().trim().optional().or(z.literal('')),
+  content: z.string().optional().or(z.literal('')), // markdown body
+});
+
+export const createStandardSchema = z.object({
+  slug: standardSlug,
+  title: z.string().min(1, 'Title is required').trim(),
+  category: z.string().trim().optional().or(z.literal('')),
+  tags: z.string().trim().optional().or(z.literal('')),
+  summary: z.string().trim().optional().or(z.literal('')),
+});
+
+export const renameStandardSchema = z.object({
+  new_slug: standardSlug,
+});
+
+export const deleteStandardSchema = z.object({
+  confirm: z.literal('delete'),
+});

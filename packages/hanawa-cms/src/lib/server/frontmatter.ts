@@ -84,9 +84,10 @@ export function parseFrontmatter(markdown: string): ParsedMarkdown {
 export function serializeFrontmatter(fields: Record<string, unknown>, body: string): string {
   const lines: string[] = ['---'];
 
-  // Standard key ordering for fragments
+  // Standard key ordering for fragments and standards
   const keyOrder = [
     'id',
+    'slug',
     'language',
     'title',
     'category',
@@ -94,6 +95,7 @@ export function serializeFrontmatter(fields: Record<string, unknown>, body: stri
     'version',
     'status',
     'tags',
+    'summary',
     'sensitivity',
     'author',
     'created',
@@ -168,6 +170,39 @@ export function buildFragmentMarkdown(
   if (metadata.created) fm.created = metadata.created;
   fm.modified = new Date().toISOString().split('T')[0];
   if (metadata.diagramFormat) fm.diagram_format = metadata.diagramFormat;
+
+  return serializeFrontmatter(fm, body);
+}
+
+/**
+ * Build a complete markdown file from metadata fields and body content
+ * for coding/workflow standards (monolingual, slug-based).
+ */
+export function buildStandardMarkdown(
+  metadata: {
+    slug: string;
+    title: string;
+    category?: string;
+    status?: string;
+    tags?: string[];
+    summary?: string;
+    author?: string;
+    created?: string;
+  },
+  body: string
+): string {
+  const fm: Record<string, unknown> = {
+    title: metadata.title,
+    slug: metadata.slug,
+  };
+
+  if (metadata.category) fm.category = metadata.category;
+  if (metadata.summary) fm.summary = metadata.summary;
+  if (metadata.status) fm.status = metadata.status;
+  if (metadata.tags && metadata.tags.length > 0) fm.tags = metadata.tags;
+  if (metadata.author) fm.author = metadata.author;
+  if (metadata.created) fm.created = metadata.created;
+  fm.modified = new Date().toISOString().split('T')[0];
 
   return serializeFrontmatter(fm, body);
 }
