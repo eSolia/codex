@@ -6,6 +6,7 @@
    * InfoSec: Privacy mode, sensitivity classification, audit logging
    */
   import { onMount, onDestroy } from 'svelte';
+  import { browser } from '$app/environment';
   import type { Editor } from '@tiptap/core';
   import { createEditor, destroyEditor, getEditorMarkdown } from '$lib/editor/editor';
   import EditorToolbar from './EditorToolbar.svelte';
@@ -122,7 +123,9 @@
 
   onDestroy(() => {
     if (autosaveTimeout) clearTimeout(autosaveTimeout);
-    document.removeEventListener('hanawa:openFragmentPicker', handleFragmentPickerEvent);
+    if (browser) {
+      document.removeEventListener('hanawa:openFragmentPicker', handleFragmentPickerEvent);
+    }
     destroyEditor(editor);
   });
 
