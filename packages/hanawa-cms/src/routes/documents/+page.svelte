@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { PageData } from './$types';
+  import { page } from '$app/stores';
   import FileText from 'phosphor-svelte/lib/FileText';
   import Share from 'phosphor-svelte/lib/Share';
 
@@ -45,6 +46,9 @@
     sow: 'SOW',
     assessment: 'Assessment',
   };
+
+  const selectedStatus = $derived($page.url.searchParams.get('status') ?? '');
+  const selectedType = $derived($page.url.searchParams.get('type') ?? '');
 </script>
 
 <svelte:head>
@@ -74,6 +78,7 @@
     <form method="get" class="flex flex-wrap gap-4">
       <select
         name="status"
+        value={selectedStatus}
         class="rounded-md border-gray-300 shadow-sm focus:border-esolia-navy focus:ring-esolia-navy"
       >
         <option value="">All Statuses</option>
@@ -82,6 +87,18 @@
         <option value="approved">Approved</option>
         <option value="shared">Shared</option>
         <option value="archived">Archived</option>
+      </select>
+      <select
+        name="type"
+        value={selectedType}
+        class="rounded-md border-gray-300 shadow-sm focus:border-esolia-navy focus:ring-esolia-navy"
+      >
+        <option value="">All Types</option>
+        <option value="proposal">Proposal</option>
+        <option value="report">Report</option>
+        <option value="quote">Quote</option>
+        <option value="sow">SOW</option>
+        <option value="assessment">Assessment</option>
       </select>
       <button
         type="submit"

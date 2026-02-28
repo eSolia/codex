@@ -23,6 +23,8 @@
   import Trash from 'phosphor-svelte/lib/Trash';
   import CaretDown from 'phosphor-svelte/lib/CaretDown';
   import CaretRight from 'phosphor-svelte/lib/CaretRight';
+  import Translate from 'phosphor-svelte/lib/Translate';
+  import { deserialize } from '$app/forms';
   import HanawaEditor from './HanawaEditor.svelte';
 
   import type { ManifestSection } from '$lib/server/manifest';
@@ -34,6 +36,7 @@
     languageMode: string;
     index: number;
     collapsed?: boolean;
+    ontogglecollapse?: (index: number) => void;
     disabled?: boolean;
     oncontentchange?: (index: number, lang: 'en' | 'ja', content: string) => void;
     onremove?: (index: number) => void;
@@ -49,7 +52,8 @@
     contentJa,
     languageMode,
     index,
-    collapsed = $bindable(section.locked),
+    collapsed = false,
+    ontogglecollapse,
     disabled = false,
     oncontentchange,
     onremove,
@@ -59,6 +63,7 @@
     ondragend,
   }: Props = $props();
   let confirmRemove = $state(false);
+  let isTranslating = $state(false);
 
   // Local editor content — $effect syncs from parent when props change (e.g., after refresh)
   let localEn = $state('');
@@ -73,6 +78,14 @@
 
   const showEnglish = $derived(languageMode === 'en' || languageMode.startsWith('both_'));
   const showJapanese = $derived(languageMode === 'ja' || languageMode.startsWith('both_'));
+  const showBoth = $derived(showEnglish && showJapanese);
+  const defaultTab = $derived<'en' | 'ja'>(languageMode === 'both_ja_first' ? 'ja' : 'en');
+  let activeTab = $state<'en' | 'ja'>('en');
+
+  // Reset active tab when language mode changes
+  $effect(() => {
+    activeTab = defaultTab;
+  });
 
   // Fragment source info
   const hasSource = $derived(section.source !== null && section.source !== '');
@@ -98,6 +111,42 @@
       confirmRemove = true;
       // Auto-reset confirmation after 3s
       setTimeout(() => (confirmRemove = false), 3000);
+    }
+  }
+
+  async function handleTranslate() {
+    if (isTranslating || disabled) return;
+    const sourceLang = activeTab;
+    const sourceContent = sourceLang === 'en' ? localEn : localJa;
+    if (!sourceContent) return;
+
+    isTranslating = true;
+    try {
+      const formData = new FormData();
+      formData.set('text', sourceContent);
+      formData.set('source_locale', sourceLang);
+
+      const response = await fetch('?/aiTranslate', { method: 'POST', body: formData });
+      const result = deserialize(await response.text());
+
+      if (result.type === 'success') {
+        const resultData = result.data as { translated?: string };
+        if (resultData?.translated) {
+          const targetLang = sourceLang === 'en' ? 'ja' : 'en';
+          if (targetLang === 'ja') {
+            localJa = resultData.translated;
+            oncontentchange?.(index, 'ja', resultData.translated);
+          } else {
+            localEn = resultData.translated;
+            oncontentchange?.(index, 'en', resultData.translated);
+          }
+          activeTab = targetLang;
+        }
+      }
+    } catch (err) {
+      console.error('Section translation failed:', err);
+    } finally {
+      isTranslating = false;
     }
   }
 </script>
@@ -134,7 +183,7 @@
     <!-- Collapse Toggle -->
     <button
       type="button"
-      onclick={() => (collapsed = !collapsed)}
+      onclick={() => ontogglecollapse?.(index)}
       class="text-gray-500 hover:text-gray-700"
       aria-label={collapsed ? 'Expand section' : 'Collapse section'}
     >
@@ -234,13 +283,38 @@
         {/if}
       {:else}
         <!-- Editable editors -->
-        {#if showEnglish}
-          <div>
-            {#if showJapanese}
-              <div class="text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wider">
-                English
-              </div>
-            {/if}
+        {#if showBoth}
+          <!-- Language tabs for bilingual sections -->
+          <div class="flex border-b border-gray-200">
+            <button
+              type="button"
+              class="px-4 py-2 text-sm font-medium {activeTab === 'en'
+                ? 'border-b-2 border-esolia-navy text-esolia-navy'
+                : 'text-gray-500 hover:text-gray-700'}"
+              onclick={() => (activeTab = 'en')}>English</button
+            >
+            <button
+              type="button"
+              class="px-4 py-2 text-sm font-medium {activeTab === 'ja'
+                ? 'border-b-2 border-esolia-navy text-esolia-navy'
+                : 'text-gray-500 hover:text-gray-700'}"
+              onclick={() => (activeTab = 'ja')}>日本語</button
+            >
+            <button
+              type="button"
+              onclick={handleTranslate}
+              disabled={disabled || isTranslating || !(activeTab === 'en' ? localEn : localJa)}
+              class="ml-auto flex items-center gap-1 px-2 py-1.5 text-xs font-medium text-blue-600 hover:bg-blue-50 rounded transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <Translate size={14} />
+              {#if isTranslating}
+                Translating...
+              {:else}
+                {activeTab === 'en' ? 'EN → JA' : 'JA → EN'}
+              {/if}
+            </button>
+          </div>
+          {#if activeTab === 'en'}
             <HanawaEditor
               content={localEn}
               contentType="markdown"
@@ -248,16 +322,7 @@
               placeholder="Write section content (English)..."
               onchange={handleEnChange}
             />
-          </div>
-        {/if}
-
-        {#if showJapanese}
-          <div>
-            {#if showEnglish}
-              <div class="text-xs font-semibold text-gray-500 mb-1 uppercase tracking-wider">
-                日本語
-              </div>
-            {/if}
+          {:else}
             <HanawaEditor
               content={localJa}
               contentType="markdown"
@@ -265,7 +330,23 @@
               placeholder="セクションの内容を入力（日本語）..."
               onchange={handleJaChange}
             />
-          </div>
+          {/if}
+        {:else if showEnglish}
+          <HanawaEditor
+            content={localEn}
+            contentType="markdown"
+            editable={!disabled}
+            placeholder="Write section content (English)..."
+            onchange={handleEnChange}
+          />
+        {:else if showJapanese}
+          <HanawaEditor
+            content={localJa}
+            contentType="markdown"
+            editable={!disabled}
+            placeholder="セクションの内容を入力（日本語）..."
+            onchange={handleJaChange}
+          />
         {/if}
       {/if}
     </div>

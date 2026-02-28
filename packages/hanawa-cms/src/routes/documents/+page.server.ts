@@ -14,6 +14,7 @@ export const load: PageServerLoad = async ({ platform, url }) => {
 
   // InfoSec: Validate filter parameters (OWASP A03)
   const statusFilter = url.searchParams.get('status');
+  const typeFilter = url.searchParams.get('type');
 
   try {
     let query = `
@@ -28,6 +29,11 @@ export const load: PageServerLoad = async ({ platform, url }) => {
     if (statusFilter) {
       query += ' AND status = ?';
       params.push(statusFilter);
+    }
+
+    if (typeFilter) {
+      query += ' AND document_type = ?';
+      params.push(typeFilter);
     }
 
     query += ' ORDER BY updated_at DESC LIMIT 50';

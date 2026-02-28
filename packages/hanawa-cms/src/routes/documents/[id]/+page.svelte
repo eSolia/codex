@@ -47,6 +47,10 @@
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
 
+  // InfoSec: UI-level RBAC (defense in depth, server guards are primary) (OWASP A01)
+  const isReadOnly = $derived(data.user?.role === 'viewer');
+  const isAdmin = $derived(data.user?.role === 'admin');
+
   // Manifest-based detection
   const isManifestBased = $derived(Boolean(data.isManifestBased));
   const manifest = $derived(
@@ -58,15 +62,12 @@
   );
   /* eslint-enable svelte/valid-compile */
 
-  // Section collapse state
-  let sectionCollapsed = $state<boolean[]>([]);
-
-  // Initialize collapse state when manifest loads
-  $effect(() => {
-    if (manifest?.sections && sectionCollapsed.length !== manifest.sections.length) {
-      sectionCollapsed = manifest.sections.map((s) => s.locked);
-    }
-  });
+  // Section collapse state — initialized from manifest (intentionally captures initial value)
+  /* eslint-disable svelte/valid-compile -- Collapse state intentionally captures initial values */
+  let sectionCollapsed = $state<boolean[]>(
+    (data.manifest as { sections: ManifestSection[] } | null)?.sections.map((s) => s.locked) ?? []
+  );
+  /* eslint-enable svelte/valid-compile */
 
   const allCollapsed = $derived(sectionCollapsed.length > 0 && sectionCollapsed.every(Boolean));
 
@@ -519,8 +520,16 @@
 
           <!-- Section Editors -->
           <div class="space-y-4">
-            <!-- Collapse/Expand All -->
-            <div class="flex justify-end">
+            <!-- Collapse/Expand All + Save -->
+            <div class="flex items-center justify-between">
+              <button
+                type="submit"
+                disabled={isSaving || isReadOnly}
+                class="inline-flex items-center gap-1.5 px-4 py-1.5 text-sm font-medium text-white bg-esolia-navy rounded-md hover:bg-esolia-navy/90 transition-colors disabled:opacity-50"
+              >
+                <Check size={14} />
+                {isSaving ? 'Saving...' : 'Save Draft'}
+              </button>
               <button
                 type="button"
                 onclick={() => (allCollapsed ? expandAll() : collapseAll())}
@@ -548,7 +557,11 @@
                 contentJa={content?.content_ja ?? ''}
                 languageMode={manifest.language_mode}
                 {index}
-                bind:collapsed={sectionCollapsed[index]}
+                disabled={isReadOnly}
+                collapsed={sectionCollapsed[index] ?? false}
+                ontogglecollapse={(idx) => {
+                  sectionCollapsed[idx] = !sectionCollapsed[idx];
+                }}
                 oncontentchange={handleSectionContentChange}
                 onremove={(idx) => {
                   // Submit removeSection form action
@@ -581,16 +594,18 @@
           <div class="flex items-center gap-3 mt-4">
             <button
               type="button"
+              disabled={isReadOnly}
               onclick={() => (fragmentPickerOpen = true)}
-              class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-esolia-navy bg-esolia-orange/20 rounded-lg hover:bg-esolia-orange/30 transition-colors"
+              class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-esolia-navy bg-esolia-orange/20 rounded-lg hover:bg-esolia-orange/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Plus size={16} weight="bold" />
               Insert Fragment
             </button>
             <button
               type="button"
+              disabled={isReadOnly}
               onclick={() => (showAddCustomSection = !showAddCustomSection)}
-              class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Plus size={16} />
               Add Custom Section
@@ -654,7 +669,7 @@
           <div class="flex justify-end mt-6">
             <button
               type="submit"
-              disabled={isSaving}
+              disabled={isSaving || isReadOnly}
               class="px-6 py-2 bg-esolia-navy text-white rounded-lg hover:bg-esolia-navy/90 transition-colors font-medium disabled:opacity-50"
             >
               {isSaving ? 'Saving...' : 'Save Draft'}
@@ -686,7 +701,9 @@
               <input type="hidden" name="status" value="approved" />
               <button
                 type="submit"
-                disabled={proposal.status === 'approved' || proposal.status === 'shared'}
+                disabled={!isAdmin ||
+                  proposal.status === 'approved' ||
+                  proposal.status === 'shared'}
                 class="w-full px-4 py-2 text-sm font-medium rounded-lg transition-colors
                        {proposal.status === 'approved' || proposal.status === 'shared'
                   ? 'bg-green-100 text-green-800 cursor-default'
@@ -718,7 +735,7 @@
             <input type="hidden" name="enabled_fragment_ids" value="[]" />
             <button
               type="submit"
-              disabled={isGeneratingPdf}
+              disabled={isGeneratingPdf || isReadOnly}
               class="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
             >
               {isGeneratingPdf ? 'Generating...' : 'Generate PDF'}
@@ -744,30 +761,32 @@
         </div>
 
         <!-- Danger Zone -->
-        <div class="bg-white rounded-lg shadow p-6 space-y-4">
-          <h2 class="text-lg font-semibold text-red-600">Danger Zone</h2>
-          <form
-            method="POST"
-            action="?/delete"
-            use:enhance={({ cancel }) => {
-              const confirmed = confirm('Are you sure you want to delete this document?');
-              if (!confirmed) {
-                cancel();
-                return;
-              }
-              return async ({ result }) => {
-                if (result.type === 'success') goto('/documents');
-              };
-            }}
-          >
-            <button
-              type="submit"
-              class="w-full px-4 py-2 text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors flex items-center justify-center gap-2"
+        {#if isAdmin}
+          <div class="bg-white rounded-lg shadow p-6 space-y-4">
+            <h2 class="text-lg font-semibold text-red-600">Danger Zone</h2>
+            <form
+              method="POST"
+              action="?/delete"
+              use:enhance={({ cancel }) => {
+                const confirmed = confirm('Are you sure you want to delete this document?');
+                if (!confirmed) {
+                  cancel();
+                  return;
+                }
+                return async ({ result }) => {
+                  if (result.type === 'success') goto('/documents');
+                };
+              }}
             >
-              <Trash size={16} /> Delete Document
-            </button>
-          </form>
-        </div>
+              <button
+                type="submit"
+                class="w-full px-4 py-2 text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors flex items-center justify-center gap-2"
+              >
+                <Trash size={16} /> Delete Document
+              </button>
+            </form>
+          </div>
+        {/if}
       </div>
     </div>
 
@@ -1286,7 +1305,9 @@
               <input type="hidden" name="status" value="approved" />
               <button
                 type="submit"
-                disabled={proposal.status === 'approved' || proposal.status === 'shared'}
+                disabled={!isAdmin ||
+                  proposal.status === 'approved' ||
+                  proposal.status === 'shared'}
                 class="w-full px-4 py-2 text-sm font-medium rounded-lg transition-colors
                      {proposal.status === 'approved' || proposal.status === 'shared'
                   ? 'bg-green-100 text-green-800 cursor-default'
@@ -1338,7 +1359,7 @@
             />
             <button
               type="submit"
-              disabled={isGeneratingPdf}
+              disabled={isGeneratingPdf || isReadOnly}
               class="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
             >
               {isGeneratingPdf ? 'Generating...' : 'Generate PDF'}
@@ -1581,34 +1602,36 @@
         </div>
 
         <!-- Danger Zone -->
-        <div class="bg-white rounded-lg shadow p-6 space-y-4">
-          <h2 class="text-lg font-semibold text-red-600">Danger Zone</h2>
+        {#if isAdmin}
+          <div class="bg-white rounded-lg shadow p-6 space-y-4">
+            <h2 class="text-lg font-semibold text-red-600">Danger Zone</h2>
 
-          <form
-            method="POST"
-            action="?/delete"
-            use:enhance={({ cancel }) => {
-              const confirmed = confirm('Are you sure you want to delete this proposal?');
-              if (!confirmed) {
-                cancel();
-                return;
-              }
-              return async ({ result }) => {
-                if (result.type === 'success') {
-                  goto('/documents');
+            <form
+              method="POST"
+              action="?/delete"
+              use:enhance={({ cancel }) => {
+                const confirmed = confirm('Are you sure you want to delete this proposal?');
+                if (!confirmed) {
+                  cancel();
+                  return;
                 }
-              };
-            }}
-          >
-            <button
-              type="submit"
-              class="w-full px-4 py-2 text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors flex items-center justify-center gap-2"
+                return async ({ result }) => {
+                  if (result.type === 'success') {
+                    goto('/documents');
+                  }
+                };
+              }}
             >
-              <Trash size={16} />
-              Delete Proposal
-            </button>
-          </form>
-        </div>
+              <button
+                type="submit"
+                class="w-full px-4 py-2 text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors flex items-center justify-center gap-2"
+              >
+                <Trash size={16} />
+                Delete Proposal
+              </button>
+            </form>
+          </div>
+        {/if}
       </div>
     </div>
   {/if}

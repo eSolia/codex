@@ -29,6 +29,15 @@ import {
 } from '$lib/server/manifest';
 import { parseFrontmatter } from '$lib/server/frontmatter';
 
+// InfoSec: Role-based access control helper (OWASP A01)
+function requireRole(locals: App.Locals, ...allowedRoles: Array<'admin' | 'editor' | 'viewer'>) {
+  const role = locals.user?.role;
+  if (!role || !allowedRoles.includes(role)) {
+    return fail(403, { error: 'Insufficient permissions' });
+  }
+  return null;
+}
+
 /**
  * Process Tiptap callout blocks to PDF-styled HTML
  * Handles nested divs properly by counting open/close tags
@@ -956,7 +965,10 @@ export const load: PageServerLoad = async ({ params, platform }) => {
 
 export const actions: Actions = {
   // Update proposal details
-  update: async ({ params, request, platform }) => {
+  update: async ({ params, request, platform, locals }) => {
+    const rbac = requireRole(locals, 'editor', 'admin');
+    if (rbac) return rbac;
+
     if (!platform?.env?.DB) {
       const saveForm = await superValidate(request, zod4(saveDocumentSchema));
       saveForm.message = 'Database not available';
@@ -1023,7 +1035,10 @@ export const actions: Actions = {
   },
 
   // Update workflow status
-  updateStatus: async ({ params, request, platform }) => {
+  updateStatus: async ({ params, request, platform, locals }) => {
+    const rbac = requireRole(locals, 'editor', 'admin');
+    if (rbac) return rbac;
+
     if (!platform?.env?.DB) {
       const updateStatusForm = await superValidate(request, zod4(updateDocumentStatusSchema));
       updateStatusForm.message = 'Database not available';
@@ -1040,6 +1055,12 @@ export const actions: Actions = {
     }
 
     const { status, review_notes } = updateStatusForm.data;
+
+    // InfoSec: Only admins can set status to 'approved' (OWASP A01)
+    if (status === 'approved') {
+      const adminCheck = requireRole(locals, 'admin');
+      if (adminCheck) return adminCheck;
+    }
 
     try {
       if (status === 'approved' || status === 'review') {
@@ -1073,7 +1094,10 @@ export const actions: Actions = {
   },
 
   // Generate PDF
-  generatePdf: async ({ params, request, platform }) => {
+  generatePdf: async ({ params, request, platform, locals }) => {
+    const rbac = requireRole(locals, 'editor', 'admin');
+    if (rbac) return rbac;
+
     if (!platform?.env?.DB) {
       return fail(500, { error: 'Database not available' });
     }
@@ -1939,7 +1963,10 @@ export const actions: Actions = {
   },
 
   // Share via Courier
-  share: async ({ params, request, platform }) => {
+  share: async ({ params, request, platform, locals }) => {
+    const rbac = requireRole(locals, 'editor', 'admin');
+    if (rbac) return rbac;
+
     if (!platform?.env?.DB) {
       return fail(500, { error: 'Database not available' });
     }
@@ -2076,7 +2103,10 @@ export const actions: Actions = {
   // ---------------------------------------------------------------
 
   /** Save manifest-based document: metadata + section contents to R2 */
-  saveManifest: async ({ params, request, platform }) => {
+  saveManifest: async ({ params, request, platform, locals }) => {
+    const rbac = requireRole(locals, 'editor', 'admin');
+    if (rbac) return rbac;
+
     if (!platform?.env?.DB || !platform?.env?.R2) {
       return fail(500, { error: 'Database or storage not available' });
     }
@@ -2164,7 +2194,10 @@ export const actions: Actions = {
   },
 
   /** Insert a fragment as a new section (copy-on-insert) */
-  insertFragment: async ({ params, request, platform }) => {
+  insertFragment: async ({ params, request, platform, locals }) => {
+    const rbac = requireRole(locals, 'editor', 'admin');
+    if (rbac) return rbac;
+
     if (!platform?.env?.DB || !platform?.env?.R2) {
       return fail(500, { error: 'Database or storage not available' });
     }
@@ -2259,7 +2292,10 @@ export const actions: Actions = {
   },
 
   /** Refresh a section from its source fragment */
-  refreshSection: async ({ params, request, platform }) => {
+  refreshSection: async ({ params, request, platform, locals }) => {
+    const rbac = requireRole(locals, 'editor', 'admin');
+    if (rbac) return rbac;
+
     if (!platform?.env?.DB || !platform?.env?.R2) {
       return fail(500, { error: 'Database or storage not available' });
     }
@@ -2345,7 +2381,10 @@ export const actions: Actions = {
   },
 
   /** Remove a section from the document */
-  removeSection: async ({ params, request, platform }) => {
+  removeSection: async ({ params, request, platform, locals }) => {
+    const rbac = requireRole(locals, 'editor', 'admin');
+    if (rbac) return rbac;
+
     if (!platform?.env?.DB || !platform?.env?.R2) {
       return fail(500, { error: 'Database or storage not available' });
     }
@@ -2386,7 +2425,10 @@ export const actions: Actions = {
   },
 
   /** Reorder sections in the manifest */
-  reorderSections: async ({ params, request, platform }) => {
+  reorderSections: async ({ params, request, platform, locals }) => {
+    const rbac = requireRole(locals, 'editor', 'admin');
+    if (rbac) return rbac;
+
     if (!platform?.env?.DB || !platform?.env?.R2) {
       return fail(500, { error: 'Database or storage not available' });
     }
@@ -2418,7 +2460,10 @@ export const actions: Actions = {
   },
 
   /** Add a custom (blank) section */
-  addCustomSection: async ({ params, request, platform }) => {
+  addCustomSection: async ({ params, request, platform, locals }) => {
+    const rbac = requireRole(locals, 'editor', 'admin');
+    if (rbac) return rbac;
+
     if (!platform?.env?.DB || !platform?.env?.R2) {
       return fail(500, { error: 'Database or storage not available' });
     }
@@ -2469,7 +2514,11 @@ export const actions: Actions = {
   },
 
   // Delete proposal
-  delete: async ({ params, platform }) => {
+  delete: async ({ params, platform, locals }) => {
+    // InfoSec: Only admins can delete documents (OWASP A01)
+    const rbac = requireRole(locals, 'admin');
+    if (rbac) return rbac;
+
     if (!platform?.env?.DB) {
       return fail(500, { error: 'Database not available' });
     }
@@ -2488,6 +2537,9 @@ export const actions: Actions = {
 
   // AI Translate cover letter
   aiTranslate: async ({ request, locals }) => {
+    const rbac = requireRole(locals, 'editor', 'admin');
+    if (rbac) return rbac;
+
     if (!locals.ai) {
       return fail(500, { error: 'AI service not available' });
     }
@@ -2519,6 +2571,9 @@ export const actions: Actions = {
 
   // AI Polish/improve cover letter
   aiPolish: async ({ request, locals }) => {
+    const rbac = requireRole(locals, 'editor', 'admin');
+    if (rbac) return rbac;
+
     if (!locals.ai) {
       return fail(500, { error: 'AI service not available' });
     }
