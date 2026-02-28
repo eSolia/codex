@@ -11,10 +11,12 @@
 | Phase 2: Fragment Migration | ✅ Complete | 54 YAML → 108 markdown files, fragment_index D1 table (migration 0025) |
 | Phase 3: Fragment Editing | ✅ Complete | Fragment list/edit/new routes, R2 load/save, AI translate, version auto-bump |
 | Phase 4: Assembled Document Builder | ✅ Complete | Multi-editor, RBAC guards, section translate, type filter. #12 for D1 user lookup |
-| Phase 5: PDF via Typst | ⏳ Next | Cloudflare Container with pandoc + typst |
-| Phase 6: Codex Sync | ⏳ Planned | Git ↔ R2 content synchronization worker |
-| Phase 7: Standing Documents | ⏳ Planned | Single-file docs (rate cards, capability statements) |
-| Phase 8: Website Content Editing | ⏳ Planned | Site-scoped routes for client content |
+| Phase 5: PDF via Typst | ✅ Complete | Cloudflare Container with pandoc + typst, bilingual scoped TOCs |
+| Phase 6: Centralized Standards | 🔧 PR 1 done | MCP server, content migration, cross-platform bootstrap (Tasks 1-5 complete) |
+| Phase 7: Content Quality & Import | ⏳ Planned | Markdown import, QC guides, in-editor guidance |
+| Phase 8: Codex Sync | ⏳ Planned | Git ↔ R2 content synchronization worker |
+| Phase 9: Standing Documents | ⏳ Planned | Single-file docs (rate cards, capability statements) |
+| Phase 10: Website Content Editing | ⏳ Planned | Site-scoped routes for client content |
 
 ---
 
@@ -387,7 +389,356 @@ The current `packages/pdf-worker/` (Browser Rendering API) stays as-is for now �
 
 ---
 
-## Phase 6: Codex Sync (Git ↔ R2) ⏳
+## Phase 6: Centralized Standards (MCP + Hanawa) ⏳
+
+**Goal**: Make codex the single hub for all eSolia standards documents. Replace the rsync-based distribution (`nexus/scripts/sync-shared-docs.sh`) with: (1) a remote MCP server for Claude Code access from any repo, (2) Hanawa CMS editing, and (3) cross-platform bootstrap scripts for distributing Claude rules/commands.
+
+### Why now
+
+With markdown-first architecture in place (Phases 1-5), standards docs are natural markdown content that can be authored, edited, and served through the same infrastructure. Moving them to codex unifies the content hub, eliminates rsync drift, and enables CMS editing.
+
+### Current state
+
+- 28 standards docs in `docs/shared/` (guides, reference, prompts) — copied from `nexus/docs/shared/` via rsync
+- Claude rules in `.claude/rules/` and commands in `.claude/commands/` — also rsync'd from nexus
+- 8 consuming repos must be manually synced
+- Concept design exists at `docs/concepts/esolia-standards-mcp/`
+
+### Architecture
+
+```
+codex repo (source of truth)
+  │
+  ├── content/standards/**/*.md     ← markdown with frontmatter
+  │       │
+  │       ├──→ Hanawa CMS (edit via browser)
+  │       │      reads/writes R2 + D1 metadata
+  │       │
+  │       └──→ GitHub Action → seed R2
+  │                  │
+  │                  ▼
+  │  packages/esolia-standards-mcp/
+  │    Cloudflare Worker (McpAgent + Durable Object)
+  │    R2: standards/{slug}.md (same codex bucket)
+  │    Tools: list_standards, get_standard, search_standards
+  │                  │
+  │                  ▼  HTTP/MCP (streamable)
+  │         Any repo's Claude Code session
+  │
+  ├── config/claude/rules/*.md      ← distributable rules
+  ├── config/claude/commands/*.md   ← distributable commands
+  └── scripts/setup-claude-env.*    ← bootstrap (sh + ps1)
+```
+
+### Tasks
+
+#### Task 1: Migrate `docs/shared/` → `content/standards/`
+
+Move all 28 files from `docs/shared/` into `content/standards/` with frontmatter for R2 storage and Hanawa compatibility.
+
+```
+content/standards/
+├── guides/          # 24 files (sveltekit-guide.md, typescript-practices.md, etc.)
+├── reference/       # 3 files (esolia-branding.md, resource-naming.md, maileroo.md)
+├── prompts/         # 1 file (security-code-quality-audit.md)
+└── seo/             # Test configs (seo-check.test.ts, seo-check.yml)
+```
+
+Frontmatter format:
+```yaml
+---
+title: "SvelteKit Development Guide"
+slug: sveltekit-guide
+category: guides
+tags: [sveltekit, svelte5, cloudflare]
+summary: "Svelte 5 patterns, SvelteKit conventions, Cloudflare deployment"
+author: "eSolia Technical Team"
+created: "2025-12-29"
+modified: "2026-03-01"
+---
+```
+
+Rename from UPPER_CASE.md to kebab-case.md. Body content unchanged.
+
+#### Task 2: Create `packages/esolia-standards-mcp/` Worker
+
+Adapt from `docs/concepts/esolia-standards-mcp/index.ts`:
+- `McpAgent` from `agents/mcp` (Cloudflare Agents SDK)
+- Three tools: `list_standards`, `get_standard`, `search_standards`
+- R2 bucket binding `STANDARDS_R2` (same codex bucket, `standards/{slug}.md` prefix)
+- Optional `SHARED_SECRET` Bearer auth
+- CORS support
+
+```
+packages/esolia-standards-mcp/
+├── wrangler.jsonc
+├── package.json
+├── tsconfig.json
+└── src/
+    └── index.ts
+```
+
+#### Task 3: Create `scripts/seed-standards.ts`
+
+Reads all `content/standards/**/*.md`, uploads to R2 at `standards/{slug}.md` via wrangler CLI. Keeps frontmatter intact so the MCP Worker can parse it at read time.
+
+#### Task 4: Create `config/claude/` for distributable rules & commands
+
+```
+config/claude/
+├── rules/
+│   ├── backpressure-verify.md
+│   └── security-standards.md
+├── commands/
+│   ├── backpressure-review.md
+│   ├── seo-setup.md
+│   └── update-diagram.md
+└── mcp.json.example          # .mcp.json template for repos
+```
+
+#### Task 5: Cross-platform bootstrap scripts
+
+- `scripts/setup-claude-env.sh` (macOS/Linux) — creates symlinks from `config/claude/` into target repo's `.claude/`, copies `.mcp.json` template
+- `scripts/setup-claude-env.ps1` (Windows) — same, using PowerShell symlinks (requires Developer Mode or admin)
+
+Both scripts:
+1. Create `.claude/{rules,commands}` dirs in target repo
+2. Symlink rules and commands from codex
+3. Copy `.mcp.json` template if not present
+4. Print instructions for `claude mcp add` (user-scoped)
+
+#### Task 6: Hanawa CMS standards collection (separate PR)
+
+- New routes: `/standards` (list), `/standards/[slug]` (edit)
+- D1 `standards` table for metadata
+- R2 read/write at `standards/{slug}.md`
+- MCP Worker reads from the same R2 bucket — no separate sync needed
+
+#### Task 7: GitHub Action for git-originated updates
+
+On push to `main` when `content/standards/**` changes → run `seed-standards.ts --remote` to upload to R2.
+
+#### Task 8: Retire rsync distribution
+
+After all repos switch to MCP:
+1. Remove `docs/shared/` copies from consuming repos
+2. Update each repo's `CLAUDE.md` Required Reading
+3. Archive `nexus/scripts/sync-shared-docs.sh`
+
+### Implementation order
+
+1. **First PR**: Tasks 1-5 (content migration, MCP Worker, seeder, bootstrap, config/claude)
+2. **Second PR**: Tasks 6-7 (Hanawa CMS standards routes, GitHub Action)
+3. **Third PR**: Task 8 (retire rsync, update consuming repos)
+
+### Files to create
+
+| File | Purpose |
+|------|---------|
+| `content/standards/**/*.md` | Migrated standards with frontmatter |
+| `packages/esolia-standards-mcp/src/index.ts` | MCP Worker (from concept doc) |
+| `packages/esolia-standards-mcp/wrangler.jsonc` | Worker config |
+| `packages/esolia-standards-mcp/package.json` | Dependencies |
+| `scripts/seed-standards.ts` | R2 uploader |
+| `scripts/setup-claude-env.sh` | macOS/Linux bootstrap |
+| `scripts/setup-claude-env.ps1` | Windows bootstrap |
+| `config/claude/rules/*.md` | Distributable rules |
+| `config/claude/commands/*.md` | Distributable commands |
+| `config/claude/mcp.json.example` | MCP config template |
+
+### Reuse from codebase
+
+- `docs/concepts/esolia-standards-mcp/index.ts` — MCP Worker source
+- `docs/concepts/esolia-standards-mcp/seed-standards.mjs` — KV seeder logic
+- `docs/concepts/esolia-standards-mcp/wrangler.jsonc` — Worker config
+- `packages/hanawa-cms/src/routes/fragments/` — reference for standards CRUD routes
+- `packages/hanawa-cms/src/lib/server/frontmatter.ts` — frontmatter parsing
+
+---
+
+## Phase 7: Content Quality & Import ⏳
+
+**Goal**: Three authoring-quality features: (1) markdown import from external tools, (2) QC checks against writing guides, (3) in-editor author guidance.
+
+### Context — Three Authoring Paths
+
+Content enters the system through three paths, each needing quality assurance:
+
+| Path | Tool | Flow |
+|------|------|------|
+| **Git + Claude Code** | Terminal / IDE | Author markdown → commit → codex-sync pushes to R2 |
+| **Hanawa CMS** | Tiptap editor | Author in browser → save to R2/D1 |
+| **External import** | Claude Desktop, ChatGPT, etc. | Draft externally → export markdown → import into Hanawa |
+
+Path 3 has no import mechanism yet. All three paths lack systematic QC against the writing guides.
+
+### Writing Guides (existing assets)
+
+Four guides form the quality framework:
+
+| Guide | File | Purpose |
+|-------|------|---------|
+| Article Writing Guide | `docs/shared/guides/ARTICLE_WRITING_GUIDE.md` | Structure frameworks, voice/tone, anti-patterns |
+| AI-Proof Editing (EN) | `docs/shared/guides/WRITING_GUIDE_AI_PROOF_EDITING_EN.md` | English AI-pattern detection, vocabulary red flags |
+| AI-Proof Editing (JA) | `docs/shared/guides/WRITING_GUIDE_AI_PROOF_EDITING_JA.md` | Japanese AI-pattern detection, overused phrases |
+| Localization Strategy | `docs/shared/guides/CONTENT_LOCALIZATION_STRATEGY.md` | "Not 1:1" principle, Ally/Bridge model |
+
+These are currently prose documents read by humans. This phase makes them machine-actionable.
+
+### Task 1: Markdown Import (External → Hanawa)
+
+**Problem**: Authors draft in Claude Desktop or ChatGPT, export markdown, then need to get it into Hanawa with proper metadata. Currently no import path exists.
+
+**Solution**: Drag-and-drop import on the fragment and document pages.
+
+#### Import flow
+
+```
+Author exports .md from Claude Desktop / ChatGPT
+    ↓
+Drag onto Hanawa import zone (or click "Import Markdown")
+    ↓
+Sanitization pipeline:
+  1. Filename normalization (slugify, strip dates, lowercase)
+  2. Frontmatter validation (parse existing or generate skeleton)
+  3. Content cleanup (normalize line endings, fix heading levels, strip tool artifacts)
+  4. Language detection (heuristic: CJK character ratio → en/ja)
+  5. Bilingual pair check (if importing .en.md, prompt for .ja.md companion)
+    ↓
+Preview: show cleaned content + generated frontmatter
+    ↓
+Author confirms → save to R2 + index in D1
+```
+
+#### Files to create
+- `packages/hanawa-cms/src/lib/server/import.ts` — sanitization pipeline (filename, frontmatter, content cleanup)
+- `packages/hanawa-cms/src/lib/components/ImportDropzone.svelte` — drag-and-drop UI component
+
+#### Files to modify
+- `packages/hanawa-cms/src/routes/fragments/+page.svelte` — add import dropzone
+- `packages/hanawa-cms/src/routes/fragments/+page.server.ts` — add `importMarkdown` form action
+- `packages/hanawa-cms/src/routes/documents/[id]/+page.svelte` — add import for custom sections
+- `packages/hanawa-cms/src/routes/documents/[id]/+page.server.ts` — add `importSection` form action
+
+### Task 2: QC Checks Against Writing Guides
+
+**Problem**: Content quality is inconsistent. The writing guides exist but are only applied manually. Authors forget to check, and reviewers don't have time.
+
+**Solution**: Automated QC checks powered by Workers AI, run against the writing guide rules.
+
+#### Two modes
+
+| Mode | Where | Trigger | Scope |
+|------|-------|---------|-------|
+| **Bulk CLI** | Terminal / CI | `scripts/qc-content.ts` | All fragments, all documents, or specific paths |
+| **In-app button** | Hanawa CMS | "Check Quality" button per section/fragment | Single content piece |
+
+#### QC check implementation
+
+The QC check sends content + the relevant writing guide(s) to Workers AI with a structured prompt:
+
+```typescript
+// Pseudocode for QC check
+async function checkContentQuality(content: string, lang: 'en' | 'ja'): Promise<QCResult> {
+  const guide = lang === 'en'
+    ? WRITING_GUIDE_AI_PROOF_EDITING_EN
+    : WRITING_GUIDE_AI_PROOF_EDITING_JA;
+
+  const result = await ai.run('@cf/meta/llama-3.1-70b-instruct', {
+    messages: [
+      { role: 'system', content: `You are a writing quality reviewer. Apply the following guide:\n\n${guide}` },
+      { role: 'user', content: `Review this content and return a JSON report with: flagged_phrases (array of {phrase, reason, suggestion}), structural_issues (array of {issue, location}), overall_score (1-10), summary (one paragraph).\n\nContent:\n${content}` }
+    ]
+  });
+
+  return parseQCResult(result);
+}
+```
+
+#### QC result display
+
+```
+┌─────────────────────────────────────────────────┐
+│ Quality Check Results          Score: 7/10       │
+├─────────────────────────────────────────────────┤
+│ ⚠ Vocabulary flags (3)                          │
+│   • "robust solution" → be specific about what  │
+│   • "leverage" → use "use" or name the action   │
+│   • "it's worth noting" → delete the preamble   │
+│                                                  │
+│ ⚠ Structural issues (1)                         │
+│   • Uniform paragraph lengths (5 paragraphs,    │
+│     all ~60 words) → vary sentence rhythm        │
+│                                                  │
+│ ✓ No localization issues detected                │
+└─────────────────────────────────────────────────┘
+```
+
+#### Files to create
+- `packages/hanawa-cms/src/lib/server/qc.ts` — QC check logic (Workers AI calls, guide loading, result parsing)
+- `packages/hanawa-cms/src/lib/components/QCResultPanel.svelte` — result display component
+- `scripts/qc-content.ts` — CLI bulk QC checker (reads from R2 or local filesystem)
+
+#### Files to modify
+- `packages/hanawa-cms/src/routes/fragments/[id]/+page.server.ts` — add `qcCheck` form action
+- `packages/hanawa-cms/src/routes/fragments/[id]/+page.svelte` — add "Check Quality" button
+- `packages/hanawa-cms/src/routes/documents/[id]/+page.server.ts` — add `qcCheckSection` form action
+- `packages/hanawa-cms/src/lib/components/editor/SectionEditor.svelte` — add "Check Quality" button
+
+### Task 3: In-Editor Author Guidance
+
+**Problem**: Authors shouldn't need to read the writing guides before every editing session. Key guidance should be surfaced inside the editor itself.
+
+**Solution**: Contextual guidance delivered through three mechanisms — none intrusive.
+
+#### Mechanism A: Collapsible guidance panel
+
+A slim panel above the editor (fragment edit page, document section editors) with key reminders from the guides. Collapsed by default, remembers toggle state via `localStorage`.
+
+```
+┌─ Writing Tips ──────────────────────── [▼ collapse] ─┐
+│ • Be specific: replace "robust" with what makes it   │
+│   strong. Replace "leverage" with the actual action.  │
+│ • Vary rhythm: mix short sentences with longer ones.  │
+│ • EN ≠ JA: each language serves a different audience. │
+│   JA readers bridge to HQ; EN readers learn Japan.    │
+│ • Delete preambles: "It's worth noting" → just note.  │
+└──────────────────────────────────────────────────────┘
+```
+
+Content varies by language (EN tips for EN editor, JA tips for JA editor). Tips are distilled from the four guides — not the full guides, just the most actionable rules.
+
+#### Mechanism B: Placeholder text with guidance
+
+When the editor is empty, the placeholder text includes a brief writing reminder instead of generic "Start writing...":
+
+- EN: `"Write with specifics. Avoid AI-sounding phrases like 'robust' or 'it's worth noting'. Vary sentence length."`
+- JA: `"具体的に書きましょう。「様々な」「包括的」「～と言えるでしょう」などAI的な表現を避け、文の長さに変化をつけてください。"`
+
+#### Mechanism C: Post-edit QC nudge
+
+After saving content, if the content hasn't been QC-checked recently (tracked via a `last_qc_check` timestamp in D1), show a subtle reminder:
+
+```
+┌────────────────────────────────────────────┐
+│ 💡 Saved. Run a quality check? [Check now] │
+└────────────────────────────────────────────┘
+```
+
+Dismissible, non-blocking. Only shown if `last_qc_check` is null or older than the last edit.
+
+#### Files to create
+- `packages/hanawa-cms/src/lib/components/editor/WritingTips.svelte` — collapsible guidance panel
+
+#### Files to modify
+- `packages/hanawa-cms/src/routes/fragments/[id]/+page.svelte` — add WritingTips above editor
+- `packages/hanawa-cms/src/routes/documents/[id]/+page.svelte` — add WritingTips (global, not per-section)
+- `packages/hanawa-cms/src/lib/components/editor/SectionEditor.svelte` — update placeholder text
+- `packages/hanawa-cms/src/lib/components/editor/HanawaEditor.svelte` — language-aware placeholder defaults
+
+---
+
+## Phase 8: Codex Sync (Git ↔ R2) ⏳
 
 **Goal**: Bidirectional content synchronization between the git repo (`content/`) and R2 (codex bucket), so that git-authored content is available in R2 and CMS-authored content can be exported to git.
 
@@ -455,7 +806,7 @@ Trigger embedding generation (Workers AI) for AI Search
 
 ---
 
-## Phase 7: Standing Documents ⏳
+## Phase 9: Standing Documents ⏳
 
 **Goal**: Single-file documents (rate cards, capability statements) with the same editing and PDF generation.
 
@@ -480,7 +831,7 @@ Trigger embedding generation (Workers AI) for AI Search
 
 ---
 
-## Phase 8: Website Content Editing ⏳
+## Phase 10: Website Content Editing ⏳
 
 **Goal**: Clients authenticate and edit markdown-with-frontmatter for their websites.
 
@@ -523,9 +874,12 @@ Trigger embedding generation (Workers AI) for AI Search
 | **Tiptap 2→3 upgrade** | All 7 custom extensions may need rework | ✅ Resolved — upgraded successfully |
 | **`@tiptap/markdown` is beta** | Edge cases with complex content | ✅ Resolved — custom handlers for callouts, page breaks, etc. |
 | **Mermaid in markdown** | Mermaid code blocks need special handling in Typst pipeline | Already solved in `generate.sh`; replicate in container |
-| **Cloudflare Container for Typst** | Containers are relatively new CF feature | Validate container deploys early; fallback: run Typst as a GitHub Action |
+| **Cloudflare Container for Typst** | Containers are relatively new CF feature | ✅ Resolved — Container class works; `declare class` workaround for missing types |
+| **Windows symlinks for bootstrap** | Symlinks need Developer Mode or admin on Windows | Detect and warn; fall back to file copy with drift warning |
 | **RBAC not yet enforced** | Currently all users are admin | ✅ Resolved — Phase 4 added guards; #12 tracks D1 user lookup |
-| **Git ↔ R2 desync** | Content authored in git not available in CMS/AI Search | Phase 6 codex-sync worker |
+| **Git ↔ R2 desync** | Content authored in git not available in CMS/AI Search | Phase 7 codex-sync worker |
+| **QC check cost** | Workers AI calls for every QC check add token cost | Use smaller model (Llama 3.1 8B) for quick checks; 70B only for deep review |
+| **Import sanitization edge cases** | External tools export wildly different markdown flavors | Strict normalization pipeline; preview before save |
 
 ## Verification Strategy
 
@@ -535,10 +889,12 @@ Trigger embedding generation (Workers AI) for AI Search
 - **Phase 2**: ✅ Run migration script, verify all YAML files produce valid markdown. Diff content.
 - **Phase 3**: ✅ Edit a fragment in Hanawa, verify R2 file updates, verify D1 index updates.
 - **Phase 4**: Create an assembled document with 3+ sections, reorder, edit, generate PDF.
-- **Phase 5**: Generate a PDF from Typst container, compare with `tools/md-to-pdf/generate.sh` output. Verify bilingual per-language TOCs.
-- **Phase 6**: Push a markdown change to `content/`, verify it appears in R2 and D1 index.
-- **Phase 7**: Edit a standing document, generate PDF.
-- **Phase 8**: Authenticate as a client user, edit a page, verify R2 file updates.
+- **Phase 5**: ✅ Generate a PDF from Typst container, compare with `tools/md-to-pdf/generate.sh` output. Verify bilingual per-language TOCs.
+- **Phase 6**: Run `seed-standards.ts` → verify KV populated. `claude mcp add` → test `list_standards`, `get_standard`, `search_standards`. Run bootstrap scripts on macOS and Windows → verify symlinks. Edit a standard in Hanawa CMS → verify KV updates.
+- **Phase 7**: Import a markdown file exported from Claude Desktop → verify sanitization (filename, frontmatter, content). Run QC check on a fragment → verify flagged phrases match guide rules. Confirm writing tips panel renders in EN and JA editors.
+- **Phase 8**: Push a markdown change to `content/`, verify it appears in R2 and D1 index.
+- **Phase 9**: Edit a standing document, generate PDF.
+- **Phase 10**: Authenticate as a client user, edit a page, verify R2 file updates.
 
 ### Preflight checks
 
@@ -551,4 +907,4 @@ Full flow: Create fragment (markdown) → Insert into assembled document → Edi
 ---
 
 *Plan created: 2026-02-27*
-*Last updated: 2026-02-28 — Phases 1-4 complete*
+*Last updated: 2026-03-01 — Phases 1-5 complete, Phase 6 (Centralized Standards) planned*
