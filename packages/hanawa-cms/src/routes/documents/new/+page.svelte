@@ -83,6 +83,7 @@
   /* eslint-enable svelte/valid-compile */
 
   let language = $state('en');
+  let selectedDocType = $state('proposal');
   let draggedIndex = $state<number | null>(null);
   let isClientDocument = $state(false); // Default to general document for new documents
   let submitting = $state(false);
@@ -326,6 +327,7 @@
     <!-- Hidden fields -->
     <input type="hidden" name="fragments" value={fragmentsJson} />
     <input type="hidden" name="template_id" value={selectedTemplateId || ''} />
+    <input type="hidden" name="document_type" value={selectedDocType} />
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <!-- Left Column: Document Details -->
@@ -438,6 +440,24 @@
             placeholder="ITサポートサービス提案書"
             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-esolia-navy focus:ring-esolia-navy"
           />
+        </div>
+
+        <!-- Document Type -->
+        <div>
+          <label for="doc_type_select" class="block text-sm font-medium text-gray-700">
+            Document Type
+          </label>
+          <select
+            id="doc_type_select"
+            bind:value={selectedDocType}
+            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-esolia-navy focus:ring-esolia-navy"
+          >
+            <option value="proposal">Proposal</option>
+            <option value="report">Report</option>
+            <option value="quote">Quote</option>
+            <option value="sow">Statement of Work</option>
+            <option value="assessment">Assessment</option>
+          </select>
         </div>
 
         <!-- Language -->

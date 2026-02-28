@@ -19,7 +19,7 @@ export const load: PageServerLoad = async ({ platform, url }) => {
     let query = `
       SELECT
         id, client_code, client_name, title, language, status,
-        share_id, shared_at, created_at, updated_at
+        document_type, share_id, shared_at, created_at, updated_at
       FROM proposals
       WHERE 1=1
     `;

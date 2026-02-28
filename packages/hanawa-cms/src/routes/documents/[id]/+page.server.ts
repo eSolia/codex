@@ -7,7 +7,27 @@ import type { PageServerLoad, Actions } from './$types';
 import { error, fail } from '@sveltejs/kit';
 import { superValidate } from 'sveltekit-superforms';
 import { zod4 } from 'sveltekit-superforms/adapters';
-import { saveDocumentSchema, updateDocumentStatusSchema, deleteDocumentSchema } from '$lib/schemas';
+import {
+  saveDocumentSchema,
+  updateDocumentStatusSchema,
+  deleteDocumentSchema,
+  insertSectionSchema,
+  reorderSectionSchema,
+  removeSectionSchema,
+  refreshSectionSchema,
+  addCustomSectionSchema,
+} from '$lib/schemas';
+import {
+  parseManifest,
+  serializeManifest,
+  addSection,
+  removeSection as manifestRemoveSection,
+  reorderSections as manifestReorderSections,
+  getNextFilePrefix,
+  slugify,
+  type DocumentManifest,
+} from '$lib/server/manifest';
+import { parseFrontmatter } from '$lib/server/frontmatter';
 
 /**
  * Process Tiptap callout blocks to PDF-styled HTML
@@ -731,6 +751,15 @@ interface Proposal {
   created_by: string | null;
   created_at: string;
   updated_at: string;
+  document_type: string | null;
+  r2_manifest_key: string | null;
+}
+
+/** Section content loaded from R2 for manifest-based documents */
+interface SectionContent {
+  file: string;
+  content_en: string;
+  content_ja: string;
 }
 
 interface FragmentContent {
@@ -748,6 +777,7 @@ export const load: PageServerLoad = async ({ params, platform }) => {
   }
 
   const db = platform.env.DB;
+  const r2 = platform.env.R2;
   const { id } = params;
 
   try {
@@ -761,6 +791,81 @@ export const load: PageServerLoad = async ({ params, platform }) => {
       throw error(404, 'Document not found');
     }
 
+    const updateStatusForm = await superValidate(zod4(updateDocumentStatusSchema));
+    const deleteForm = await superValidate(zod4(deleteDocumentSchema));
+
+    // ---------------------------------------------------------------
+    // Manifest-based document (Phase 4)
+    // ---------------------------------------------------------------
+    if (result.r2_manifest_key && r2) {
+      const manifestObj = await r2.get(result.r2_manifest_key);
+      if (!manifestObj) {
+        throw error(500, 'Manifest not found in R2');
+      }
+      const manifest = parseManifest(await manifestObj.text());
+      const r2Dir = result.r2_manifest_key.replace('/manifest.yaml', '');
+
+      // Load section content in parallel
+      const sectionContents: SectionContent[] = await Promise.all(
+        manifest.sections.map(async (section) => {
+          let contentEn = '';
+          let contentJa = '';
+          try {
+            const enObj = await r2.get(`${r2Dir}/${section.file}.en.md`);
+            if (enObj) contentEn = await enObj.text();
+          } catch (err) {
+            console.warn(`Failed to load ${section.file}.en.md:`, err);
+          }
+          try {
+            const jaObj = await r2.get(`${r2Dir}/${section.file}.ja.md`);
+            if (jaObj) contentJa = await jaObj.text();
+          } catch (err) {
+            console.warn(`Failed to load ${section.file}.ja.md:`, err);
+          }
+          return { file: section.file, content_en: contentEn, content_ja: contentJa };
+        })
+      );
+
+      const saveForm = await superValidate(
+        {
+          title: result.title,
+          title_ja: result.title_ja || '',
+          client_code: result.client_code || '',
+          client_name: result.client_name || '',
+          client_name_ja: result.client_name_ja || '',
+          contact_name: result.contact_name || '',
+          contact_name_ja: result.contact_name_ja || '',
+          language_mode: (result.language_mode || manifest.language_mode || 'en') as
+            | 'en'
+            | 'ja'
+            | 'both_en_first'
+            | 'both_ja_first',
+          fragments: '',
+          cover_letter_en: '',
+          cover_letter_ja: '',
+        },
+        zod4(saveDocumentSchema)
+      );
+
+      return {
+        proposal: result,
+        manifest,
+        sectionContents,
+        isManifestBased: true,
+        // Legacy fields kept for type compatibility
+        fragments: [] as Fragment[],
+        fragmentContents: [] as FragmentContent[],
+        availableFragments: [] as FragmentContent[],
+        boilerplates: [] as FragmentContent[],
+        saveForm,
+        updateStatusForm,
+        deleteForm,
+      };
+    }
+
+    // ---------------------------------------------------------------
+    // Legacy JSON-based document (pre-Phase 4)
+    // ---------------------------------------------------------------
     // Parse fragments JSON
     let fragments: Fragment[] = [];
     try {
@@ -774,7 +879,6 @@ export const load: PageServerLoad = async ({ params, platform }) => {
 
     let fragmentContents: FragmentContent[] = [];
     if (enabledFragmentIds.length > 0) {
-      // InfoSec: Build parameterized query for IN clause
       const placeholders = enabledFragmentIds.map(() => '?').join(',');
       const fragmentResult = await db
         .prepare(
@@ -811,7 +915,6 @@ export const load: PageServerLoad = async ({ params, platform }) => {
 
     const boilerplates = boilerplateResult.results ?? [];
 
-    // Initialize forms - convert null to empty string for optional fields
     const saveForm = await superValidate(
       {
         title: result.title,
@@ -828,11 +931,12 @@ export const load: PageServerLoad = async ({ params, platform }) => {
       },
       zod4(saveDocumentSchema)
     );
-    const updateStatusForm = await superValidate(zod4(updateDocumentStatusSchema));
-    const deleteForm = await superValidate(zod4(deleteDocumentSchema));
 
     return {
       proposal: result,
+      isManifestBased: false,
+      manifest: null,
+      sectionContents: [] as SectionContent[],
       fragments,
       fragmentContents,
       availableFragments,
@@ -1034,26 +1138,80 @@ export const actions: Actions = {
         return fail(404, { error: 'Proposal not found' });
       }
 
-      // If no fragment config from client, fall back to parsing from proposal
-      if (enabledFragments.length === 0) {
-        try {
-          const fragments: Fragment[] = JSON.parse(proposal.fragments || '[]');
-          enabledFragments = fragments
-            .filter((f) => f.enabled)
-            .sort((a, b) => a.order - b.order)
-            .map((f) => ({ id: f.id, pageBreakBefore: f.pageBreakBefore }));
-          console.log('generatePdf: Parsed fragments from proposal:', enabledFragments.length);
-        } catch {
-          enabledFragments = [];
+      // --- Manifest-based path: load sections from R2 instead of D1 fragments ---
+      const isManifestBased = Boolean(proposal.r2_manifest_key);
+      let fragmentContents: FragmentContent[] = [];
+
+      if (isManifestBased && platform.env.R2) {
+        const r2 = platform.env.R2;
+        const manifestObj = await r2.get(proposal.r2_manifest_key!);
+        if (manifestObj) {
+          const manifestYaml = await manifestObj.text();
+          const manifest = parseManifest(manifestYaml);
+          const r2Dir = proposal.r2_manifest_key!.replace('/manifest.yaml', '');
+
+          // Load section content from R2 and map to FragmentContent structure
+          const sectionContents = await Promise.all(
+            manifest.sections.map(async (section) => {
+              let contentEn = '';
+              let contentJa = '';
+              try {
+                const enObj = await r2.get(`${r2Dir}/${section.file}.en.md`);
+                if (enObj) contentEn = await enObj.text();
+              } catch (err) {
+                console.warn(`PDF: Failed to load ${section.file}.en.md:`, err);
+              }
+              try {
+                const jaObj = await r2.get(`${r2Dir}/${section.file}.ja.md`);
+                if (jaObj) contentJa = await jaObj.text();
+              } catch (err) {
+                console.warn(`PDF: Failed to load ${section.file}.ja.md:`, err);
+              }
+              return { section, contentEn, contentJa };
+            })
+          );
+
+          // Map sections to enabledFragments + fragmentContents structures
+          enabledFragments = manifest.sections.map((s) => ({
+            id: s.file,
+            pageBreakBefore: false,
+          }));
+
+          fragmentContents = sectionContents.map(({ section, contentEn, contentJa }) => ({
+            id: section.file,
+            name: section.label,
+            slug: section.file,
+            category: section.source?.split('/')[0] ?? 'custom',
+            content_en: contentEn || null,
+            content_ja: contentJa || null,
+          }));
+
+          console.log(`generatePdf: Loaded ${fragmentContents.length} sections from manifest`);
         }
       }
 
-      // Now fetch fragment contents with the correct IDs
+      // --- Legacy path: load fragments from D1 ---
+      if (!isManifestBased) {
+        // If no fragment config from client, fall back to parsing from proposal
+        if (enabledFragments.length === 0) {
+          try {
+            const fragments: Fragment[] = JSON.parse(proposal.fragments || '[]');
+            enabledFragments = fragments
+              .filter((f) => f.enabled)
+              .sort((a, b) => a.order - b.order)
+              .map((f) => ({ id: f.id, pageBreakBefore: f.pageBreakBefore }));
+            console.log('generatePdf: Parsed fragments from proposal:', enabledFragments.length);
+          } catch {
+            enabledFragments = [];
+          }
+        }
+      }
+
+      // Now fetch fragment contents with the correct IDs (legacy path only)
       // InfoSec: Parameterized queries (OWASP A03)
       const enabledFragmentIds = enabledFragments.map((f) => f.id);
-      let fragmentContents: FragmentContent[] = [];
 
-      if (enabledFragmentIds.length > 0) {
+      if (!isManifestBased && enabledFragmentIds.length > 0) {
         fragmentContents = await withRetry(
           async () => {
             const placeholders = enabledFragmentIds.map(() => '?').join(',');
@@ -1911,6 +2069,403 @@ export const actions: Actions = {
       console.error('Share creation error:', err);
       return fail(500, { error: 'Failed to create share' });
     }
+  },
+
+  // ---------------------------------------------------------------
+  // Manifest-based section actions (Phase 4)
+  // ---------------------------------------------------------------
+
+  /** Save manifest-based document: metadata + section contents to R2 */
+  saveManifest: async ({ params, request, platform }) => {
+    if (!platform?.env?.DB || !platform?.env?.R2) {
+      return fail(500, { error: 'Database or storage not available' });
+    }
+    const db = platform.env.DB;
+    const r2 = platform.env.R2;
+
+    const proposal = await db
+      .prepare('SELECT r2_manifest_key FROM proposals WHERE id = ?')
+      .bind(params.id)
+      .first<{ r2_manifest_key: string | null }>();
+    if (!proposal?.r2_manifest_key) {
+      return fail(400, { error: 'Not a manifest-based document' });
+    }
+
+    const manifestObj = await r2.get(proposal.r2_manifest_key);
+    if (!manifestObj) return fail(500, { error: 'Manifest not found in R2' });
+    const manifest = parseManifest(await manifestObj.text());
+    const r2Dir = proposal.r2_manifest_key.replace('/manifest.yaml', '');
+
+    const formData = await request.formData();
+
+    // Update manifest metadata
+    manifest.title = formData.get('title')?.toString() || manifest.title;
+    manifest.title_ja = formData.get('title_ja')?.toString() || manifest.title_ja;
+    manifest.client_code = formData.get('client_code')?.toString() || manifest.client_code;
+    manifest.client_name = formData.get('client_name')?.toString() || manifest.client_name;
+    manifest.client_name_ja = formData.get('client_name_ja')?.toString() || manifest.client_name_ja;
+    manifest.contact_name = formData.get('contact_name')?.toString() || manifest.contact_name;
+    manifest.contact_name_ja =
+      formData.get('contact_name_ja')?.toString() || manifest.contact_name_ja;
+    manifest.language_mode = formData.get('language_mode')?.toString() || manifest.language_mode;
+    manifest.updated_at = new Date().toISOString().slice(0, 10);
+
+    // Save each section's content
+    for (let i = 0; i < manifest.sections.length; i++) {
+      const section = manifest.sections[i]!;
+      const enKey = `section_${i}_en`;
+      const jaKey = `section_${i}_ja`;
+      const enContent = formData.get(enKey)?.toString();
+      const jaContent = formData.get(jaKey)?.toString();
+
+      if (enContent !== null && enContent !== undefined) {
+        await r2.put(`${r2Dir}/${section.file}.en.md`, enContent, {
+          httpMetadata: { contentType: 'text/markdown' },
+        });
+      }
+      if (jaContent !== null && jaContent !== undefined) {
+        await r2.put(`${r2Dir}/${section.file}.ja.md`, jaContent, {
+          httpMetadata: { contentType: 'text/markdown' },
+        });
+      }
+    }
+
+    // Write updated manifest
+    await r2.put(proposal.r2_manifest_key, serializeManifest(manifest), {
+      httpMetadata: { contentType: 'text/yaml' },
+    });
+
+    // Update D1 metadata
+    // InfoSec: Parameterized update (OWASP A03)
+    await db
+      .prepare(
+        `UPDATE proposals SET
+          title = ?, title_ja = ?,
+          client_code = ?, client_name = ?, client_name_ja = ?,
+          contact_name = ?, contact_name_ja = ?,
+          language_mode = ?,
+          updated_at = datetime('now')
+         WHERE id = ?`
+      )
+      .bind(
+        manifest.title,
+        manifest.title_ja || null,
+        manifest.client_code || '',
+        manifest.client_name || null,
+        manifest.client_name_ja || null,
+        manifest.contact_name || null,
+        manifest.contact_name_ja || null,
+        manifest.language_mode,
+        params.id
+      )
+      .run();
+
+    return { success: true };
+  },
+
+  /** Insert a fragment as a new section (copy-on-insert) */
+  insertFragment: async ({ params, request, platform }) => {
+    if (!platform?.env?.DB || !platform?.env?.R2) {
+      return fail(500, { error: 'Database or storage not available' });
+    }
+    const db = platform.env.DB;
+    const r2 = platform.env.R2;
+
+    // InfoSec: Validate input (OWASP A03)
+    const form = await superValidate(request, zod4(insertSectionSchema));
+    if (!form.valid) return fail(400, { error: 'Invalid input' });
+
+    const proposal = await db
+      .prepare('SELECT r2_manifest_key FROM proposals WHERE id = ?')
+      .bind(params.id)
+      .first<{ r2_manifest_key: string | null }>();
+    if (!proposal?.r2_manifest_key) {
+      return fail(400, { error: 'Not a manifest-based document' });
+    }
+
+    const manifestObj = await r2.get(proposal.r2_manifest_key);
+    if (!manifestObj) return fail(500, { error: 'Manifest not found' });
+    let manifest = parseManifest(await manifestObj.text());
+    const r2Dir = proposal.r2_manifest_key.replace('/manifest.yaml', '');
+
+    // Look up fragment in fragment_index
+    const meta = await db
+      .prepare(
+        'SELECT id, category, title_en, title_ja, version, r2_key_en, r2_key_ja FROM fragment_index WHERE id = ?'
+      )
+      .bind(form.data.fragment_id)
+      .first<{
+        id: string;
+        category: string;
+        title_en: string | null;
+        title_ja: string | null;
+        version: string | null;
+        r2_key_en: string | null;
+        r2_key_ja: string | null;
+      }>();
+
+    if (!meta) {
+      return fail(404, { error: 'Fragment not found in index' });
+    }
+
+    // Copy fragment content from R2
+    let contentEn = '';
+    let contentJa = '';
+    if (meta.r2_key_en) {
+      const obj = await r2.get(meta.r2_key_en);
+      if (obj) {
+        const raw = await obj.text();
+        const { body } = parseFrontmatter(raw);
+        contentEn = body;
+      }
+    }
+    if (meta.r2_key_ja) {
+      const obj = await r2.get(meta.r2_key_ja);
+      if (obj) {
+        const raw = await obj.text();
+        const { body } = parseFrontmatter(raw);
+        contentJa = body;
+      }
+    }
+
+    // Generate file stem and write copies
+    const prefix = getNextFilePrefix(manifest);
+    const fileSlug = slugify(meta.title_en ?? meta.id);
+    const fileStem = `${prefix}-${fileSlug}`;
+    const source = `${meta.category}/${meta.id}`;
+
+    await r2.put(`${r2Dir}/${fileStem}.en.md`, contentEn, {
+      httpMetadata: { contentType: 'text/markdown' },
+    });
+    await r2.put(`${r2Dir}/${fileStem}.ja.md`, contentJa, {
+      httpMetadata: { contentType: 'text/markdown' },
+    });
+
+    // Add section to manifest
+    manifest = addSection(manifest, {
+      file: fileStem,
+      label: meta.title_en ?? meta.id,
+      label_ja: meta.title_ja ?? undefined,
+      source,
+      source_version: meta.version ?? undefined,
+      locked: false,
+    });
+
+    await r2.put(proposal.r2_manifest_key, serializeManifest(manifest), {
+      httpMetadata: { contentType: 'text/yaml' },
+    });
+
+    return { success: true };
+  },
+
+  /** Refresh a section from its source fragment */
+  refreshSection: async ({ params, request, platform }) => {
+    if (!platform?.env?.DB || !platform?.env?.R2) {
+      return fail(500, { error: 'Database or storage not available' });
+    }
+    const db = platform.env.DB;
+    const r2 = platform.env.R2;
+
+    const form = await superValidate(request, zod4(refreshSectionSchema));
+    if (!form.valid) return fail(400, { error: 'Invalid input' });
+
+    const proposal = await db
+      .prepare('SELECT r2_manifest_key FROM proposals WHERE id = ?')
+      .bind(params.id)
+      .first<{ r2_manifest_key: string | null }>();
+    if (!proposal?.r2_manifest_key) {
+      return fail(400, { error: 'Not a manifest-based document' });
+    }
+
+    const manifestObj = await r2.get(proposal.r2_manifest_key);
+    if (!manifestObj) return fail(500, { error: 'Manifest not found' });
+    const manifest = parseManifest(await manifestObj.text());
+    const r2Dir = proposal.r2_manifest_key.replace('/manifest.yaml', '');
+
+    const section = manifest.sections[form.data.section_index];
+    if (!section?.source) {
+      return fail(400, { error: 'Section has no source to refresh from' });
+    }
+
+    // Parse source "category/id"
+    const [category, fragmentId] = section.source.split('/');
+    if (!category || !fragmentId) {
+      return fail(400, { error: 'Invalid source reference' });
+    }
+
+    // Fetch latest from fragment_index
+    const meta = await db
+      .prepare(
+        'SELECT version, r2_key_en, r2_key_ja FROM fragment_index WHERE id = ? AND category = ?'
+      )
+      .bind(fragmentId, category)
+      .first<{ version: string | null; r2_key_en: string | null; r2_key_ja: string | null }>();
+
+    if (!meta) {
+      return fail(404, { error: 'Source fragment not found' });
+    }
+
+    // Copy latest content
+    let contentEn = '';
+    let contentJa = '';
+    if (meta.r2_key_en) {
+      const obj = await r2.get(meta.r2_key_en);
+      if (obj) {
+        const raw = await obj.text();
+        const { body } = parseFrontmatter(raw);
+        contentEn = body;
+      }
+    }
+    if (meta.r2_key_ja) {
+      const obj = await r2.get(meta.r2_key_ja);
+      if (obj) {
+        const raw = await obj.text();
+        const { body } = parseFrontmatter(raw);
+        contentJa = body;
+      }
+    }
+
+    // Overwrite section files
+    await r2.put(`${r2Dir}/${section.file}.en.md`, contentEn, {
+      httpMetadata: { contentType: 'text/markdown' },
+    });
+    await r2.put(`${r2Dir}/${section.file}.ja.md`, contentJa, {
+      httpMetadata: { contentType: 'text/markdown' },
+    });
+
+    // Update source version in manifest
+    section.source_version = meta.version ?? undefined;
+    manifest.updated_at = new Date().toISOString().slice(0, 10);
+
+    await r2.put(proposal.r2_manifest_key, serializeManifest(manifest), {
+      httpMetadata: { contentType: 'text/yaml' },
+    });
+
+    return { success: true };
+  },
+
+  /** Remove a section from the document */
+  removeSection: async ({ params, request, platform }) => {
+    if (!platform?.env?.DB || !platform?.env?.R2) {
+      return fail(500, { error: 'Database or storage not available' });
+    }
+    const db = platform.env.DB;
+    const r2 = platform.env.R2;
+
+    const form = await superValidate(request, zod4(removeSectionSchema));
+    if (!form.valid) return fail(400, { error: 'Invalid input' });
+
+    const proposal = await db
+      .prepare('SELECT r2_manifest_key FROM proposals WHERE id = ?')
+      .bind(params.id)
+      .first<{ r2_manifest_key: string | null }>();
+    if (!proposal?.r2_manifest_key) {
+      return fail(400, { error: 'Not a manifest-based document' });
+    }
+
+    const manifestObj = await r2.get(proposal.r2_manifest_key);
+    if (!manifestObj) return fail(500, { error: 'Manifest not found' });
+    const manifest = parseManifest(await manifestObj.text());
+    const r2Dir = proposal.r2_manifest_key.replace('/manifest.yaml', '');
+
+    const section = manifest.sections[form.data.section_index];
+    if (!section) return fail(400, { error: 'Section index out of range' });
+
+    // Delete section files from R2
+    await r2.delete(`${r2Dir}/${section.file}.en.md`);
+    await r2.delete(`${r2Dir}/${section.file}.ja.md`);
+
+    // Remove from manifest
+    const updated = manifestRemoveSection(manifest, form.data.section_index);
+
+    await r2.put(proposal.r2_manifest_key, serializeManifest(updated), {
+      httpMetadata: { contentType: 'text/yaml' },
+    });
+
+    return { success: true };
+  },
+
+  /** Reorder sections in the manifest */
+  reorderSections: async ({ params, request, platform }) => {
+    if (!platform?.env?.DB || !platform?.env?.R2) {
+      return fail(500, { error: 'Database or storage not available' });
+    }
+    const db = platform.env.DB;
+    const r2 = platform.env.R2;
+
+    const form = await superValidate(request, zod4(reorderSectionSchema));
+    if (!form.valid) return fail(400, { error: 'Invalid input' });
+
+    const proposal = await db
+      .prepare('SELECT r2_manifest_key FROM proposals WHERE id = ?')
+      .bind(params.id)
+      .first<{ r2_manifest_key: string | null }>();
+    if (!proposal?.r2_manifest_key) {
+      return fail(400, { error: 'Not a manifest-based document' });
+    }
+
+    const manifestObj = await r2.get(proposal.r2_manifest_key);
+    if (!manifestObj) return fail(500, { error: 'Manifest not found' });
+    const manifest = parseManifest(await manifestObj.text());
+
+    const updated = manifestReorderSections(manifest, form.data.from_index, form.data.to_index);
+
+    await r2.put(proposal.r2_manifest_key, serializeManifest(updated), {
+      httpMetadata: { contentType: 'text/yaml' },
+    });
+
+    return { success: true };
+  },
+
+  /** Add a custom (blank) section */
+  addCustomSection: async ({ params, request, platform }) => {
+    if (!platform?.env?.DB || !platform?.env?.R2) {
+      return fail(500, { error: 'Database or storage not available' });
+    }
+    const db = platform.env.DB;
+    const r2 = platform.env.R2;
+
+    const form = await superValidate(request, zod4(addCustomSectionSchema));
+    if (!form.valid) return fail(400, { error: 'Invalid input' });
+
+    const proposal = await db
+      .prepare('SELECT r2_manifest_key FROM proposals WHERE id = ?')
+      .bind(params.id)
+      .first<{ r2_manifest_key: string | null }>();
+    if (!proposal?.r2_manifest_key) {
+      return fail(400, { error: 'Not a manifest-based document' });
+    }
+
+    const manifestObj = await r2.get(proposal.r2_manifest_key);
+    if (!manifestObj) return fail(500, { error: 'Manifest not found' });
+    let manifest = parseManifest(await manifestObj.text());
+    const r2Dir = proposal.r2_manifest_key.replace('/manifest.yaml', '');
+
+    const prefix = getNextFilePrefix(manifest);
+    const fileSlug = slugify(form.data.label);
+    const fileStem = `${prefix}-${fileSlug}`;
+
+    // Create empty section files
+    await r2.put(`${r2Dir}/${fileStem}.en.md`, '', {
+      httpMetadata: { contentType: 'text/markdown' },
+    });
+    await r2.put(`${r2Dir}/${fileStem}.ja.md`, '', {
+      httpMetadata: { contentType: 'text/markdown' },
+    });
+
+    manifest = addSection(manifest, {
+      file: fileStem,
+      label: form.data.label,
+      label_ja: form.data.label_ja ?? undefined,
+      source: null,
+      locked: false,
+    });
+
+    await r2.put(proposal.r2_manifest_key, serializeManifest(manifest), {
+      httpMetadata: { contentType: 'text/yaml' },
+    });
+
+    return { success: true };
   },
 
   // Delete proposal

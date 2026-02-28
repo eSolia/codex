@@ -10,6 +10,7 @@
     title: string;
     language: string;
     status: string;
+    document_type: string | null;
     share_id: string | null;
     shared_at: string | null;
     created_at: string;
@@ -36,6 +37,14 @@
         return 'bg-gray-100 text-gray-800';
     }
   }
+
+  const typeLabels: Record<string, string> = {
+    proposal: 'Proposal',
+    report: 'Report',
+    quote: 'Quote',
+    sow: 'SOW',
+    assessment: 'Assessment',
+  };
 </script>
 
 <svelte:head>
@@ -97,6 +106,11 @@
             <th
               class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
             >
+              Type
+            </th>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
               Client
             </th>
             <th
@@ -127,6 +141,13 @@
                   <FileText size={18} weight="duotone" class="text-gray-400" />
                   {doc.title}
                 </a>
+              </td>
+              <td class="px-6 py-4">
+                <span
+                  class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-50 text-indigo-700"
+                >
+                  {typeLabels[doc.document_type ?? 'proposal'] ?? 'Proposal'}
+                </span>
               </td>
               <td class="px-6 py-4">
                 {#if doc.client_code}
