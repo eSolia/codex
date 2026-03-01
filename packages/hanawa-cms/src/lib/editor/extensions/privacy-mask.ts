@@ -8,6 +8,12 @@
 
 import { Mark, mergeAttributes } from '@tiptap/core';
 
+/** Minimal type for @tiptap/markdown serializer state */
+interface MarkdownSerializerState {
+  write(text: string): void;
+  ensureNewLine(): void;
+}
+
 export type MaskType = 'pii' | 'financial' | 'internal' | 'technical' | 'custom';
 
 export interface PrivacyMaskOptions {
@@ -32,6 +38,25 @@ export const PrivacyMask = Mark.create<PrivacyMaskOptions>({
     return {
       HTMLAttributes: {},
       privacyMode: false, // When true, content is visually obscured
+    };
+  },
+
+  addStorage() {
+    return {
+      markdown: {
+        serialize: {
+          open(state: MarkdownSerializerState, mark: { attrs: Record<string, unknown> }) {
+            const type = (mark.attrs.type as string) || 'pii';
+            state.write(`{mask type="${type}"}`);
+          },
+          close(_state: MarkdownSerializerState) {
+            _state.write('{/mask}');
+          },
+        },
+        parse: {
+          // Custom inline syntax; falls back to HTML span parsing
+        },
+      },
     };
   },
 

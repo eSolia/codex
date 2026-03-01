@@ -1,0 +1,42 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "esolia-standards-mcp",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-04-01",
+  "compatibility_flags": ["nodejs_compat"],
+
+  // R2 bucket for standards documents (same codex bucket used by Hanawa)
+  // Create with: npx wrangler r2 bucket create codex
+  // Standards are stored at standards/{slug}.md within the bucket
+  "r2_buckets": [
+    {
+      "binding": "STANDARDS_R2",
+      "bucket_name": "codex"
+    }
+  ],
+
+  // Durable Objects for MCP agent state
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "MCP_OBJECT",
+        "class_name": "EsoliaStandardsMCP"
+      }
+    ]
+  },
+
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_classes": ["EsoliaStandardsMCP"]
+    }
+  ],
+
+  // Optional: restrict access with a shared secret
+  // Set via: npx wrangler secret put SHARED_SECRET
+  // Then in Claude Code config, pass as Bearer token header
+
+  "observability": {
+    "enabled": true
+  }
+}

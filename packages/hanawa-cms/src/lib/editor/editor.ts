@@ -3,21 +3,23 @@
  * Creates a configured Tiptap editor instance with all custom extensions
  *
  * InfoSec: All extensions reviewed for XSS prevention (OWASP A03)
+ *
+ * Tiptap 3.x — consolidated packages:
+ *   Table: @tiptap/extension-table (includes Row, Cell, Header)
+ *   Lists: @tiptap/extension-list (TaskList, TaskItem)
+ *   Utils: @tiptap/extensions (Placeholder)
+ *   Markdown: @tiptap/markdown (bidirectional markdown support)
  */
 
 import { Editor, type Extensions } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import Image from '@tiptap/extension-image';
-import Table from '@tiptap/extension-table';
-import TableRow from '@tiptap/extension-table-row';
-import TableCell from '@tiptap/extension-table-cell';
-import TableHeader from '@tiptap/extension-table-header';
-import TaskList from '@tiptap/extension-task-list';
-import TaskItem from '@tiptap/extension-task-item';
-import Placeholder from '@tiptap/extension-placeholder';
+import { Table, TableRow, TableCell, TableHeader } from '@tiptap/extension-table';
+import { TaskList, TaskItem } from '@tiptap/extension-list';
+import { Placeholder } from '@tiptap/extensions';
 import Highlight from '@tiptap/extension-highlight';
-import Underline from '@tiptap/extension-underline';
+import { Markdown } from '@tiptap/markdown';
 
 import Callout from './extensions/callout';
 import StatusBadge from './extensions/status-badge';
@@ -30,10 +32,11 @@ import SlashCommands from './extensions/slash-commands';
 export interface EditorConfig {
   element: HTMLElement;
   content?: string;
+  contentType?: 'html' | 'markdown';
   placeholder?: string;
   privacyMode?: boolean;
   editable?: boolean;
-  onUpdate?: (content: { html: string; text: string }) => void;
+  onUpdate?: (content: { html: string; text: string; markdown?: string }) => void;
   onFocus?: () => void;
   onBlur?: () => void;
   onTransaction?: () => void;
@@ -46,6 +49,7 @@ export function createEditor(config: EditorConfig): Editor {
   const {
     element,
     content = '',
+    contentType = 'html',
     placeholder = 'Start writing...',
     privacyMode = false,
     editable = true,
@@ -57,7 +61,10 @@ export function createEditor(config: EditorConfig): Editor {
 
   const extensions: Extensions = [
     // Core editing
+    // Tiptap 3: StarterKit now includes Link, Underline, ListKeymap by default
+    // We disable Link here and configure it separately for security (OWASP A03)
     StarterKit.configure({
+      link: false,
       heading: {
         levels: [1, 2, 3, 4],
       },
@@ -72,6 +79,9 @@ export function createEditor(config: EditorConfig): Editor {
         },
       },
     }),
+
+    // Markdown support (bidirectional: parse markdown → Tiptap, serialize Tiptap → markdown)
+    Markdown,
 
     // Links - InfoSec: Prevent javascript: URLs (OWASP A03)
     Link.configure({
@@ -91,7 +101,7 @@ export function createEditor(config: EditorConfig): Editor {
       allowBase64: false, // Prevent data: URLs for security
     }),
 
-    // Tables
+    // Tables (Tiptap 3: consolidated into single package)
     Table.configure({
       resizable: true,
       HTMLAttributes: {
@@ -110,7 +120,7 @@ export function createEditor(config: EditorConfig): Editor {
       },
     }),
 
-    // Task lists
+    // Task lists (Tiptap 3: from @tiptap/extension-list)
     TaskList.configure({
       HTMLAttributes: {
         class: 'list-none pl-0',
@@ -123,7 +133,7 @@ export function createEditor(config: EditorConfig): Editor {
       },
     }),
 
-    // Formatting
+    // Formatting (Tiptap 3: Placeholder from @tiptap/extensions)
     Placeholder.configure({
       placeholder,
       emptyEditorClass: 'is-editor-empty',
@@ -131,7 +141,7 @@ export function createEditor(config: EditorConfig): Editor {
     Highlight.configure({
       multicolor: true,
     }),
-    Underline,
+    // Note: Underline is now included in StarterKit v3
 
     // Custom Hanawa extensions
     Callout,
@@ -149,6 +159,8 @@ export function createEditor(config: EditorConfig): Editor {
     element,
     extensions,
     content,
+    // Tiptap 3 + @tiptap/markdown: parse content as markdown when contentType is 'markdown'
+    ...(contentType === 'markdown' ? { contentType: 'markdown' } : {}),
     editable,
     autofocus: false,
     editorProps: {
@@ -162,6 +174,8 @@ export function createEditor(config: EditorConfig): Editor {
         onUpdate({
           html: editor.getHTML(),
           text: editor.getText(),
+          // Tiptap 3 + @tiptap/markdown: getMarkdown() method added via module augmentation
+          markdown: editor.getMarkdown ? editor.getMarkdown() : undefined,
         });
       }
     },
@@ -177,6 +191,17 @@ export function createEditor(config: EditorConfig): Editor {
   });
 
   return editor;
+}
+
+/**
+ * Get markdown content from editor (returns empty string if Markdown extension not loaded)
+ * Tiptap 3 + @tiptap/markdown adds getMarkdown() to the Editor via module augmentation
+ */
+export function getEditorMarkdown(editor: Editor): string {
+  if (editor.getMarkdown) {
+    return editor.getMarkdown();
+  }
+  return '';
 }
 
 /**

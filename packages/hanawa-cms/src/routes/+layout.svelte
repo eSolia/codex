@@ -64,6 +64,12 @@
             Fragments
           </a>
           <a
+            href="/standards"
+            class="px-3 py-2 rounded-md text-sm font-medium hover:bg-white/10 transition-colors"
+          >
+            Standards
+          </a>
+          <a
             href="/templates"
             class="px-3 py-2 rounded-md text-sm font-medium hover:bg-white/10 transition-colors"
           >

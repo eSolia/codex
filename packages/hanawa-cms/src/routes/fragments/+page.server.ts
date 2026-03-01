@@ -1,5 +1,6 @@
 /**
  * Fragments List Page Server Load
+ * Queries fragment_index (markdown-first, R2-backed fragments).
  * InfoSec: Parameterized queries prevent SQL injection (OWASP A03)
  */
 
@@ -19,8 +20,9 @@ export const load: PageServerLoad = async ({ platform, url }) => {
 
   try {
     let query = `
-      SELECT id, name, slug, category, description, tags, is_bilingual, created_at, updated_at
-      FROM fragments
+      SELECT id, category, title_en, title_ja, type, version, status,
+             tags, has_en, has_ja, sensitivity, author, updated_at
+      FROM fragment_index
       WHERE 1=1
     `;
     const params: string[] = [];
@@ -30,16 +32,16 @@ export const load: PageServerLoad = async ({ platform, url }) => {
       params.push(categoryFilter);
     }
     if (tagFilter) {
-      // Tags are stored as JSON array, search within
+      // Tags stored as JSON array, search within
       query += ' AND tags LIKE ?';
       params.push(`%"${tagFilter}"%`);
     }
     if (searchQuery) {
-      query += ' AND (name LIKE ? OR description LIKE ? OR tags LIKE ?)';
-      params.push(`%${searchQuery}%`, `%${searchQuery}%`, `%${searchQuery}%`);
+      query += ' AND (title_en LIKE ? OR title_ja LIKE ? OR id LIKE ? OR tags LIKE ?)';
+      params.push(`%${searchQuery}%`, `%${searchQuery}%`, `%${searchQuery}%`, `%${searchQuery}%`);
     }
 
-    query += ' ORDER BY category, name ASC LIMIT 100';
+    query += ' ORDER BY category, title_en ASC LIMIT 200';
 
     const fragmentsResult = await db
       .prepare(query)
@@ -48,12 +50,12 @@ export const load: PageServerLoad = async ({ platform, url }) => {
 
     // Get unique categories
     const categoriesResult = await db
-      .prepare('SELECT DISTINCT category FROM fragments ORDER BY category')
+      .prepare('SELECT DISTINCT category FROM fragment_index ORDER BY category')
       .all();
 
-    // Get unique tags - extract from JSON arrays
+    // Get unique tags — extract from JSON arrays
     const tagsResult = await db
-      .prepare('SELECT DISTINCT tags FROM fragments WHERE tags IS NOT NULL')
+      .prepare("SELECT DISTINCT tags FROM fragment_index WHERE tags IS NOT NULL AND tags != '[]'")
       .all();
 
     // Parse and dedupe tags
@@ -70,14 +72,7 @@ export const load: PageServerLoad = async ({ platform, url }) => {
       }
     }
 
-    // Sort tags, putting client-type tags first
-    const sortedTags = Array.from(allTags).sort((a, b) => {
-      const aIsClient = a.includes('-client');
-      const bIsClient = b.includes('-client');
-      if (aIsClient && !bIsClient) return -1;
-      if (!aIsClient && bIsClient) return 1;
-      return a.localeCompare(b);
-    });
+    const sortedTags = Array.from(allTags).sort((a, b) => a.localeCompare(b));
 
     return {
       fragments: fragmentsResult.results ?? [],

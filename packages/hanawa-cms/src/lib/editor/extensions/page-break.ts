@@ -8,6 +8,12 @@
 
 import { Node, mergeAttributes } from '@tiptap/core';
 
+/** Minimal type for @tiptap/markdown serializer state */
+interface MarkdownSerializerState {
+  write(text: string): void;
+  ensureNewLine(): void;
+}
+
 export interface PageBreakOptions {
   HTMLAttributes: Record<string, unknown>;
 }
@@ -34,6 +40,19 @@ export const PageBreak = Node.create<PageBreakOptions>({
   atom: true,
 
   draggable: true,
+
+  addStorage() {
+    return {
+      markdown: {
+        serialize(state: MarkdownSerializerState) {
+          state.write('<!-- pagebreak -->\n\n');
+        },
+        parse: {
+          // HTML comments are passed through by Marked; parseHTML handles them
+        },
+      },
+    };
+  },
 
   parseHTML() {
     return [

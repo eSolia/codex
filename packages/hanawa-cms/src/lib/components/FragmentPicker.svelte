@@ -15,19 +15,28 @@
 
   interface Fragment {
     id: string;
-    name: string;
+    title_en: string | null;
+    title_ja: string | null;
     category: string;
-    is_bilingual: number;
+    has_en: number;
+    has_ja: number;
   }
 
   interface Props {
     open?: boolean;
     lang?: string;
+    mode?: 'reference' | 'insert';
     onselect?: (fragmentId: string, lang: string) => void;
     onclose?: () => void;
   }
 
-  let { open = $bindable(false), lang = 'en', onselect, onclose }: Props = $props();
+  let {
+    open = $bindable(false),
+    lang = 'en',
+    mode: _mode = 'reference',
+    onselect,
+    onclose,
+  }: Props = $props();
 
   let _fragments = $state<Fragment[]>([]);
   let grouped = $state<Record<string, Fragment[]>>({});
@@ -83,7 +92,10 @@
       if (selectedCategory && category !== selectedCategory) continue;
 
       const filtered = frags.filter(
-        (f) => f.id.toLowerCase().includes(query) || f.name.toLowerCase().includes(query)
+        (f) =>
+          f.id.toLowerCase().includes(query) ||
+          (f.title_en || '').toLowerCase().includes(query) ||
+          (f.title_ja || '').toLowerCase().includes(query)
       );
 
       if (filtered.length > 0) {
@@ -220,11 +232,13 @@
                     ondblclick={handleInsert}
                   >
                     <div class="fragment-info">
-                      <span class="fragment-name">{fragment.name}</span>
+                      <span class="fragment-name"
+                        >{fragment.title_en || fragment.title_ja || fragment.id}</span
+                      >
                       <code class="fragment-id">{fragment.id}</code>
                     </div>
                     <div class="fragment-meta">
-                      {#if fragment.is_bilingual}
+                      {#if fragment.has_en && fragment.has_ja}
                         <span class="bilingual-badge" title="Bilingual content">
                           <Translate size={14} />
                           EN/JA

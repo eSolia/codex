@@ -1,0 +1,45 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "typst-pdf",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-01-01",
+  "compatibility_flags": ["nodejs_compat"],
+
+  // Cloudflare Container for pandoc + typst
+  "containers": [
+    {
+      "class_name": "TypstPdfContainer",
+      "image": "./container",
+      "instance_type": "standard-1",
+      "max_instances": 3
+    }
+  ],
+
+  // Durable Object binding to the container
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "TYPST_CONTAINER",
+        "class_name": "TypstPdfContainer"
+      }
+    ]
+  },
+
+  // Observability
+  "observability": {
+    "enabled": true,
+    "logs": {
+      "enabled": true,
+      "invocation_logs": true,
+      "head_sampling_rate": 1
+    }
+  },
+
+  // Migrations for Durable Object
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_classes": ["TypstPdfContainer"]
+    }
+  ]
+}

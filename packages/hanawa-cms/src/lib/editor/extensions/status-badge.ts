@@ -7,6 +7,13 @@
  */
 
 import { Node, mergeAttributes } from '@tiptap/core';
+import type { Node as ProseMirrorNode } from '@tiptap/pm/model';
+
+/** Minimal type for @tiptap/markdown serializer state */
+interface MarkdownSerializerState {
+  write(text: string): void;
+  ensureNewLine(): void;
+}
 
 export type StatusType =
   | 'compliant'
@@ -50,6 +57,22 @@ export const StatusBadge = Node.create<StatusBadgeOptions>({
   inline: true,
 
   atom: true,
+
+  addStorage() {
+    return {
+      markdown: {
+        serialize(state: MarkdownSerializerState, node: ProseMirrorNode) {
+          const status = node.attrs.status as string;
+          const id = node.attrs.id as string | null;
+          const idAttr = id ? ` id="${id}"` : '';
+          state.write(`{status:${status}${idAttr}}`);
+        },
+        parse: {
+          // Custom inline syntax; falls back to HTML span parsing
+        },
+      },
+    };
+  },
 
   addAttributes() {
     return {

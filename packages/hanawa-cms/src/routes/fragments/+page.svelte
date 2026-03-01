@@ -3,18 +3,32 @@
 
   let { data }: { data: PageData } = $props();
 
+  interface FragmentRow {
+    id: string;
+    category: string;
+    title_en: string | null;
+    title_ja: string | null;
+    type: string | null;
+    version: string | null;
+    status: string;
+    tags: string | null;
+    has_en: number;
+    has_ja: number;
+    sensitivity: string | null;
+    author: string | null;
+    updated_at: string | null;
+  }
+
   // Group fragments by category
-  function groupByCategory(
-    fragments: Array<{ category: string; [key: string]: unknown }>
-  ): Record<string, Array<{ category: string; [key: string]: unknown }>> {
+  function groupByCategory(fragments: FragmentRow[]): Record<string, FragmentRow[]> {
     return fragments.reduce(
       (acc, fragment) => {
-        const cat = fragment.category || 'Uncategorized';
+        const cat = fragment.category || 'uncategorized';
         if (!acc[cat]) acc[cat] = [];
         acc[cat].push(fragment);
         return acc;
       },
-      {} as Record<string, Array<{ category: string; [key: string]: unknown }>>
+      {} as Record<string, FragmentRow[]>
     );
   }
 
@@ -37,9 +51,28 @@
     return 'bg-gray-100 text-gray-600';
   }
 
-  let groupedFragments = $derived(
-    groupByCategory((data.fragments ?? []) as Array<{ category: string; [key: string]: unknown }>)
-  );
+  // Get status badge style
+  function getStatusStyle(status: string): string {
+    switch (status) {
+      case 'production':
+        return 'bg-green-100 text-green-800';
+      case 'draft':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'deprecated':
+        return 'bg-red-100 text-red-800';
+      case 'archived':
+        return 'bg-gray-100 text-gray-600';
+      default:
+        return 'bg-gray-100 text-gray-600';
+    }
+  }
+
+  // Display title with fallback
+  function displayTitle(frag: FragmentRow): string {
+    return frag.title_en || frag.title_ja || frag.id;
+  }
+
+  let groupedFragments = $derived(groupByCategory((data.fragments ?? []) as FragmentRow[]));
 </script>
 
 <svelte:head>
@@ -88,16 +121,9 @@
         class="rounded-md border-gray-300 shadow-sm focus:border-esolia-navy focus:ring-esolia-navy"
       >
         <option value="">All Tags</option>
-        <optgroup label="Client Type">
-          {#each (data.tags ?? []).filter((t) => t.includes('-client')) as tag}
-            <option value={tag} selected={data.currentTag === tag}>{tag}</option>
-          {/each}
-        </optgroup>
-        <optgroup label="Other Tags">
-          {#each (data.tags ?? []).filter((t) => !t.includes('-client')) as tag}
-            <option value={tag} selected={data.currentTag === tag}>{tag}</option>
-          {/each}
-        </optgroup>
+        {#each data.tags ?? [] as tag}
+          <option value={tag} selected={data.currentTag === tag}>{tag}</option>
+        {/each}
       </select>
       <button
         type="submit"
@@ -144,39 +170,62 @@
           </h2>
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {#each fragments as fragment}
-              {@const tags = parseTags(fragment.tags as string)}
-              {@const clientTag = tags.find((t) => t.includes('-client'))}
+              {@const tags = parseTags(fragment.tags)}
               <a
                 href="/fragments/{fragment.id}"
                 class="bg-white rounded-lg shadow hover:shadow-md transition-shadow p-4 border-l-4 border-esolia-orange"
               >
                 <div class="flex items-start justify-between gap-2">
-                  <h3 class="font-medium text-gray-900">{fragment.name}</h3>
+                  <h3 class="font-medium text-gray-900">{displayTitle(fragment)}</h3>
                   <div class="flex items-center gap-1 flex-shrink-0">
-                    {#if fragment.is_bilingual}
+                    {#if fragment.has_en && fragment.has_ja}
                       <span
                         class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800"
                       >
                         EN/JA
                       </span>
+                    {:else if fragment.has_en}
+                      <span
+                        class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600"
+                      >
+                        EN
+                      </span>
+                    {:else if fragment.has_ja}
+                      <span
+                        class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600"
+                      >
+                        JA
+                      </span>
                     {/if}
                   </div>
                 </div>
-                <p class="text-sm text-gray-500 mt-1">{fragment.slug}</p>
-                {#if fragment.description}
-                  <p class="text-sm text-gray-600 mt-2 line-clamp-2">
-                    {fragment.description}
-                  </p>
-                {/if}
-                {#if clientTag}
-                  <div class="mt-2">
-                    <span
-                      class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium {getTagStyle(
-                        clientTag
-                      )}"
-                    >
-                      {clientTag}
-                    </span>
+                <p class="text-sm text-gray-500 mt-1 font-mono">{fragment.id}</p>
+                <div class="flex items-center gap-2 mt-2">
+                  <span
+                    class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium {getStatusStyle(
+                      fragment.status
+                    )}"
+                  >
+                    {fragment.status}
+                  </span>
+                  {#if fragment.type}
+                    <span class="text-xs text-gray-400">{fragment.type}</span>
+                  {/if}
+                </div>
+                {#if tags.length > 0}
+                  <div class="mt-2 flex flex-wrap gap-1">
+                    {#each tags.slice(0, 3) as tag}
+                      <span
+                        class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium {getTagStyle(
+                          tag
+                        )}"
+                      >
+                        {tag}
+                      </span>
+                    {/each}
+                    {#if tags.length > 3}
+                      <span class="text-xs text-gray-400">+{tags.length - 3}</span>
+                    {/if}
                   </div>
                 {/if}
               </a>

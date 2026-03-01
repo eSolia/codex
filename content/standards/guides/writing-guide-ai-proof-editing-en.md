@@ -1,6 +1,18 @@
+---
+title: "AI-Proof Editing Guide (English)"
+slug: writing-guide-ai-proof-editing-en
+category: guides
+tags: [writing, editing, ai-detection, english]
+summary: "English AI-pattern detection, vocabulary red flags, and editing checklist"
+author: "eSolia Technical Team"
+created: "2025-12-29"
+modified: "2026-03-01"
+---
 # Writing Guide: AI-Proof Editing
 
 > eSolia INTERNAL — Not for distribution outside eSolia
+>
+> **Companion guides:** [日本語版](WRITING_GUIDE_AI_PROOF_EDITING_JA.md) | [Article Writing Guide](ARTICLE_WRITING_GUIDE.md) | [Content Localization Strategy](CONTENT_LOCALIZATION_STRATEGY.md)
 
 ## Purpose
 
@@ -25,30 +37,34 @@ Certain words and phrases appear with unnatural frequency in AI-generated text. 
 
 ### Overused single words
 
-| Avoid or use sparingly | Why it's a red flag |
-|---|---|
-| delve, navigate (metaphorical), leverage | AI reaches for these the way a nervous speaker reaches for "um" |
-| robust, streamline, holistic, pivotal | Vague intensifiers that add no specific meaning |
-| tapestry, realm, landscape (metaphorical) | Dramatic framing for mundane topics |
-| nuanced, multifaceted | AI hedging — implies complexity without demonstrating it |
-| foster, facilitate, harness | Corporate filler verbs that obscure who does what |
-| keen, moreover, furthermore | Stiff connectors that sound like a term paper |
+| Avoid or use sparingly                    | Why it's a red flag                                             |
+| ----------------------------------------- | --------------------------------------------------------------- |
+| delve, navigate (metaphorical), leverage  | AI reaches for these the way a nervous speaker reaches for "um" |
+| robust, streamline, holistic, pivotal     | Vague intensifiers that add no specific meaning                 |
+| tapestry, realm, landscape (metaphorical) | Dramatic framing for mundane topics                             |
+| nuanced, multifaceted                     | AI hedging — implies complexity without demonstrating it        |
+| foster, facilitate, harness               | Corporate filler verbs that obscure who does what               |
+| keen, moreover, furthermore               | Stiff connectors that sound like a term paper                   |
 
 ### Overused phrases
 
-| Phrase | What to write instead |
-|---|---|
-| "It's worth noting that..." | Just state the thing. If it's worth noting, note it. |
-| "It's important to note..." | Same problem. Delete the preamble. |
-| "Let's dive in / unpack this" | Start with the content. The reader knows you're about to explain. |
-| "Why that matters" | Rewrite the preceding sentence so the relevance is self-evident. |
-| "At the end of the day" | Cut entirely or replace with a specific conclusion. |
-| "In today's [X] landscape" | Name the actual situation. "With M365 licensing changes in 2025..." |
-| "This is a really great question" | Answer the question. |
-| "I'm genuinely excited about" | Show enthusiasm through specifics, not declarations of emotion. |
-| "That said..." / "To be sure..." | Use occasionally, but if it appears more than once per page, you're over-hedging. |
-| "Let's explore..." | Just explore it. |
-| "The key takeaway here is" | If your writing is clear, the reader already knows. |
+| Phrase                                | What to write instead                                                                       |
+| ------------------------------------- | ------------------------------------------------------------------------------------------- |
+| "It's worth noting that..."           | Just state the thing. If it's worth noting, note it.                                        |
+| "It's important to note..."           | Same problem. Delete the preamble.                                                          |
+| "Let's dive in / unpack this"         | Start with the content. The reader knows you're about to explain.                           |
+| "Why that matters"                    | Rewrite the preceding sentence so the relevance is self-evident.                            |
+| "At the end of the day"               | Cut entirely or replace with a specific conclusion.                                         |
+| "In today's [X] landscape"            | Name the actual situation. "With M365 licensing changes in 2025..."                         |
+| "This is a really great question"     | Answer the question.                                                                        |
+| "I'm genuinely excited about"         | Show enthusiasm through specifics, not declarations of emotion.                             |
+| "That said..." / "To be sure..."      | Use occasionally, but if it appears more than once per page, you're over-hedging.           |
+| "Let's explore..."                    | Just explore it.                                                                            |
+| "The key takeaway here is"            | If your writing is clear, the reader already knows.                                         |
+| "What X actually means/costs"         | Drop "actually" — it implies the reader was wrong before. Just explain.                     |
+| "Here's what..." / "Here are..."      | Delete the preamble and start with the content. "We require:" not "Here's what we require:" |
+| "The reality is..." / "In reality..." | State the reality without announcing it.                                                    |
+| "It's also worth mentioning..."       | Mention it, or don't. No preamble needed.                                                   |
 
 ---
 
@@ -103,6 +119,10 @@ Excessive courtesy markers — "I'd be happy to help with that!", "Thank you for
 ### Signposting overkill
 
 AI narrates its own actions: "Let me explain," "Here's the thing," "Let's take a closer look at." This is the written equivalent of someone saying "I'm going to walk to the door now" while walking to the door. Just do the thing.
+
+The "Here's" family is especially persistent — "Here's what we found," "Here's a breakdown," "Here are the common structures." These survive editing passes because they feel conversational, but they're verbal tics, not content. Delete the signpost and start with the substance.
+
+Similarly, "What X actually means" (or "actually costs," "actually looks like") is an AI framing device. It positions the writer as revealing hidden truth. Drop "actually" entirely, or rewrite the heading to describe the content directly: "Translation vs. Localization" rather than "What Localization Actually Means."
 
 ---
 
@@ -161,19 +181,21 @@ Use this before sending any client-facing or published document:
 - [ ] No unnecessary introduction or conclusion paragraphs
 - [ ] Lists used only when genuinely clearer than prose
 - [ ] Sentences vary in length — mix short and long deliberately
+- [ ] No "Here's what/Here are" or "What X actually means" signposting
 - [ ] Read aloud: does it sound like something a real person at eSolia would say?
 
 ---
 
 ## A note on using AI as a writing tool
 
-This guide isn't anti-AI. Using Claude or other tools to draft, brainstorm, or restructure is efficient and encouraged. The point is that AI-generated text is a *starting point*, not a finished product — the same way you wouldn't ship a first draft of anything without revision.
+This guide isn't anti-AI. Using Claude or other tools to draft, brainstorm, or restructure is efficient and encouraged. The point is that AI-generated text is a _starting point_, not a finished product — the same way you wouldn't ship a first draft of anything without revision.
 
 The revision pass is where your expertise, your opinions, and your knowledge of the client's specific situation turn generic output into something distinctly eSolia. That's the part no model can do for you.
 
 ---
 
 ## お問い合わせ
+
 **株式会社イソリア**  
 〒105-7105　東京都港区東新橋一丁目５番２号  
 汐留シティセンター５階（Work Styling）  
@@ -182,6 +204,7 @@ The revision pass is where your expertise, your opinions, and your knowledge of 
 **作成担当:** rick.cogley@esolia.co.jp
 
 ## Contact
+
 **eSolia Inc.**  
 Shiodome City Center 5F (Work Styling)  
 1-5-2 Higashi-Shimbashi, Minato-ku, Tokyo, Japan 105-7105  

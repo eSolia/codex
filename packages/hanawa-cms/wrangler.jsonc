@@ -62,12 +62,17 @@
     "binding": "AI",
   },
 
-  // Service binding to PDF Worker (bypasses WAF, no API key needed)
+  // Service bindings (bypass WAF, no API key needed)
   "services": [
     {
       "binding": "PDF_SERVICE",
       "service": "pdf-worker",
     },
+    // TODO: Enable after deploying typst-pdf Worker
+    // {
+    //   "binding": "TYPST_PDF_SERVICE",
+    //   "service": "typst-pdf",
+    // },
   ],
 
   // Vectorize for semantic search (create with: wrangler vectorize create codex-index --dimensions=768 --metric=cosine)

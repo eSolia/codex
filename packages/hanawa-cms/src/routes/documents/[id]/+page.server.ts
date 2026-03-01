@@ -7,7 +7,36 @@ import type { PageServerLoad, Actions } from './$types';
 import { error, fail } from '@sveltejs/kit';
 import { superValidate } from 'sveltekit-superforms';
 import { zod4 } from 'sveltekit-superforms/adapters';
-import { saveDocumentSchema, updateDocumentStatusSchema, deleteDocumentSchema } from '$lib/schemas';
+import {
+  saveDocumentSchema,
+  updateDocumentStatusSchema,
+  deleteDocumentSchema,
+  insertSectionSchema,
+  reorderSectionSchema,
+  removeSectionSchema,
+  refreshSectionSchema,
+  addCustomSectionSchema,
+} from '$lib/schemas';
+import {
+  parseManifest,
+  serializeManifest,
+  addSection,
+  removeSection as manifestRemoveSection,
+  reorderSections as manifestReorderSections,
+  getNextFilePrefix,
+  slugify,
+  type DocumentManifest,
+} from '$lib/server/manifest';
+import { parseFrontmatter } from '$lib/server/frontmatter';
+
+// InfoSec: Role-based access control helper (OWASP A01)
+function requireRole(locals: App.Locals, ...allowedRoles: Array<'admin' | 'editor' | 'viewer'>) {
+  const role = locals.user?.role;
+  if (!role || !allowedRoles.includes(role)) {
+    return fail(403, { error: 'Insufficient permissions' });
+  }
+  return null;
+}
 
 /**
  * Process Tiptap callout blocks to PDF-styled HTML
@@ -731,6 +760,15 @@ interface Proposal {
   created_by: string | null;
   created_at: string;
   updated_at: string;
+  document_type: string | null;
+  r2_manifest_key: string | null;
+}
+
+/** Section content loaded from R2 for manifest-based documents */
+interface SectionContent {
+  file: string;
+  content_en: string;
+  content_ja: string;
 }
 
 interface FragmentContent {
@@ -748,6 +786,7 @@ export const load: PageServerLoad = async ({ params, platform }) => {
   }
 
   const db = platform.env.DB;
+  const r2 = platform.env.R2;
   const { id } = params;
 
   try {
@@ -761,6 +800,81 @@ export const load: PageServerLoad = async ({ params, platform }) => {
       throw error(404, 'Document not found');
     }
 
+    const updateStatusForm = await superValidate(zod4(updateDocumentStatusSchema));
+    const deleteForm = await superValidate(zod4(deleteDocumentSchema));
+
+    // ---------------------------------------------------------------
+    // Manifest-based document (Phase 4)
+    // ---------------------------------------------------------------
+    if (result.r2_manifest_key && r2) {
+      const manifestObj = await r2.get(result.r2_manifest_key);
+      if (!manifestObj) {
+        throw error(500, 'Manifest not found in R2');
+      }
+      const manifest = parseManifest(await manifestObj.text());
+      const r2Dir = result.r2_manifest_key.replace('/manifest.yaml', '');
+
+      // Load section content in parallel
+      const sectionContents: SectionContent[] = await Promise.all(
+        manifest.sections.map(async (section) => {
+          let contentEn = '';
+          let contentJa = '';
+          try {
+            const enObj = await r2.get(`${r2Dir}/${section.file}.en.md`);
+            if (enObj) contentEn = await enObj.text();
+          } catch (err) {
+            console.warn(`Failed to load ${section.file}.en.md:`, err);
+          }
+          try {
+            const jaObj = await r2.get(`${r2Dir}/${section.file}.ja.md`);
+            if (jaObj) contentJa = await jaObj.text();
+          } catch (err) {
+            console.warn(`Failed to load ${section.file}.ja.md:`, err);
+          }
+          return { file: section.file, content_en: contentEn, content_ja: contentJa };
+        })
+      );
+
+      const saveForm = await superValidate(
+        {
+          title: result.title,
+          title_ja: result.title_ja || '',
+          client_code: result.client_code || '',
+          client_name: result.client_name || '',
+          client_name_ja: result.client_name_ja || '',
+          contact_name: result.contact_name || '',
+          contact_name_ja: result.contact_name_ja || '',
+          language_mode: (result.language_mode || manifest.language_mode || 'en') as
+            | 'en'
+            | 'ja'
+            | 'both_en_first'
+            | 'both_ja_first',
+          fragments: '',
+          cover_letter_en: '',
+          cover_letter_ja: '',
+        },
+        zod4(saveDocumentSchema)
+      );
+
+      return {
+        proposal: result,
+        manifest,
+        sectionContents,
+        isManifestBased: true,
+        // Legacy fields kept for type compatibility
+        fragments: [] as Fragment[],
+        fragmentContents: [] as FragmentContent[],
+        availableFragments: [] as FragmentContent[],
+        boilerplates: [] as FragmentContent[],
+        saveForm,
+        updateStatusForm,
+        deleteForm,
+      };
+    }
+
+    // ---------------------------------------------------------------
+    // Legacy JSON-based document (pre-Phase 4)
+    // ---------------------------------------------------------------
     // Parse fragments JSON
     let fragments: Fragment[] = [];
     try {
@@ -774,7 +888,6 @@ export const load: PageServerLoad = async ({ params, platform }) => {
 
     let fragmentContents: FragmentContent[] = [];
     if (enabledFragmentIds.length > 0) {
-      // InfoSec: Build parameterized query for IN clause
       const placeholders = enabledFragmentIds.map(() => '?').join(',');
       const fragmentResult = await db
         .prepare(
@@ -811,7 +924,6 @@ export const load: PageServerLoad = async ({ params, platform }) => {
 
     const boilerplates = boilerplateResult.results ?? [];
 
-    // Initialize forms - convert null to empty string for optional fields
     const saveForm = await superValidate(
       {
         title: result.title,
@@ -828,11 +940,12 @@ export const load: PageServerLoad = async ({ params, platform }) => {
       },
       zod4(saveDocumentSchema)
     );
-    const updateStatusForm = await superValidate(zod4(updateDocumentStatusSchema));
-    const deleteForm = await superValidate(zod4(deleteDocumentSchema));
 
     return {
       proposal: result,
+      isManifestBased: false,
+      manifest: null,
+      sectionContents: [] as SectionContent[],
       fragments,
       fragmentContents,
       availableFragments,
@@ -852,7 +965,10 @@ export const load: PageServerLoad = async ({ params, platform }) => {
 
 export const actions: Actions = {
   // Update proposal details
-  update: async ({ params, request, platform }) => {
+  update: async ({ params, request, platform, locals }) => {
+    const rbac = requireRole(locals, 'editor', 'admin');
+    if (rbac) return rbac;
+
     if (!platform?.env?.DB) {
       const saveForm = await superValidate(request, zod4(saveDocumentSchema));
       saveForm.message = 'Database not available';
@@ -919,7 +1035,10 @@ export const actions: Actions = {
   },
 
   // Update workflow status
-  updateStatus: async ({ params, request, platform }) => {
+  updateStatus: async ({ params, request, platform, locals }) => {
+    const rbac = requireRole(locals, 'editor', 'admin');
+    if (rbac) return rbac;
+
     if (!platform?.env?.DB) {
       const updateStatusForm = await superValidate(request, zod4(updateDocumentStatusSchema));
       updateStatusForm.message = 'Database not available';
@@ -936,6 +1055,12 @@ export const actions: Actions = {
     }
 
     const { status, review_notes } = updateStatusForm.data;
+
+    // InfoSec: Only admins can set status to 'approved' (OWASP A01)
+    if (status === 'approved') {
+      const adminCheck = requireRole(locals, 'admin');
+      if (adminCheck) return adminCheck;
+    }
 
     try {
       if (status === 'approved' || status === 'review') {
@@ -969,7 +1094,10 @@ export const actions: Actions = {
   },
 
   // Generate PDF
-  generatePdf: async ({ params, request, platform }) => {
+  generatePdf: async ({ params, request, platform, locals }) => {
+    const rbac = requireRole(locals, 'editor', 'admin');
+    if (rbac) return rbac;
+
     if (!platform?.env?.DB) {
       return fail(500, { error: 'Database not available' });
     }
@@ -1034,26 +1162,80 @@ export const actions: Actions = {
         return fail(404, { error: 'Proposal not found' });
       }
 
-      // If no fragment config from client, fall back to parsing from proposal
-      if (enabledFragments.length === 0) {
-        try {
-          const fragments: Fragment[] = JSON.parse(proposal.fragments || '[]');
-          enabledFragments = fragments
-            .filter((f) => f.enabled)
-            .sort((a, b) => a.order - b.order)
-            .map((f) => ({ id: f.id, pageBreakBefore: f.pageBreakBefore }));
-          console.log('generatePdf: Parsed fragments from proposal:', enabledFragments.length);
-        } catch {
-          enabledFragments = [];
+      // --- Manifest-based path: load sections from R2 instead of D1 fragments ---
+      const isManifestBased = Boolean(proposal.r2_manifest_key);
+      let fragmentContents: FragmentContent[] = [];
+
+      if (isManifestBased && platform.env.R2) {
+        const r2 = platform.env.R2;
+        const manifestObj = await r2.get(proposal.r2_manifest_key!);
+        if (manifestObj) {
+          const manifestYaml = await manifestObj.text();
+          const manifest = parseManifest(manifestYaml);
+          const r2Dir = proposal.r2_manifest_key!.replace('/manifest.yaml', '');
+
+          // Load section content from R2 and map to FragmentContent structure
+          const sectionContents = await Promise.all(
+            manifest.sections.map(async (section) => {
+              let contentEn = '';
+              let contentJa = '';
+              try {
+                const enObj = await r2.get(`${r2Dir}/${section.file}.en.md`);
+                if (enObj) contentEn = await enObj.text();
+              } catch (err) {
+                console.warn(`PDF: Failed to load ${section.file}.en.md:`, err);
+              }
+              try {
+                const jaObj = await r2.get(`${r2Dir}/${section.file}.ja.md`);
+                if (jaObj) contentJa = await jaObj.text();
+              } catch (err) {
+                console.warn(`PDF: Failed to load ${section.file}.ja.md:`, err);
+              }
+              return { section, contentEn, contentJa };
+            })
+          );
+
+          // Map sections to enabledFragments + fragmentContents structures
+          enabledFragments = manifest.sections.map((s) => ({
+            id: s.file,
+            pageBreakBefore: false,
+          }));
+
+          fragmentContents = sectionContents.map(({ section, contentEn, contentJa }) => ({
+            id: section.file,
+            name: section.label,
+            slug: section.file,
+            category: section.source?.split('/')[0] ?? 'custom',
+            content_en: contentEn || null,
+            content_ja: contentJa || null,
+          }));
+
+          console.log(`generatePdf: Loaded ${fragmentContents.length} sections from manifest`);
         }
       }
 
-      // Now fetch fragment contents with the correct IDs
+      // --- Legacy path: load fragments from D1 ---
+      if (!isManifestBased) {
+        // If no fragment config from client, fall back to parsing from proposal
+        if (enabledFragments.length === 0) {
+          try {
+            const fragments: Fragment[] = JSON.parse(proposal.fragments || '[]');
+            enabledFragments = fragments
+              .filter((f) => f.enabled)
+              .sort((a, b) => a.order - b.order)
+              .map((f) => ({ id: f.id, pageBreakBefore: f.pageBreakBefore }));
+            console.log('generatePdf: Parsed fragments from proposal:', enabledFragments.length);
+          } catch {
+            enabledFragments = [];
+          }
+        }
+      }
+
+      // Now fetch fragment contents with the correct IDs (legacy path only)
       // InfoSec: Parameterized queries (OWASP A03)
       const enabledFragmentIds = enabledFragments.map((f) => f.id);
-      let fragmentContents: FragmentContent[] = [];
 
-      if (enabledFragmentIds.length > 0) {
+      if (!isManifestBased && enabledFragmentIds.length > 0) {
         fragmentContents = await withRetry(
           async () => {
             const placeholders = enabledFragmentIds.map(() => '?').join(',');
@@ -1258,6 +1440,275 @@ export const actions: Actions = {
       });
       // Date string for filename (JST)
       const dateStr = now.toLocaleDateString('en-CA', { timeZone: 'Asia/Tokyo' }).replace(/-/g, '');
+
+      // ═══════════════════════════════════════════════════════════
+      // TYPST PIPELINE — Native typesetting (manifest-based docs)
+      // Produces higher-quality PDFs with proper typography.
+      // Falls through to HTML pipeline when unavailable.
+      // ═══════════════════════════════════════════════════════════
+      const typstService = platform.env.TYPST_PDF_SERVICE;
+      const useTypst = isManifestBased && typstService;
+
+      if (useTypst) {
+        console.log('PDF: Using Typst pipeline (native typesetting)');
+
+        // Build provenance metadata
+        const provenance = {
+          source: 'esolia-codex',
+          document_id: proposal.id,
+          version: '1.0',
+          created: proposal.created_at,
+          modified: new Date().toISOString(),
+          author: 'eSolia Inc.',
+          language: isBilingual ? 'bilingual' : primaryLang,
+          license: 'Proprietary - eSolia Inc.',
+          client_code: proposal.client_code,
+          fragments_used: enabledFragmentIds,
+          renderer: 'typst',
+        };
+
+        // Collect SVG images for Typst pipeline (raw base64, not data URI img tags)
+        const typstImages: Record<string, string> = {};
+        if (platform.env.R2) {
+          // Scan all content for SVG/image paths
+          const allContent = [
+            ...fragmentContents.flatMap((f) => [f.content_en, f.content_ja]),
+            proposal.cover_letter_en,
+            proposal.cover_letter_ja,
+          ]
+            .filter(Boolean)
+            .join('\n');
+
+          // Find markdown image refs and data-svg-path attributes
+          const imgRegex =
+            /(?:!\[[^\]]*\]\(\/api\/diagrams\/([^)]+)\)|data-svg-path=["']([^"']+)["'])/gi;
+          let imgMatch;
+          const diagramPaths = new Map<string, string>(); // filename → r2Key
+
+          while ((imgMatch = imgRegex.exec(allContent)) !== null) {
+            const id = imgMatch[1] ?? imgMatch[2]?.replace('diagrams/', '').replace('.svg', '');
+            if (id) {
+              const filename = id.endsWith('.svg') ? id : `${id}.svg`;
+              const r2Key = `diagrams/${filename}`;
+              diagramPaths.set(filename, r2Key);
+            }
+          }
+
+          // Fetch SVGs from R2 and encode as base64
+          const svgFetches = [...diagramPaths.entries()].map(async ([filename, r2Key]) => {
+            try {
+              const object = await platform.env.R2.get(r2Key);
+              if (object) {
+                const svgContent = await object.text();
+                // Encode as base64 for the container to write as files
+                const encoder = new TextEncoder();
+                const bytes = encoder.encode(svgContent);
+                const CHUNK = 8192;
+                const chunks: string[] = [];
+                for (let i = 0; i < bytes.length; i += CHUNK) {
+                  const chunk = bytes.subarray(i, Math.min(i + CHUNK, bytes.length));
+                  chunks.push(String.fromCharCode(...chunk));
+                }
+                typstImages[filename] = btoa(chunks.join(''));
+                console.log(`PDF(typst): Loaded SVG ${filename}`);
+              }
+            } catch (err) {
+              console.warn(`PDF(typst): Failed to fetch ${r2Key}:`, err);
+            }
+          });
+          await Promise.all(svgFetches);
+        }
+
+        // Build sections for Typst request (markdown, frontmatter stripped)
+        const typstSections = enabledFragments.map((frag) => {
+          const content = contentMap.get(frag.id);
+          if (!content) return { label: frag.id, pageBreakBefore: frag.pageBreakBefore };
+
+          // Strip frontmatter from markdown sections
+          const contentEn = content.content_en
+            ? parseFrontmatter(content.content_en).body
+            : undefined;
+          const contentJa = content.content_ja
+            ? parseFrontmatter(content.content_ja).body
+            : undefined;
+
+          return {
+            label: content.name,
+            contentEn: contentEn || undefined,
+            contentJa: contentJa || undefined,
+            pageBreakBefore: frag.pageBreakBefore,
+          };
+        });
+
+        // Build Typst PDF request
+        // InfoSec: No user HTML reaches the Typst pipeline — markdown only (OWASP A03)
+        const typstRequest = {
+          mode: isBilingual ? 'bilingual' : 'single',
+          title: proposal.title,
+          titleJa: proposal.title_ja ?? undefined,
+          clientName: proposal.client_name ?? undefined,
+          clientNameJa: proposal.client_name_ja ?? undefined,
+          contactName: proposal.contact_name ?? undefined,
+          contactNameJa: proposal.contact_name_ja ?? undefined,
+          dateEn: dateFormattedEn,
+          dateJa: dateFormattedJa,
+          firstLanguage: firstLang as 'en' | 'ja',
+          primaryLanguage: primaryLang as 'en' | 'ja',
+          sections: typstSections,
+          coverLetterEn: proposal.cover_letter_en ?? undefined,
+          coverLetterJa: proposal.cover_letter_ja ?? undefined,
+          images: Object.keys(typstImages).length > 0 ? typstImages : undefined,
+          watermark: undefined, // Watermark config can be added here
+        };
+
+        // Call Typst PDF service via service binding
+        // InfoSec: Service binding is internal worker-to-worker, trusted (OWASP A05)
+        const typstResponse = await typstService.fetch('https://typst-pdf/pdf', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(typstRequest),
+        });
+
+        if (!typstResponse.ok) {
+          const errorText = await typstResponse.text();
+          console.error('Typst PDF generation failed:', errorText);
+          // Fall through to HTML pipeline on Typst failure
+          console.warn('PDF: Falling back to HTML pipeline');
+        } else {
+          // Decode response and store PDFs in R2
+          const typstResult = (await typstResponse.json()) as Record<string, unknown>;
+
+          function base64ToArrayBuffer(base64: string): ArrayBuffer {
+            const binary = atob(base64);
+            const bytes = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) {
+              bytes[i] = binary.charCodeAt(i);
+            }
+            return bytes.buffer;
+          }
+
+          if (isBilingual) {
+            const result = typstResult as {
+              combined: string;
+              english: string;
+              japanese: string;
+              pageInfo: {
+                coverPages: number;
+                englishPages: number;
+                japanesePages: number;
+                totalPages: number;
+              };
+            };
+
+            const combinedPdf = base64ToArrayBuffer(result.combined);
+            const englishPdf = base64ToArrayBuffer(result.english);
+            const japanesePdf = base64ToArrayBuffer(result.japanese);
+
+            let r2KeyCombined: string | null = null;
+            let r2KeyEn: string | null = null;
+            let r2KeyJa: string | null = null;
+
+            if (platform.env.R2) {
+              const clientFolder = proposal.client_code || 'general';
+              const basePath = `proposals/${clientFolder}/${proposal.id}`;
+              r2KeyCombined = `${basePath}.pdf`;
+              r2KeyEn = `${basePath}_en.pdf`;
+              r2KeyJa = `${basePath}_ja.pdf`;
+
+              const metadata = {
+                proposalId: proposal.id,
+                clientCode: proposal.client_code,
+                generatedAt: new Date().toISOString(),
+                renderer: 'typst',
+              };
+
+              await Promise.all([
+                platform.env.R2.put(r2KeyCombined, combinedPdf, {
+                  httpMetadata: { contentType: 'application/pdf' },
+                  customMetadata: { ...metadata, pdfType: 'combined' },
+                }),
+                platform.env.R2.put(r2KeyEn, englishPdf, {
+                  httpMetadata: { contentType: 'application/pdf' },
+                  customMetadata: { ...metadata, pdfType: 'english' },
+                }),
+                platform.env.R2.put(r2KeyJa, japanesePdf, {
+                  httpMetadata: { contentType: 'application/pdf' },
+                  customMetadata: { ...metadata, pdfType: 'japanese' },
+                }),
+              ]);
+            }
+
+            await db
+              .prepare(
+                `UPDATE proposals SET
+                  pdf_generated_at = datetime('now'),
+                  pdf_r2_key = ?,
+                  pdf_r2_key_en = ?,
+                  pdf_r2_key_ja = ?,
+                  provenance = ?,
+                  updated_at = datetime('now')
+                 WHERE id = ?`
+              )
+              .bind(r2KeyCombined, r2KeyEn, r2KeyJa, JSON.stringify(provenance), params.id)
+              .run();
+
+            return {
+              success: true,
+              message: 'Bilingual PDFs generated via Typst',
+              pdfKey: r2KeyCombined,
+              pdfKeyEn: r2KeyEn,
+              pdfKeyJa: r2KeyJa,
+              pageInfo: result.pageInfo,
+            };
+          } else {
+            // Single-language Typst result
+            const result = typstResult as {
+              combined: string;
+              pageInfo: { totalPages: number };
+            };
+
+            const pdfData = base64ToArrayBuffer(result.combined);
+
+            let r2Key: string | null = null;
+            if (platform.env.R2) {
+              const clientFolder = proposal.client_code || 'general';
+              r2Key = `proposals/${clientFolder}/${proposal.id}.pdf`;
+              await platform.env.R2.put(r2Key, pdfData, {
+                httpMetadata: { contentType: 'application/pdf' },
+                customMetadata: {
+                  proposalId: proposal.id,
+                  clientCode: proposal.client_code,
+                  generatedAt: new Date().toISOString(),
+                  renderer: 'typst',
+                },
+              });
+            }
+
+            await db
+              .prepare(
+                `UPDATE proposals SET
+                  pdf_generated_at = datetime('now'),
+                  pdf_r2_key = ?,
+                  provenance = ?,
+                  updated_at = datetime('now')
+                 WHERE id = ?`
+              )
+              .bind(r2Key, JSON.stringify(provenance), params.id)
+              .run();
+
+            return {
+              success: true,
+              message: 'PDF generated via Typst',
+              pdfKey: r2Key,
+            };
+          }
+        }
+      }
+
+      // ═══════════════════════════════════════════════════════════
+      // HTML PIPELINE — Browser Rendering (legacy + fallback)
+      // Used for non-manifest documents or when Typst service unavailable.
+      // ═══════════════════════════════════════════════════════════
 
       // Helper: Build content section for a language
       // Note: proposal is guaranteed non-null here (checked above)
@@ -1781,7 +2232,10 @@ export const actions: Actions = {
   },
 
   // Share via Courier
-  share: async ({ params, request, platform }) => {
+  share: async ({ params, request, platform, locals }) => {
+    const rbac = requireRole(locals, 'editor', 'admin');
+    if (rbac) return rbac;
+
     if (!platform?.env?.DB) {
       return fail(500, { error: 'Database not available' });
     }
@@ -1913,8 +2367,427 @@ export const actions: Actions = {
     }
   },
 
+  // ---------------------------------------------------------------
+  // Manifest-based section actions (Phase 4)
+  // ---------------------------------------------------------------
+
+  /** Save manifest-based document: metadata + section contents to R2 */
+  saveManifest: async ({ params, request, platform, locals }) => {
+    const rbac = requireRole(locals, 'editor', 'admin');
+    if (rbac) return rbac;
+
+    if (!platform?.env?.DB || !platform?.env?.R2) {
+      return fail(500, { error: 'Database or storage not available' });
+    }
+    const db = platform.env.DB;
+    const r2 = platform.env.R2;
+
+    const proposal = await db
+      .prepare('SELECT r2_manifest_key FROM proposals WHERE id = ?')
+      .bind(params.id)
+      .first<{ r2_manifest_key: string | null }>();
+    if (!proposal?.r2_manifest_key) {
+      return fail(400, { error: 'Not a manifest-based document' });
+    }
+
+    const manifestObj = await r2.get(proposal.r2_manifest_key);
+    if (!manifestObj) return fail(500, { error: 'Manifest not found in R2' });
+    const manifest = parseManifest(await manifestObj.text());
+    const r2Dir = proposal.r2_manifest_key.replace('/manifest.yaml', '');
+
+    const formData = await request.formData();
+
+    // Update manifest metadata
+    manifest.title = formData.get('title')?.toString() || manifest.title;
+    manifest.title_ja = formData.get('title_ja')?.toString() || manifest.title_ja;
+    manifest.client_code = formData.get('client_code')?.toString() || manifest.client_code;
+    manifest.client_name = formData.get('client_name')?.toString() || manifest.client_name;
+    manifest.client_name_ja = formData.get('client_name_ja')?.toString() || manifest.client_name_ja;
+    manifest.contact_name = formData.get('contact_name')?.toString() || manifest.contact_name;
+    manifest.contact_name_ja =
+      formData.get('contact_name_ja')?.toString() || manifest.contact_name_ja;
+    manifest.language_mode = formData.get('language_mode')?.toString() || manifest.language_mode;
+    manifest.updated_at = new Date().toISOString().slice(0, 10);
+
+    // Save each section's content
+    for (let i = 0; i < manifest.sections.length; i++) {
+      const section = manifest.sections[i]!;
+      const enKey = `section_${i}_en`;
+      const jaKey = `section_${i}_ja`;
+      const enContent = formData.get(enKey)?.toString();
+      const jaContent = formData.get(jaKey)?.toString();
+
+      if (enContent !== null && enContent !== undefined) {
+        await r2.put(`${r2Dir}/${section.file}.en.md`, enContent, {
+          httpMetadata: { contentType: 'text/markdown' },
+        });
+      }
+      if (jaContent !== null && jaContent !== undefined) {
+        await r2.put(`${r2Dir}/${section.file}.ja.md`, jaContent, {
+          httpMetadata: { contentType: 'text/markdown' },
+        });
+      }
+    }
+
+    // Write updated manifest
+    await r2.put(proposal.r2_manifest_key, serializeManifest(manifest), {
+      httpMetadata: { contentType: 'text/yaml' },
+    });
+
+    // Update D1 metadata
+    // InfoSec: Parameterized update (OWASP A03)
+    await db
+      .prepare(
+        `UPDATE proposals SET
+          title = ?, title_ja = ?,
+          client_code = ?, client_name = ?, client_name_ja = ?,
+          contact_name = ?, contact_name_ja = ?,
+          language_mode = ?,
+          updated_at = datetime('now')
+         WHERE id = ?`
+      )
+      .bind(
+        manifest.title,
+        manifest.title_ja || null,
+        manifest.client_code || '',
+        manifest.client_name || null,
+        manifest.client_name_ja || null,
+        manifest.contact_name || null,
+        manifest.contact_name_ja || null,
+        manifest.language_mode,
+        params.id
+      )
+      .run();
+
+    return { success: true };
+  },
+
+  /** Insert a fragment as a new section (copy-on-insert) */
+  insertFragment: async ({ params, request, platform, locals }) => {
+    const rbac = requireRole(locals, 'editor', 'admin');
+    if (rbac) return rbac;
+
+    if (!platform?.env?.DB || !platform?.env?.R2) {
+      return fail(500, { error: 'Database or storage not available' });
+    }
+    const db = platform.env.DB;
+    const r2 = platform.env.R2;
+
+    // InfoSec: Validate input (OWASP A03)
+    const form = await superValidate(request, zod4(insertSectionSchema));
+    if (!form.valid) return fail(400, { error: 'Invalid input' });
+
+    const proposal = await db
+      .prepare('SELECT r2_manifest_key FROM proposals WHERE id = ?')
+      .bind(params.id)
+      .first<{ r2_manifest_key: string | null }>();
+    if (!proposal?.r2_manifest_key) {
+      return fail(400, { error: 'Not a manifest-based document' });
+    }
+
+    const manifestObj = await r2.get(proposal.r2_manifest_key);
+    if (!manifestObj) return fail(500, { error: 'Manifest not found' });
+    let manifest = parseManifest(await manifestObj.text());
+    const r2Dir = proposal.r2_manifest_key.replace('/manifest.yaml', '');
+
+    // Look up fragment in fragment_index
+    const meta = await db
+      .prepare(
+        'SELECT id, category, title_en, title_ja, version, r2_key_en, r2_key_ja FROM fragment_index WHERE id = ?'
+      )
+      .bind(form.data.fragment_id)
+      .first<{
+        id: string;
+        category: string;
+        title_en: string | null;
+        title_ja: string | null;
+        version: string | null;
+        r2_key_en: string | null;
+        r2_key_ja: string | null;
+      }>();
+
+    if (!meta) {
+      return fail(404, { error: 'Fragment not found in index' });
+    }
+
+    // Copy fragment content from R2
+    let contentEn = '';
+    let contentJa = '';
+    if (meta.r2_key_en) {
+      const obj = await r2.get(meta.r2_key_en);
+      if (obj) {
+        const raw = await obj.text();
+        const { body } = parseFrontmatter(raw);
+        contentEn = body;
+      }
+    }
+    if (meta.r2_key_ja) {
+      const obj = await r2.get(meta.r2_key_ja);
+      if (obj) {
+        const raw = await obj.text();
+        const { body } = parseFrontmatter(raw);
+        contentJa = body;
+      }
+    }
+
+    // Generate file stem and write copies
+    const prefix = getNextFilePrefix(manifest);
+    const fileSlug = slugify(meta.title_en ?? meta.id);
+    const fileStem = `${prefix}-${fileSlug}`;
+    const source = `${meta.category}/${meta.id}`;
+
+    await r2.put(`${r2Dir}/${fileStem}.en.md`, contentEn, {
+      httpMetadata: { contentType: 'text/markdown' },
+    });
+    await r2.put(`${r2Dir}/${fileStem}.ja.md`, contentJa, {
+      httpMetadata: { contentType: 'text/markdown' },
+    });
+
+    // Add section to manifest
+    manifest = addSection(manifest, {
+      file: fileStem,
+      label: meta.title_en ?? meta.id,
+      label_ja: meta.title_ja ?? undefined,
+      source,
+      source_version: meta.version ?? undefined,
+      locked: false,
+    });
+
+    await r2.put(proposal.r2_manifest_key, serializeManifest(manifest), {
+      httpMetadata: { contentType: 'text/yaml' },
+    });
+
+    return { success: true };
+  },
+
+  /** Refresh a section from its source fragment */
+  refreshSection: async ({ params, request, platform, locals }) => {
+    const rbac = requireRole(locals, 'editor', 'admin');
+    if (rbac) return rbac;
+
+    if (!platform?.env?.DB || !platform?.env?.R2) {
+      return fail(500, { error: 'Database or storage not available' });
+    }
+    const db = platform.env.DB;
+    const r2 = platform.env.R2;
+
+    const form = await superValidate(request, zod4(refreshSectionSchema));
+    if (!form.valid) return fail(400, { error: 'Invalid input' });
+
+    const proposal = await db
+      .prepare('SELECT r2_manifest_key FROM proposals WHERE id = ?')
+      .bind(params.id)
+      .first<{ r2_manifest_key: string | null }>();
+    if (!proposal?.r2_manifest_key) {
+      return fail(400, { error: 'Not a manifest-based document' });
+    }
+
+    const manifestObj = await r2.get(proposal.r2_manifest_key);
+    if (!manifestObj) return fail(500, { error: 'Manifest not found' });
+    const manifest = parseManifest(await manifestObj.text());
+    const r2Dir = proposal.r2_manifest_key.replace('/manifest.yaml', '');
+
+    const section = manifest.sections[form.data.section_index];
+    if (!section?.source) {
+      return fail(400, { error: 'Section has no source to refresh from' });
+    }
+
+    // Parse source "category/id"
+    const [category, fragmentId] = section.source.split('/');
+    if (!category || !fragmentId) {
+      return fail(400, { error: 'Invalid source reference' });
+    }
+
+    // Fetch latest from fragment_index
+    const meta = await db
+      .prepare(
+        'SELECT version, r2_key_en, r2_key_ja FROM fragment_index WHERE id = ? AND category = ?'
+      )
+      .bind(fragmentId, category)
+      .first<{ version: string | null; r2_key_en: string | null; r2_key_ja: string | null }>();
+
+    if (!meta) {
+      return fail(404, { error: 'Source fragment not found' });
+    }
+
+    // Copy latest content
+    let contentEn = '';
+    let contentJa = '';
+    if (meta.r2_key_en) {
+      const obj = await r2.get(meta.r2_key_en);
+      if (obj) {
+        const raw = await obj.text();
+        const { body } = parseFrontmatter(raw);
+        contentEn = body;
+      }
+    }
+    if (meta.r2_key_ja) {
+      const obj = await r2.get(meta.r2_key_ja);
+      if (obj) {
+        const raw = await obj.text();
+        const { body } = parseFrontmatter(raw);
+        contentJa = body;
+      }
+    }
+
+    // Overwrite section files
+    await r2.put(`${r2Dir}/${section.file}.en.md`, contentEn, {
+      httpMetadata: { contentType: 'text/markdown' },
+    });
+    await r2.put(`${r2Dir}/${section.file}.ja.md`, contentJa, {
+      httpMetadata: { contentType: 'text/markdown' },
+    });
+
+    // Update source version in manifest
+    section.source_version = meta.version ?? undefined;
+    manifest.updated_at = new Date().toISOString().slice(0, 10);
+
+    await r2.put(proposal.r2_manifest_key, serializeManifest(manifest), {
+      httpMetadata: { contentType: 'text/yaml' },
+    });
+
+    return { success: true };
+  },
+
+  /** Remove a section from the document */
+  removeSection: async ({ params, request, platform, locals }) => {
+    const rbac = requireRole(locals, 'editor', 'admin');
+    if (rbac) return rbac;
+
+    if (!platform?.env?.DB || !platform?.env?.R2) {
+      return fail(500, { error: 'Database or storage not available' });
+    }
+    const db = platform.env.DB;
+    const r2 = platform.env.R2;
+
+    const form = await superValidate(request, zod4(removeSectionSchema));
+    if (!form.valid) return fail(400, { error: 'Invalid input' });
+
+    const proposal = await db
+      .prepare('SELECT r2_manifest_key FROM proposals WHERE id = ?')
+      .bind(params.id)
+      .first<{ r2_manifest_key: string | null }>();
+    if (!proposal?.r2_manifest_key) {
+      return fail(400, { error: 'Not a manifest-based document' });
+    }
+
+    const manifestObj = await r2.get(proposal.r2_manifest_key);
+    if (!manifestObj) return fail(500, { error: 'Manifest not found' });
+    const manifest = parseManifest(await manifestObj.text());
+    const r2Dir = proposal.r2_manifest_key.replace('/manifest.yaml', '');
+
+    const section = manifest.sections[form.data.section_index];
+    if (!section) return fail(400, { error: 'Section index out of range' });
+
+    // Delete section files from R2
+    await r2.delete(`${r2Dir}/${section.file}.en.md`);
+    await r2.delete(`${r2Dir}/${section.file}.ja.md`);
+
+    // Remove from manifest
+    const updated = manifestRemoveSection(manifest, form.data.section_index);
+
+    await r2.put(proposal.r2_manifest_key, serializeManifest(updated), {
+      httpMetadata: { contentType: 'text/yaml' },
+    });
+
+    return { success: true };
+  },
+
+  /** Reorder sections in the manifest */
+  reorderSections: async ({ params, request, platform, locals }) => {
+    const rbac = requireRole(locals, 'editor', 'admin');
+    if (rbac) return rbac;
+
+    if (!platform?.env?.DB || !platform?.env?.R2) {
+      return fail(500, { error: 'Database or storage not available' });
+    }
+    const db = platform.env.DB;
+    const r2 = platform.env.R2;
+
+    const form = await superValidate(request, zod4(reorderSectionSchema));
+    if (!form.valid) return fail(400, { error: 'Invalid input' });
+
+    const proposal = await db
+      .prepare('SELECT r2_manifest_key FROM proposals WHERE id = ?')
+      .bind(params.id)
+      .first<{ r2_manifest_key: string | null }>();
+    if (!proposal?.r2_manifest_key) {
+      return fail(400, { error: 'Not a manifest-based document' });
+    }
+
+    const manifestObj = await r2.get(proposal.r2_manifest_key);
+    if (!manifestObj) return fail(500, { error: 'Manifest not found' });
+    const manifest = parseManifest(await manifestObj.text());
+
+    const updated = manifestReorderSections(manifest, form.data.from_index, form.data.to_index);
+
+    await r2.put(proposal.r2_manifest_key, serializeManifest(updated), {
+      httpMetadata: { contentType: 'text/yaml' },
+    });
+
+    return { success: true };
+  },
+
+  /** Add a custom (blank) section */
+  addCustomSection: async ({ params, request, platform, locals }) => {
+    const rbac = requireRole(locals, 'editor', 'admin');
+    if (rbac) return rbac;
+
+    if (!platform?.env?.DB || !platform?.env?.R2) {
+      return fail(500, { error: 'Database or storage not available' });
+    }
+    const db = platform.env.DB;
+    const r2 = platform.env.R2;
+
+    const form = await superValidate(request, zod4(addCustomSectionSchema));
+    if (!form.valid) return fail(400, { error: 'Invalid input' });
+
+    const proposal = await db
+      .prepare('SELECT r2_manifest_key FROM proposals WHERE id = ?')
+      .bind(params.id)
+      .first<{ r2_manifest_key: string | null }>();
+    if (!proposal?.r2_manifest_key) {
+      return fail(400, { error: 'Not a manifest-based document' });
+    }
+
+    const manifestObj = await r2.get(proposal.r2_manifest_key);
+    if (!manifestObj) return fail(500, { error: 'Manifest not found' });
+    let manifest = parseManifest(await manifestObj.text());
+    const r2Dir = proposal.r2_manifest_key.replace('/manifest.yaml', '');
+
+    const prefix = getNextFilePrefix(manifest);
+    const fileSlug = slugify(form.data.label);
+    const fileStem = `${prefix}-${fileSlug}`;
+
+    // Create empty section files
+    await r2.put(`${r2Dir}/${fileStem}.en.md`, '', {
+      httpMetadata: { contentType: 'text/markdown' },
+    });
+    await r2.put(`${r2Dir}/${fileStem}.ja.md`, '', {
+      httpMetadata: { contentType: 'text/markdown' },
+    });
+
+    manifest = addSection(manifest, {
+      file: fileStem,
+      label: form.data.label,
+      label_ja: form.data.label_ja ?? undefined,
+      source: null,
+      locked: false,
+    });
+
+    await r2.put(proposal.r2_manifest_key, serializeManifest(manifest), {
+      httpMetadata: { contentType: 'text/yaml' },
+    });
+
+    return { success: true };
+  },
+
   // Delete proposal
-  delete: async ({ params, platform }) => {
+  delete: async ({ params, platform, locals }) => {
+    // InfoSec: Only admins can delete documents (OWASP A01)
+    const rbac = requireRole(locals, 'admin');
+    if (rbac) return rbac;
+
     if (!platform?.env?.DB) {
       return fail(500, { error: 'Database not available' });
     }
@@ -1933,6 +2806,9 @@ export const actions: Actions = {
 
   // AI Translate cover letter
   aiTranslate: async ({ request, locals }) => {
+    const rbac = requireRole(locals, 'editor', 'admin');
+    if (rbac) return rbac;
+
     if (!locals.ai) {
       return fail(500, { error: 'AI service not available' });
     }
@@ -1964,6 +2840,9 @@ export const actions: Actions = {
 
   // AI Polish/improve cover letter
   aiPolish: async ({ request, locals }) => {
+    const rbac = requireRole(locals, 'editor', 'admin');
+    if (rbac) return rbac;
+
     if (!locals.ai) {
       return fail(500, { error: 'AI service not available' });
     }

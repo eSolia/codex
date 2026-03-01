@@ -38,19 +38,23 @@ Certain words and phrases appear with unnatural frequency in AI-generated text. 
 
 ### Overused phrases
 
-| Phrase                            | What to write instead                                                             |
-| --------------------------------- | --------------------------------------------------------------------------------- |
-| "It's worth noting that..."       | Just state the thing. If it's worth noting, note it.                              |
-| "It's important to note..."       | Same problem. Delete the preamble.                                                |
-| "Let's dive in / unpack this"     | Start with the content. The reader knows you're about to explain.                 |
-| "Why that matters"                | Rewrite the preceding sentence so the relevance is self-evident.                  |
-| "At the end of the day"           | Cut entirely or replace with a specific conclusion.                               |
-| "In today's [X] landscape"        | Name the actual situation. "With M365 licensing changes in 2025..."               |
-| "This is a really great question" | Answer the question.                                                              |
-| "I'm genuinely excited about"     | Show enthusiasm through specifics, not declarations of emotion.                   |
-| "That said..." / "To be sure..."  | Use occasionally, but if it appears more than once per page, you're over-hedging. |
-| "Let's explore..."                | Just explore it.                                                                  |
-| "The key takeaway here is"        | If your writing is clear, the reader already knows.                               |
+| Phrase                                | What to write instead                                                                       |
+| ------------------------------------- | ------------------------------------------------------------------------------------------- |
+| "It's worth noting that..."           | Just state the thing. If it's worth noting, note it.                                        |
+| "It's important to note..."           | Same problem. Delete the preamble.                                                          |
+| "Let's dive in / unpack this"         | Start with the content. The reader knows you're about to explain.                           |
+| "Why that matters"                    | Rewrite the preceding sentence so the relevance is self-evident.                            |
+| "At the end of the day"               | Cut entirely or replace with a specific conclusion.                                         |
+| "In today's [X] landscape"            | Name the actual situation. "With M365 licensing changes in 2025..."                         |
+| "This is a really great question"     | Answer the question.                                                                        |
+| "I'm genuinely excited about"         | Show enthusiasm through specifics, not declarations of emotion.                             |
+| "That said..." / "To be sure..."      | Use occasionally, but if it appears more than once per page, you're over-hedging.           |
+| "Let's explore..."                    | Just explore it.                                                                            |
+| "The key takeaway here is"            | If your writing is clear, the reader already knows.                                         |
+| "What X actually means/costs"         | Drop "actually" — it implies the reader was wrong before. Just explain.                     |
+| "Here's what..." / "Here are..."      | Delete the preamble and start with the content. "We require:" not "Here's what we require:" |
+| "The reality is..." / "In reality..." | State the reality without announcing it.                                                    |
+| "It's also worth mentioning..."       | Mention it, or don't. No preamble needed.                                                   |
 
 ---
 
@@ -105,6 +109,10 @@ Excessive courtesy markers — "I'd be happy to help with that!", "Thank you for
 ### Signposting overkill
 
 AI narrates its own actions: "Let me explain," "Here's the thing," "Let's take a closer look at." This is the written equivalent of someone saying "I'm going to walk to the door now" while walking to the door. Just do the thing.
+
+The "Here's" family is especially persistent — "Here's what we found," "Here's a breakdown," "Here are the common structures." These survive editing passes because they feel conversational, but they're verbal tics, not content. Delete the signpost and start with the substance.
+
+Similarly, "What X actually means" (or "actually costs," "actually looks like") is an AI framing device. It positions the writer as revealing hidden truth. Drop "actually" entirely, or rewrite the heading to describe the content directly: "Translation vs. Localization" rather than "What Localization Actually Means."
 
 ---
 
@@ -163,6 +171,7 @@ Use this before sending any client-facing or published document:
 - [ ] No unnecessary introduction or conclusion paragraphs
 - [ ] Lists used only when genuinely clearer than prose
 - [ ] Sentences vary in length — mix short and long deliberately
+- [ ] No "Here's what/Here are" or "What X actually means" signposting
 - [ ] Read aloud: does it sound like something a real person at eSolia would say?
 
 ---

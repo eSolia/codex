@@ -7,6 +7,14 @@
  */
 
 import { Node, mergeAttributes } from '@tiptap/core';
+import type { Node as ProseMirrorNode } from '@tiptap/pm/model';
+
+/** Minimal type for @tiptap/markdown serializer state */
+interface MarkdownSerializerState {
+  write(text: string): void;
+  ensureNewLine(): void;
+  renderContent(node: ProseMirrorNode): void;
+}
 
 export type CalloutType = 'info' | 'warning' | 'danger' | 'success';
 
@@ -40,6 +48,26 @@ export const Callout = Node.create<CalloutOptions>({
   content: 'block+',
 
   defining: true,
+
+  addStorage() {
+    return {
+      markdown: {
+        serialize(state: MarkdownSerializerState, node: ProseMirrorNode) {
+          const type = node.attrs.type as string;
+          const title = node.attrs.title as string | null;
+          const titleAttr = title ? `{title="${title}"}` : '';
+          state.write(`:::${type}${titleAttr}\n`);
+          state.renderContent(node);
+          state.ensureNewLine();
+          state.write(':::\n\n');
+        },
+        parse: {
+          // Directive syntax (:::) requires custom Marked extension for parsing
+          // Falls back to HTML div parsing via parseHTML
+        },
+      },
+    };
+  },
 
   addAttributes() {
     return {

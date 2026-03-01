@@ -1,9 +1,9 @@
 /**
  * Fragment List API
- * Returns fragments for the fragment picker
+ * Returns fragments from fragment_index for the fragment picker.
  *
  * GET /api/fragments
- *   - Returns list of all fragments with id, name, category
+ *   - Returns list of production fragments with id, title, category
  *   - Optional ?category= filter
  *   - Optional ?search= filter
  *
@@ -15,9 +15,12 @@ import type { RequestHandler } from './$types';
 
 interface FragmentSummary {
   id: string;
-  name: string;
+  title_en: string | null;
+  title_ja: string | null;
   category: string;
-  is_bilingual: number;
+  has_en: number;
+  has_ja: number;
+  tags: string | null;
 }
 
 export const GET: RequestHandler = async ({ url, platform }) => {
@@ -30,8 +33,9 @@ export const GET: RequestHandler = async ({ url, platform }) => {
   const search = url.searchParams.get('search');
 
   try {
-    let query = 'SELECT id, name, category, is_bilingual FROM fragments WHERE status = ?';
-    const params: string[] = ['active'];
+    let query = `SELECT id, title_en, title_ja, category, has_en, has_ja, tags
+                 FROM fragment_index WHERE status = ?`;
+    const params: string[] = ['production'];
 
     if (category) {
       query += ' AND category = ?';
@@ -39,12 +43,12 @@ export const GET: RequestHandler = async ({ url, platform }) => {
     }
 
     if (search) {
-      query += ' AND (id LIKE ? OR name LIKE ?)';
+      query += ' AND (id LIKE ? OR title_en LIKE ? OR title_ja LIKE ?)';
       const searchPattern = `%${search}%`;
-      params.push(searchPattern, searchPattern);
+      params.push(searchPattern, searchPattern, searchPattern);
     }
 
-    query += ' ORDER BY category, name';
+    query += ' ORDER BY category, title_en';
 
     // InfoSec: Parameterized query (OWASP A03)
     const result = await db
@@ -52,7 +56,7 @@ export const GET: RequestHandler = async ({ url, platform }) => {
       .bind(...params)
       .all<FragmentSummary>();
 
-    // Group by category for better UX
+    // Group by category for UX
     const grouped = (result.results ?? []).reduce(
       (acc, frag) => {
         const cat = frag.category || 'uncategorized';

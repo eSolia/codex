@@ -68,26 +68,50 @@ export const deleteContentSchema = z.object({
 });
 
 // ===========================================================================
-// FRAGMENT SCHEMAS
+// FRAGMENT SCHEMAS (markdown-first, R2-backed)
 // ===========================================================================
 
-export const createFragmentSchema = z.object({
-  name: z.string({ message: 'Name is required' }).min(1, 'Name is required').trim(),
-  category: z.string().trim().optional().or(z.literal('')),
-  description: z.string().trim().optional().or(z.literal('')),
-  content_en: z.string().optional().or(z.literal('')),
-  content_ja: z.string().optional().or(z.literal('')),
-  tags: z.string().trim().optional().or(z.literal('')),
+// Fragment ID: lowercase, hyphens, digits. No leading/trailing hyphens.
+const fragmentId = z
+  .string()
+  .min(2, 'ID must be at least 2 characters')
+  .max(100)
+  .regex(
+    /^[a-z0-9][a-z0-9-]*[a-z0-9]$/,
+    'ID must be lowercase with hyphens, no leading/trailing hyphens'
+  )
+  .trim();
+
+const fragmentStatus = z.enum(['production', 'draft', 'deprecated', 'archived'], {
+  message: 'Invalid fragment status',
 });
 
 export const saveFragmentSchema = z.object({
-  name: z.string({ message: 'Name is required' }).min(1, 'Name is required').trim(),
-  content_en: z.string().optional().or(z.literal('')),
-  content_ja: z.string().optional().or(z.literal('')),
-  content_encoding: z.string().optional().or(z.literal('')),
-  description: z.string().optional().or(z.literal('')),
-  category: z.string().optional().or(z.literal('')),
-  tags: z.string().optional().or(z.literal('')),
+  title_en: z.string().trim().optional().or(z.literal('')),
+  title_ja: z.string().trim().optional().or(z.literal('')),
+  category: z.string().trim().optional().or(z.literal('')),
+  type: z.string().trim().optional().or(z.literal('')),
+  status: fragmentStatus.default('production'),
+  sensitivity: sensitivity.default('normal'),
+  tags: z.string().trim().optional().or(z.literal('')), // JSON array string
+  author: z.string().trim().optional().or(z.literal('')),
+  version: z.string().trim().optional().or(z.literal('')),
+  content_en: z.string().optional().or(z.literal('')), // markdown body
+  content_ja: z.string().optional().or(z.literal('')), // markdown body
+});
+
+export const renameFragmentSchema = z.object({
+  new_id: fragmentId,
+  new_category: z.string().trim().optional().or(z.literal('')),
+});
+
+export const createFragmentSchema = z.object({
+  id: fragmentId,
+  title_en: z.string().min(1, 'English title required').trim(),
+  title_ja: z.string().trim().optional().or(z.literal('')),
+  category: z.string().trim().optional().or(z.literal('')),
+  type: z.string().trim().optional().or(z.literal('')),
+  tags: z.string().trim().optional().or(z.literal('')),
 });
 
 export const deleteFragmentSchema = z.object({
@@ -98,6 +122,10 @@ export const deleteFragmentSchema = z.object({
 // DOCUMENT SCHEMAS
 // ===========================================================================
 
+const documentType = z.enum(['proposal', 'report', 'quote', 'sow', 'assessment'], {
+  message: 'Invalid document type',
+});
+
 export const createDocumentSchema = z.object({
   title: z.string({ message: 'Title is required' }).min(1, 'Title is required').trim(),
   title_ja: z.string().trim().optional().or(z.literal('')),
@@ -105,6 +133,7 @@ export const createDocumentSchema = z.object({
   client_name: z.string().trim().optional().or(z.literal('')),
   client_name_ja: z.string().trim().optional().or(z.literal('')),
   language: language.default('en'),
+  document_type: documentType.default('proposal'),
   template_id: z.string().trim().optional().or(z.literal('')),
   fragments: z.string().trim().optional().or(z.literal('')),
 });
@@ -140,13 +169,33 @@ export const deleteDocumentSchema = z.object({
   confirm: z.literal('delete'),
 });
 
+// Section action schemas (manifest-based documents)
+export const insertSectionSchema = z.object({
+  fragment_id: z.string().min(1, 'Fragment ID required').trim(),
+  position: z.coerce.number().int().nonnegative().optional(),
+});
+
+export const reorderSectionSchema = z.object({
+  from_index: z.coerce.number().int().nonnegative(),
+  to_index: z.coerce.number().int().nonnegative(),
+});
+
+export const removeSectionSchema = z.object({
+  section_index: z.coerce.number().int().nonnegative(),
+});
+
+export const refreshSectionSchema = z.object({
+  section_index: z.coerce.number().int().nonnegative(),
+});
+
+export const addCustomSectionSchema = z.object({
+  label: z.string().min(1, 'Section label required').trim(),
+  label_ja: z.string().trim().optional().or(z.literal('')),
+});
+
 // ===========================================================================
 // TEMPLATE SCHEMAS
 // ===========================================================================
-
-const documentType = z.enum(['proposal', 'report', 'quote', 'sow', 'assessment'], {
-  message: 'Invalid document type',
-});
 
 export const createTemplateSchema = z.object({
   name: z.string({ message: 'Name is required' }).min(1, 'Name is required').trim(),
@@ -169,5 +218,50 @@ export const saveTemplateSchema = z.object({
 });
 
 export const deleteTemplateSchema = z.object({
+  confirm: z.literal('delete'),
+});
+
+// ===========================================================================
+// STANDARD SCHEMAS (monolingual, R2-backed coding/workflow standards)
+// ===========================================================================
+
+// Standard slug: lowercase, hyphens, digits. No leading/trailing hyphens.
+const standardSlug = z
+  .string()
+  .min(2, 'Slug must be at least 2 characters')
+  .max(150)
+  .regex(
+    /^[a-z0-9][a-z0-9-]*[a-z0-9]$/,
+    'Slug must be lowercase with hyphens, no leading/trailing hyphens'
+  )
+  .trim();
+
+const standardStatus = z.enum(['production', 'draft', 'deprecated', 'archived'], {
+  message: 'Invalid standard status',
+});
+
+export const saveStandardSchema = z.object({
+  title: z.string().min(1, 'Title is required').trim(),
+  category: z.string().trim().optional().or(z.literal('')),
+  status: standardStatus.default('production'),
+  tags: z.string().trim().optional().or(z.literal('')), // JSON array string
+  summary: z.string().trim().optional().or(z.literal('')),
+  author: z.string().trim().optional().or(z.literal('')),
+  content: z.string().optional().or(z.literal('')), // markdown body
+});
+
+export const createStandardSchema = z.object({
+  slug: standardSlug,
+  title: z.string().min(1, 'Title is required').trim(),
+  category: z.string().trim().optional().or(z.literal('')),
+  tags: z.string().trim().optional().or(z.literal('')),
+  summary: z.string().trim().optional().or(z.literal('')),
+});
+
+export const renameStandardSchema = z.object({
+  new_slug: standardSlug,
+});
+
+export const deleteStandardSchema = z.object({
   confirm: z.literal('delete'),
 });

@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { PageData } from './$types';
+  import { page } from '$app/stores';
   import FileText from 'phosphor-svelte/lib/FileText';
   import Share from 'phosphor-svelte/lib/Share';
 
@@ -10,6 +11,7 @@
     title: string;
     language: string;
     status: string;
+    document_type: string | null;
     share_id: string | null;
     shared_at: string | null;
     created_at: string;
@@ -36,6 +38,17 @@
         return 'bg-gray-100 text-gray-800';
     }
   }
+
+  const typeLabels: Record<string, string> = {
+    proposal: 'Proposal',
+    report: 'Report',
+    quote: 'Quote',
+    sow: 'SOW',
+    assessment: 'Assessment',
+  };
+
+  const selectedStatus = $derived($page.url.searchParams.get('status') ?? '');
+  const selectedType = $derived($page.url.searchParams.get('type') ?? '');
 </script>
 
 <svelte:head>
@@ -65,6 +78,7 @@
     <form method="get" class="flex flex-wrap gap-4">
       <select
         name="status"
+        value={selectedStatus}
         class="rounded-md border-gray-300 shadow-sm focus:border-esolia-navy focus:ring-esolia-navy"
       >
         <option value="">All Statuses</option>
@@ -73,6 +87,18 @@
         <option value="approved">Approved</option>
         <option value="shared">Shared</option>
         <option value="archived">Archived</option>
+      </select>
+      <select
+        name="type"
+        value={selectedType}
+        class="rounded-md border-gray-300 shadow-sm focus:border-esolia-navy focus:ring-esolia-navy"
+      >
+        <option value="">All Types</option>
+        <option value="proposal">Proposal</option>
+        <option value="report">Report</option>
+        <option value="quote">Quote</option>
+        <option value="sow">SOW</option>
+        <option value="assessment">Assessment</option>
       </select>
       <button
         type="submit"
@@ -93,6 +119,11 @@
               class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
             >
               Document
+            </th>
+            <th
+              class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+            >
+              Type
             </th>
             <th
               class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
@@ -127,6 +158,13 @@
                   <FileText size={18} weight="duotone" class="text-gray-400" />
                   {doc.title}
                 </a>
+              </td>
+              <td class="px-6 py-4">
+                <span
+                  class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-50 text-indigo-700"
+                >
+                  {typeLabels[doc.document_type ?? 'proposal'] ?? 'Proposal'}
+                </span>
               </td>
               <td class="px-6 py-4">
                 {#if doc.client_code}

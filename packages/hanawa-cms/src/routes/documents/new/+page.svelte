@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { PageData } from './$types';
-  import { enhance } from '$app/forms';
+  import { enhance, applyAction } from '$app/forms';
+  import { goto } from '$app/navigation';
   import FileText from 'phosphor-svelte/lib/FileText';
   import DotsSixVertical from 'phosphor-svelte/lib/DotsSixVertical';
   import Check from 'phosphor-svelte/lib/Check';
@@ -35,13 +36,10 @@
     category: string;
   }
 
-  interface FormResult {
-    error?: string;
-    clientCode?: string;
-    title?: string;
-  }
+  let { data }: { data: PageData } = $props();
 
-  let { data, form }: { data: PageData; form: FormResult | null } = $props();
+  // Error state — set explicitly from enhance callback
+  let actionError = $state<string | null>(null);
 
   // Template data
   const templates = $derived((data.templates as Template[]) || []);
@@ -83,9 +81,47 @@
   /* eslint-enable svelte/valid-compile */
 
   let language = $state('en');
+  let selectedDocType = $state('proposal');
   let draggedIndex = $state<number | null>(null);
   let isClientDocument = $state(false); // Default to general document for new documents
   let submitting = $state(false);
+
+  // Title translate state
+  let titleEn = $state('');
+  let titleJa = $state('');
+  let isTranslating = $state<string | null>(null);
+
+  async function aiTranslateTitle(sourceText: string, sourceLocale: 'en' | 'ja') {
+    if (!sourceText.trim()) return;
+    const targetField = sourceLocale === 'en' ? 'title_ja' : 'title_en';
+    isTranslating = targetField;
+
+    try {
+      const formData = new FormData();
+      formData.set('text', sourceText);
+      formData.set('source_locale', sourceLocale);
+
+      const response = await fetch('?/aiTranslate', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const result = await response.json();
+      const resultData = (result as { data?: string })?.data;
+      const parsed =
+        typeof resultData === 'string' ? (JSON.parse(resultData) as Record<string, unknown>) : {};
+
+      if (parsed?.translated) {
+        const translated = parsed.translated as string;
+        if (sourceLocale === 'en') titleJa = translated;
+        else titleEn = translated;
+      }
+    } catch (err) {
+      console.error('Translation request failed:', err);
+    } finally {
+      isTranslating = null;
+    }
+  }
 
   const fragmentsJson = $derived(JSON.stringify(fragments));
 
@@ -234,9 +270,9 @@
   </div>
 
   <!-- Error display -->
-  {#if form?.error}
+  {#if actionError}
     <div class="bg-red-50 border border-red-200 rounded-lg p-4 text-red-800">
-      {form.error}
+      {actionError}
     </div>
   {/if}
 
@@ -314,11 +350,21 @@
 
   <form
     method="POST"
+    action="?/create"
     use:enhance={() => {
       submitting = true;
-      return async ({ update }) => {
-        await update();
-        submitting = false;
+      actionError = null;
+      return async ({ result }) => {
+        if (result.type === 'redirect') {
+          goto(result.location);
+        } else if (result.type === 'failure') {
+          const formData = result.data as { form?: { message?: string } } | undefined;
+          actionError = formData?.form?.message || `Server error (${result.status})`;
+          submitting = false;
+        } else {
+          await applyAction(result);
+          submitting = false;
+        }
       };
     }}
     class="space-y-6"
@@ -326,6 +372,7 @@
     <!-- Hidden fields -->
     <input type="hidden" name="fragments" value={fragmentsJson} />
     <input type="hidden" name="template_id" value={selectedTemplateId || ''} />
+    <input type="hidden" name="document_type" value={selectedDocType} />
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <!-- Left Column: Document Details -->
@@ -377,7 +424,7 @@
                 id="client_code"
                 name="client_code"
                 placeholder="e.g., ACME"
-                value={form?.clientCode ?? ''}
+                value=""
                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-esolia-navy focus:ring-esolia-navy"
               />
             </div>
@@ -413,31 +460,76 @@
 
         <!-- Document Titles -->
         <div>
-          <label for="title" class="block text-sm font-medium text-gray-700">
-            Document Title <span class="text-red-500">*</span>
-          </label>
+          <div class="flex items-center justify-between">
+            <label for="title" class="block text-sm font-medium text-gray-700">
+              Document Title <span class="text-red-500">*</span>
+            </label>
+            {#if titleEn.trim()}
+              <button
+                type="button"
+                disabled={isTranslating === 'title_ja'}
+                class="text-xs text-blue-600 hover:text-blue-800 disabled:opacity-50"
+                title="Translate to Japanese"
+                onclick={() => aiTranslateTitle(titleEn, 'en')}
+              >
+                {isTranslating === 'title_ja' ? 'Translating...' : '→ JA'}
+              </button>
+            {/if}
+          </div>
           <input
             type="text"
             id="title"
             name="title"
             required
             placeholder="IT Support Services Proposal"
-            value={form?.title ?? ''}
+            bind:value={titleEn}
             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-esolia-navy focus:ring-esolia-navy"
           />
         </div>
 
         <div>
-          <label for="title_ja" class="block text-sm font-medium text-gray-700">
-            Document Title (JA)
-          </label>
+          <div class="flex items-center justify-between">
+            <label for="title_ja" class="block text-sm font-medium text-gray-700">
+              Document Title (JA)
+            </label>
+            {#if titleJa.trim()}
+              <button
+                type="button"
+                disabled={isTranslating === 'title_en'}
+                class="text-xs text-blue-600 hover:text-blue-800 disabled:opacity-50"
+                title="Translate to English"
+                onclick={() => aiTranslateTitle(titleJa, 'ja')}
+              >
+                {isTranslating === 'title_en' ? 'Translating...' : '→ EN'}
+              </button>
+            {/if}
+          </div>
           <input
             type="text"
             id="title_ja"
             name="title_ja"
             placeholder="ITサポートサービス提案書"
+            bind:value={titleJa}
             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-esolia-navy focus:ring-esolia-navy"
           />
+        </div>
+
+        <!-- Document Type -->
+        <div>
+          <label for="doc_type_select" class="block text-sm font-medium text-gray-700">
+            Document Type
+          </label>
+          <select
+            id="doc_type_select"
+            bind:value={selectedDocType}
+            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-esolia-navy focus:ring-esolia-navy"
+          >
+            <option value="proposal">Proposal</option>
+            <option value="report">Report</option>
+            <option value="quote">Quote</option>
+            <option value="sow">Statement of Work</option>
+            <option value="assessment">Assessment</option>
+          </select>
         </div>
 
         <!-- Language -->

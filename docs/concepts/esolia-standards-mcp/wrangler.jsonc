@@ -1,0 +1,40 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "esolia-standards-mcp",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-04-01",
+  "compatibility_flags": ["nodejs_compat"],
+
+  // KV namespace for storing standards documents
+  "kv_namespaces": [
+    {
+      "binding": "STANDARDS_KV",
+      "id": "YOUR_KV_NAMESPACE_ID"
+    }
+  ],
+
+  // Durable Objects for MCP agent state
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "MCP_OBJECT",
+        "class_name": "EsoliaStandardsMCP"
+      }
+    ]
+  },
+
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_classes": ["EsoliaStandardsMCP"]
+    }
+  ],
+
+  // Optional: restrict access with a shared secret
+  // Set via: npx wrangler secret put SHARED_SECRET
+  // Then in Claude Code config, pass as Bearer token header
+
+  "observability": {
+    "enabled": true
+  }
+}
