@@ -6,25 +6,64 @@
  * Reads all markdown files from content/standards/ and uploads them
  * to the R2 codex bucket at standards/{slug}.md for the MCP server.
  *
+ * Only uploads files whose content has changed since the last run,
+ * tracked via a local manifest of content hashes.
+ *
  * Usage:
- *   npx tsx scripts/seed-standards.ts
- *   npx tsx scripts/seed-standards.ts --remote
- *   npx tsx scripts/seed-standards.ts --dry-run
+ *   npx tsx scripts/seed-standards.ts              # upload changed files (local R2)
+ *   npx tsx scripts/seed-standards.ts --remote      # upload changed files (remote R2)
+ *   npx tsx scripts/seed-standards.ts --force        # upload all files regardless
+ *   npx tsx scripts/seed-standards.ts --dry-run      # show what would change
  */
 
-import { readdir, readFile } from "node:fs/promises";
-import { join, basename, extname } from "node:path";
-import { execSync } from "node:child_process";
+import { readdir, readFile, writeFile, mkdir } from "node:fs/promises";
+import { join, resolve, basename, extname } from "node:path";
+import { createHash } from "node:crypto";
+import { execFileSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
+
+// ─── Reliable path resolution ───────────────────────────────────────────────
+// import.meta.dirname is undefined in some tsx versions, so derive from URL.
+const __filename = fileURLToPath(import.meta.url);
+const REPO_ROOT = resolve(__filename, "..", "..");
+const WRANGLER_CWD = join(REPO_ROOT, "packages", "esolia-standards-mcp");
+const MANIFEST_DIR = join(REPO_ROOT, "scripts");
+const MANIFEST_PATH = join(MANIFEST_DIR, ".seed-manifest.json");
 
 const { values } = parseArgs({
   options: {
     dir: { type: "string", default: "content/standards" },
     bucket: { type: "string", default: "codex" },
     remote: { type: "boolean", default: false },
+    force: { type: "boolean", default: false },
     "dry-run": { type: "boolean", default: false },
   },
 });
+
+// ─── Manifest (content hash tracking) ───────────────────────────────────────
+
+type Manifest = Record<string, string>; // slug → content MD5
+
+async function loadManifest(): Promise<Manifest> {
+  try {
+    const raw = await readFile(MANIFEST_PATH, "utf-8");
+    return JSON.parse(raw) as Manifest;
+  } catch {
+    return {};
+  }
+}
+
+async function saveManifest(manifest: Manifest): Promise<void> {
+  await mkdir(MANIFEST_DIR, { recursive: true });
+  await writeFile(MANIFEST_PATH, JSON.stringify(manifest, null, 2) + "\n");
+}
+
+function md5(content: string): string {
+  return createHash("md5").update(content).digest("hex");
+}
+
+// ─── Frontmatter parsing ────────────────────────────────────────────────────
 
 interface Frontmatter {
   title?: string;
@@ -82,6 +121,8 @@ function parseFrontmatter(content: string): {
   return { metadata, body };
 }
 
+// ─── File discovery ─────────────────────────────────────────────────────────
+
 async function findMarkdownFiles(dir: string): Promise<string[]> {
   const files: string[] = [];
 
@@ -99,24 +140,32 @@ async function findMarkdownFiles(dir: string): Promise<string[]> {
   return files;
 }
 
+// ─── Main ───────────────────────────────────────────────────────────────────
+
 async function main() {
-  const dir = values.dir ?? "content/standards";
+  const dirRel = values.dir ?? "content/standards";
+  const dirAbs = resolve(REPO_ROOT, dirRel);
   const bucket = values.bucket ?? "codex";
   const isDryRun = values["dry-run"] ?? false;
   const isRemote = values.remote ?? false;
+  const isForce = values.force ?? false;
 
-  console.log(`📂 Reading standards from: ${dir}`);
+  console.log(`📂 Reading standards from: ${dirAbs}`);
   console.log(`📦 Target R2 bucket: ${bucket}${isRemote ? " (remote)" : " (local)"}`);
 
-  const files = await findMarkdownFiles(dir);
-  console.log(`📄 Found ${files.length} markdown file(s)\n`);
+  const files = await findMarkdownFiles(dirAbs);
+  console.log(`📄 Found ${files.length} markdown file(s)`);
 
   if (files.length === 0) {
-    console.log("No markdown files found. Run migration first.");
+    console.log("No markdown files found. Check the --dir path.");
     process.exit(1);
   }
 
-  let seeded = 0;
+  const manifest = await loadManifest();
+  const newManifest: Manifest = {};
+
+  let uploaded = 0;
+  let skipped = 0;
   let failed = 0;
 
   for (const filePath of files) {
@@ -128,47 +177,70 @@ async function main() {
     const title = (metadata.title as string) ?? fileSlug;
     const category = (metadata.category as string) ?? "general";
     const tags = Array.isArray(metadata.tags) ? metadata.tags : [];
-
-    // R2 key: standards/{slug}.md — the full file (with frontmatter) is uploaded
     const r2Key = `standards/${effectiveSlug}.md`;
+    const hash = md5(raw);
+
+    // Track in new manifest regardless of upload
+    newManifest[effectiveSlug] = hash;
+
+    // Skip unchanged files unless --force
+    if (!isForce && manifest[effectiveSlug] === hash) {
+      skipped++;
+      continue;
+    }
 
     if (isDryRun) {
-      console.log(`  🔍 ${r2Key} → "${title}" (${category})`);
+      const reason = manifest[effectiveSlug] ? "changed" : "new";
+      console.log(`  🔍 ${r2Key} → "${title}" (${category}) [${reason}]`);
       console.log(`     Tags: ${tags.join(", ") || "(none)"}`);
       console.log(`     Size: ${raw.length} chars`);
-      seeded++;
+      uploaded++;
       continue;
     }
 
     // Upload to R2 via wrangler CLI
     // InfoSec: file path is from local filesystem, not user input
-    const remoteFlag = isRemote ? "--remote" : "--local";
-    const cmd = `npx wrangler r2 object put "${bucket}/${r2Key}" --file "${filePath}" --content-type "text/markdown" ${remoteFlag}`;
+    const args = [
+      "wrangler", "r2", "object", "put",
+      `${bucket}/${r2Key}`,
+      "--file", filePath,
+      "--content-type", "text/markdown",
+      isRemote ? "--remote" : "--local",
+    ];
 
     try {
-      execSync(cmd, {
+      execFileSync("npx", args, {
         stdio: ["pipe", "pipe", "pipe"],
-        cwd: join(
-          import.meta.dirname ?? process.cwd(),
-          "..",
-          "packages",
-          "esolia-standards-mcp"
-        ),
+        cwd: WRANGLER_CWD,
       });
       console.log(`  ✅ ${effectiveSlug} → ${r2Key}`);
-      seeded++;
+      uploaded++;
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       console.error(`  ❌ Failed to upload "${effectiveSlug}": ${message}`);
+      // Keep old hash so it retries next run
+      if (manifest[effectiveSlug]) {
+        newManifest[effectiveSlug] = manifest[effectiveSlug];
+      } else {
+        delete newManifest[effectiveSlug];
+      }
       failed++;
     }
   }
 
+  // Save manifest (unless dry run)
+  if (!isDryRun) {
+    await saveManifest(newManifest);
+  }
+
   console.log(
-    `\n🎉 Done! ${seeded} uploaded, ${failed} failed out of ${files.length} total.`
+    `\n🎉 Done! ${uploaded} uploaded, ${skipped} unchanged, ${failed} failed out of ${files.length} total.`
   );
   if (isDryRun) {
-    console.log("   (dry run — no R2 writes performed)");
+    console.log("   (dry run — no R2 writes or manifest updates performed)");
+  }
+  if (isForce) {
+    console.log("   (--force: all files uploaded regardless of changes)");
   }
 }
 

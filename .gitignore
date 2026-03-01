@@ -25,6 +25,7 @@ Thumbs.db
 
 # Generated files
 cloudflare-api-schema.json
+scripts/.seed-manifest.json
 
 # Diagram SVGs (stored in R2, not git)
 content/diagrams/*.svg
