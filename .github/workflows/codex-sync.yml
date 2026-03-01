@@ -1,0 +1,175 @@
+name: Codex Sync (Git → R2 + D1)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'content/fragments/**/*.md'
+      - 'scripts/validate-content.ts'
+      - '.github/workflows/codex-sync.yml'
+  workflow_dispatch: # Allow manual trigger
+
+concurrency:
+  group: codex-sync-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    name: Validate, upload to R2, index in D1
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2  # Need parent commit for diff
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install tools
+        run: npm install -g tsx wrangler
+
+      # ── Determine changed files ──────────────────────────────────────────
+
+      - name: Find changed content files
+        id: changes
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            # Manual trigger: sync all fragment markdown files
+            FILES=$(find content/fragments -name "*.md" -type f | sort)
+          else
+            # Push trigger: only changed files
+            FILES=$(git diff --name-only --diff-filter=ACMR HEAD~1 HEAD -- 'content/fragments/**/*.md' | sort)
+          fi
+
+          DELETED=$(git diff --name-only --diff-filter=D HEAD~1 HEAD -- 'content/fragments/**/*.md' 2>/dev/null | sort || true)
+
+          if [ -z "$FILES" ] && [ -z "$DELETED" ]; then
+            echo "No content changes detected"
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+
+            # Write to temp files for later steps
+            echo "$FILES" > /tmp/changed_files.txt
+            echo "$DELETED" > /tmp/deleted_files.txt
+
+            CHANGED_COUNT=$(echo "$FILES" | grep -c '.' || true)
+            DELETED_COUNT=$(echo "$DELETED" | grep -c '.' || true)
+            echo "changed_count=$CHANGED_COUNT" >> $GITHUB_OUTPUT
+            echo "deleted_count=$DELETED_COUNT" >> $GITHUB_OUTPUT
+
+            echo "Changed files ($CHANGED_COUNT):"
+            echo "$FILES" | head -20
+            if [ "$DELETED_COUNT" -gt 0 ]; then
+              echo "Deleted files ($DELETED_COUNT):"
+              echo "$DELETED" | head -20
+            fi
+          fi
+
+      # ── Validate ─────────────────────────────────────────────────────────
+
+      - name: Validate content
+        if: steps.changes.outputs.has_changes == 'true' && steps.changes.outputs.changed_count != '0'
+        run: |
+          # Validate only changed files (not deleted ones)
+          FILES=$(cat /tmp/changed_files.txt | tr '\n' ' ')
+          if [ -n "$FILES" ]; then
+            npx tsx scripts/validate-content.ts $FILES
+          fi
+
+      # ── Upload to R2 ────────────────────────────────────────────────────
+
+      - name: Upload changed files to R2
+        if: steps.changes.outputs.has_changes == 'true'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          UPLOADED=0
+          FAILED=0
+
+          # Upload changed/added files
+          while IFS= read -r file; do
+            [ -z "$file" ] && continue
+            # R2 key = path without "content/" prefix
+            R2_KEY="${file#content/}"
+            echo "Uploading: $file → codex/$R2_KEY"
+            if npx wrangler r2 object put "codex/$R2_KEY" \
+              --file="$file" \
+              --content-type="text/markdown" \
+              --remote 2>/dev/null; then
+              UPLOADED=$((UPLOADED + 1))
+            else
+              echo "  ERROR: Failed to upload $file"
+              FAILED=$((FAILED + 1))
+            fi
+          done < /tmp/changed_files.txt
+
+          # Delete removed files from R2
+          DELETED=0
+          while IFS= read -r file; do
+            [ -z "$file" ] && continue
+            R2_KEY="${file#content/}"
+            echo "Deleting from R2: codex/$R2_KEY"
+            npx wrangler r2 object delete "codex/$R2_KEY" --remote 2>/dev/null || true
+            DELETED=$((DELETED + 1))
+          done < /tmp/deleted_files.txt
+
+          echo ""
+          echo "R2 upload complete: $UPLOADED uploaded, $DELETED deleted, $FAILED failed"
+
+          if [ "$FAILED" -gt 0 ]; then
+            echo "::warning::$FAILED file(s) failed to upload to R2"
+          fi
+
+      # ── Update D1 index via codex-sync Worker ───────────────────────────
+
+      - name: Update D1 fragment index
+        if: steps.changes.outputs.has_changes == 'true'
+        env:
+          SYNC_SECRET: ${{ secrets.CODEX_SYNC_SECRET }}
+        run: |
+          # Build entries array for the sync endpoint
+          ENTRIES="["
+          FIRST=true
+
+          # Changed/added files
+          while IFS= read -r file; do
+            [ -z "$file" ] && continue
+            if [ "$FIRST" = true ]; then FIRST=false; else ENTRIES="$ENTRIES,"; fi
+            ENTRIES="$ENTRIES{\"path\":\"$file\",\"action\":\"modified\"}"
+          done < /tmp/changed_files.txt
+
+          # Deleted files
+          while IFS= read -r file; do
+            [ -z "$file" ] && continue
+            if [ "$FIRST" = true ]; then FIRST=false; else ENTRIES="$ENTRIES,"; fi
+            ENTRIES="$ENTRIES{\"path\":\"$file\",\"action\":\"removed\"}"
+          done < /tmp/deleted_files.txt
+
+          ENTRIES="$ENTRIES]"
+
+          echo "Calling codex-sync worker with $(echo "$ENTRIES" | grep -o '"path"' | wc -l) entries..."
+
+          RESPONSE=$(curl -s -w "\n%{http_code}" \
+            -X POST \
+            -H "Authorization: Bearer $SYNC_SECRET" \
+            -H "Content-Type: application/json" \
+            -d "{\"entries\":$ENTRIES}" \
+            "https://codex-sync.esolia.workers.dev/sync")
+
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | head -n -1)
+
+          echo "Response ($HTTP_CODE):"
+          echo "$BODY" | head -50
+
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "::error::codex-sync worker returned HTTP $HTTP_CODE"
+            exit 1
+          fi

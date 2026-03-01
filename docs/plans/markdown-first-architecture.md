@@ -13,10 +13,11 @@
 | Phase 4: Assembled Document Builder | ✅ Complete | Multi-editor, RBAC guards, section translate, type filter. #12 for D1 user lookup |
 | Phase 5: PDF via Typst | ✅ Complete | Cloudflare Container with pandoc + typst, bilingual scoped TOCs |
 | Phase 6: Centralized Standards | ✅ Complete | MCP Worker deployed, 27 standards in R2, D1 migration 0027, CMS routes, GitHub Action, config synced, bootstrap scripts fixed, rsync deprecated |
-| Phase 7: Content Quality & Import | ⏳ Planned | Markdown import, QC guides, in-editor guidance |
-| Phase 8: Codex Sync | ⏳ Planned | Git ↔ R2 content synchronization worker |
+| Phase 7: Content Quality & Import | ✅ Complete | Fragment import, QC checks (Workers AI), WritingTips panel, migration 0028 |
+| Phase 8: Codex Sync | ✅ Complete | codex-sync Worker (Hono), GitHub Actions workflow, validation script, reverse sync via PR |
 | Phase 9: Standing Documents | ⏳ Planned | Single-file docs (rate cards, capability statements) |
 | Phase 10: Website Content Editing | ⏳ Planned | Site-scoped routes for client content |
+| Phase 11: QC & Import Extras | ⏳ Planned | CLI bulk QC, document QC action, document section import |
 
 ---
 
@@ -741,7 +742,7 @@ Dismissible, non-blocking. Only shown if `last_qc_check` is null or older than t
 
 ---
 
-## Phase 8: Codex Sync (Git ↔ R2) ⏳
+## Phase 8: Codex Sync (Git ↔ R2) ✅
 
 **Goal**: Bidirectional content synchronization between the git repo (`content/`) and R2 (codex bucket), so that git-authored content is available in R2 and CMS-authored content can be exported to git.
 
@@ -792,10 +793,10 @@ Trigger embedding generation (Workers AI) for AI Search
    - Check bilingual pair completeness (`.en.md` has matching `.ja.md`)
    - Validate fragment IDs match directory/filename conventions
 
-4. **Reverse sync (CMS → git)** — stretch goal
-   - Export button in Hanawa: writes R2 content back to a git branch
-   - Or: scheduled worker that diffs R2 vs git and opens PRs
-   - Lower priority — CMS content can stay in R2 for now
+4. **Reverse sync (CMS → git)** ✅
+   - POST /export endpoint on codex-sync Worker
+   - Reads R2 content, diffs against git, creates branch + PR via GitHub API
+   - Requires GITHUB_TOKEN and GITHUB_REPO secrets on the Worker
 
 ### Files to create
 - `packages/codex-sync/src/index.ts` (Hono worker)
@@ -870,6 +871,35 @@ Trigger embedding generation (Workers AI) for AI Search
 
 ---
 
+## Phase 11: QC & Import Extras ⏳
+
+**Goal**: Extend Phase 7's fragment-level features to documents and CLI tooling.
+
+### Task 1: CLI bulk QC script
+
+Create `scripts/qc-content.ts` — batch QC checker that reads fragments from R2 (or local filesystem) and runs QC checks against writing guides. Outputs a report with scores and flagged issues.
+
+#### Files to create
+- `scripts/qc-content.ts`
+
+### Task 2: Document QC action
+
+Add `qcCheckSection` form action to document editor so individual sections can be quality-checked (same as fragments).
+
+#### Files to modify
+- `packages/hanawa-cms/src/routes/documents/[id]/+page.server.ts` — add `qcCheckSection` action
+- `packages/hanawa-cms/src/lib/components/editor/SectionEditor.svelte` — add "Check Quality" button
+
+### Task 3: Document section import
+
+Allow importing `.md` files directly into document sections (not just fragment creation).
+
+#### Files to modify
+- `packages/hanawa-cms/src/routes/documents/[id]/+page.svelte` — add import dropzone for custom sections
+- `packages/hanawa-cms/src/routes/documents/[id]/+page.server.ts` — add `importSection` form action
+
+---
+
 ## Key Technical Risks
 
 | Risk | Impact | Mitigation |
@@ -898,6 +928,7 @@ Trigger embedding generation (Workers AI) for AI Search
 - **Phase 8**: Push a markdown change to `content/`, verify it appears in R2 and D1 index.
 - **Phase 9**: Edit a standing document, generate PDF.
 - **Phase 10**: Authenticate as a client user, edit a page, verify R2 file updates.
+- **Phase 11**: Run `qc-content.ts` on all fragments → verify report. Run QC on a document section → verify result panel. Import `.md` into a document section → verify content loads.
 
 ### Preflight checks
 
@@ -910,4 +941,4 @@ Full flow: Create fragment (markdown) → Insert into assembled document → Edi
 ---
 
 *Plan created: 2026-02-27*
-*Last updated: 2026-03-01 — Phases 1-6 complete, Phase 7 (Content Quality & Import) next*
+*Last updated: 2026-03-01 — Phases 1-8 complete, Phase 9 (Standing Documents) next*
