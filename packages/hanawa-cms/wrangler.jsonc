@@ -68,10 +68,11 @@
       "binding": "PDF_SERVICE",
       "service": "pdf-worker",
     },
-    {
-      "binding": "TYPST_PDF_SERVICE",
-      "service": "typst-pdf",
-    },
+    // TODO: Enable after deploying typst-pdf Worker
+    // {
+    //   "binding": "TYPST_PDF_SERVICE",
+    //   "service": "typst-pdf",
+    // },
   ],
 
   // Vectorize for semantic search (create with: wrangler vectorize create codex-index --dimensions=768 --metric=cosine)
