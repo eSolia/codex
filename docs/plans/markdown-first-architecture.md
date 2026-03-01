@@ -12,7 +12,7 @@
 | Phase 3: Fragment Editing | ✅ Complete | Fragment list/edit/new routes, R2 load/save, AI translate, version auto-bump |
 | Phase 4: Assembled Document Builder | ✅ Complete | Multi-editor, RBAC guards, section translate, type filter. #12 for D1 user lookup |
 | Phase 5: PDF via Typst | ✅ Complete | Cloudflare Container with pandoc + typst, bilingual scoped TOCs |
-| Phase 6: Centralized Standards | 🔧 PR 1 done | MCP server, content migration, cross-platform bootstrap (Tasks 1-5 complete) |
+| Phase 6: Centralized Standards | ✅ Complete | MCP Worker deployed, 27 standards in R2, D1 migration 0027, CMS routes, GitHub Action |
 | Phase 7: Content Quality & Import | ⏳ Planned | Markdown import, QC guides, in-editor guidance |
 | Phase 8: Codex Sync | ⏳ Planned | Git ↔ R2 content synchronization worker |
 | Phase 9: Standing Documents | ⏳ Planned | Single-file docs (rate cards, capability statements) |
@@ -389,7 +389,7 @@ The current `packages/pdf-worker/` (Browser Rendering API) stays as-is for now �
 
 ---
 
-## Phase 6: Centralized Standards (MCP + Hanawa) ⏳
+## Phase 6: Centralized Standards (MCP + Hanawa) ✅
 
 **Goal**: Make codex the single hub for all eSolia standards documents. Replace the rsync-based distribution (`nexus/scripts/sync-shared-docs.sh`) with: (1) a remote MCP server for Claude Code access from any repo, (2) Hanawa CMS editing, and (3) cross-platform bootstrap scripts for distributing Claude rules/commands.
 
@@ -907,4 +907,4 @@ Full flow: Create fragment (markdown) → Insert into assembled document → Edi
 ---
 
 *Plan created: 2026-02-27*
-*Last updated: 2026-03-01 — Phases 1-5 complete, Phase 6 (Centralized Standards) planned*
+*Last updated: 2026-03-01 — Phases 1-6 complete, Phase 7 (Content Quality & Import) next*

@@ -780,6 +780,165 @@ interface FragmentContent {
   content_ja: string | null;
 }
 
+interface FragmentIndexRow {
+  id: string;
+  category: string | null;
+  title_en: string | null;
+  title_ja: string | null;
+  r2_key_en: string | null;
+  r2_key_ja: string | null;
+}
+
+/**
+ * Load fragment contents from fragment_index (D1) + R2.
+ * Maps the new schema to the existing FragmentContent interface
+ * so downstream code (UI + PDF) needs zero changes.
+ *
+ * InfoSec: Parameterized queries (OWASP A03)
+ */
+async function loadFragmentContents(
+  db: D1Database,
+  r2: R2Bucket | undefined,
+  ids: string[]
+): Promise<FragmentContent[]> {
+  if (ids.length === 0) return [];
+
+  const placeholders = ids.map(() => '?').join(',');
+  const result = await db
+    .prepare(
+      `SELECT id, category, title_en, title_ja, r2_key_en, r2_key_ja
+       FROM fragment_index
+       WHERE id IN (${placeholders})`
+    )
+    .bind(...ids)
+    .all<FragmentIndexRow>();
+
+  const rows = result.results ?? [];
+  if (!r2 || rows.length === 0) {
+    return rows.map((row) => ({
+      id: row.id,
+      name: row.title_en || row.title_ja || row.id,
+      slug: row.id,
+      category: row.category || '',
+      content_en: null,
+      content_ja: null,
+    }));
+  }
+
+  // Batch-fetch R2 content for all rows
+  const contents = await Promise.all(
+    rows.map(async (row) => {
+      let contentEn: string | null = null;
+      let contentJa: string | null = null;
+
+      if (row.r2_key_en) {
+        try {
+          const obj = await r2.get(row.r2_key_en);
+          if (obj) {
+            const parsed = parseFrontmatter(await obj.text());
+            contentEn = parsed.body;
+          }
+        } catch (err) {
+          console.warn(`[Fragment] Failed to load EN from R2: ${row.r2_key_en}`, err);
+        }
+      }
+
+      if (row.r2_key_ja) {
+        try {
+          const obj = await r2.get(row.r2_key_ja);
+          if (obj) {
+            const parsed = parseFrontmatter(await obj.text());
+            contentJa = parsed.body;
+          }
+        } catch (err) {
+          console.warn(`[Fragment] Failed to load JA from R2: ${row.r2_key_ja}`, err);
+        }
+      }
+
+      return {
+        id: row.id,
+        name: row.title_en || row.title_ja || row.id,
+        slug: row.id,
+        category: row.category || '',
+        content_en: contentEn,
+        content_ja: contentJa,
+      };
+    })
+  );
+
+  return contents;
+}
+
+/**
+ * Load ALL fragments from fragment_index + R2 (for "Add Fragment" picker).
+ * InfoSec: Parameterized queries (OWASP A03)
+ */
+async function loadAllFragmentContents(
+  db: D1Database,
+  r2: R2Bucket | undefined,
+  whereClause?: string
+): Promise<FragmentContent[]> {
+  const query = whereClause
+    ? `SELECT id, category, title_en, title_ja, r2_key_en, r2_key_ja FROM fragment_index WHERE ${whereClause} ORDER BY category, title_en`
+    : `SELECT id, category, title_en, title_ja, r2_key_en, r2_key_ja FROM fragment_index ORDER BY category, title_en`;
+
+  const result = await db.prepare(query).all<FragmentIndexRow>();
+  const rows = result.results ?? [];
+
+  if (!r2 || rows.length === 0) {
+    return rows.map((row) => ({
+      id: row.id,
+      name: row.title_en || row.title_ja || row.id,
+      slug: row.id,
+      category: row.category || '',
+      content_en: null,
+      content_ja: null,
+    }));
+  }
+
+  const contents = await Promise.all(
+    rows.map(async (row) => {
+      let contentEn: string | null = null;
+      let contentJa: string | null = null;
+
+      if (row.r2_key_en) {
+        try {
+          const obj = await r2.get(row.r2_key_en);
+          if (obj) {
+            const parsed = parseFrontmatter(await obj.text());
+            contentEn = parsed.body;
+          }
+        } catch (err) {
+          console.warn(`[Fragment] Failed to load EN from R2: ${row.r2_key_en}`, err);
+        }
+      }
+
+      if (row.r2_key_ja) {
+        try {
+          const obj = await r2.get(row.r2_key_ja);
+          if (obj) {
+            const parsed = parseFrontmatter(await obj.text());
+            contentJa = parsed.body;
+          }
+        } catch (err) {
+          console.warn(`[Fragment] Failed to load JA from R2: ${row.r2_key_ja}`, err);
+        }
+      }
+
+      return {
+        id: row.id,
+        name: row.title_en || row.title_ja || row.id,
+        slug: row.id,
+        category: row.category || '',
+        content_en: contentEn,
+        content_ja: contentJa,
+      };
+    })
+  );
+
+  return contents;
+}
+
 export const load: PageServerLoad = async ({ params, platform }) => {
   if (!platform?.env?.DB) {
     throw error(500, 'Database not available');
@@ -883,46 +1042,15 @@ export const load: PageServerLoad = async ({ params, platform }) => {
       fragments = [];
     }
 
-    // Load fragment content for enabled fragments
+    // Load fragment content for enabled fragments (from fragment_index + R2)
     const enabledFragmentIds = fragments.filter((f) => f.enabled).map((f) => f.id);
-
-    let fragmentContents: FragmentContent[] = [];
-    if (enabledFragmentIds.length > 0) {
-      const placeholders = enabledFragmentIds.map(() => '?').join(',');
-      const fragmentResult = await db
-        .prepare(
-          `SELECT id, name, slug, category, content_en, content_ja
-           FROM fragments
-           WHERE id IN (${placeholders})`
-        )
-        .bind(...enabledFragmentIds)
-        .all<FragmentContent>();
-
-      fragmentContents = fragmentResult.results ?? [];
-    }
+    const fragmentContents = await loadFragmentContents(db, r2, enabledFragmentIds);
 
     // Load ALL available fragments for the "Add Fragment" feature
-    const allFragmentsResult = await db
-      .prepare(
-        `SELECT id, name, slug, category, content_en, content_ja
-         FROM fragments
-         ORDER BY category, name`
-      )
-      .all<FragmentContent>();
-
-    const availableFragments = allFragmentsResult.results ?? [];
+    const availableFragments = await loadAllFragmentContents(db, r2);
 
     // Load cover letter boilerplate templates
-    const boilerplateResult = await db
-      .prepare(
-        `SELECT id, name, slug, category, content_en, content_ja
-         FROM fragments
-         WHERE category = 'cover-letter'
-         ORDER BY name`
-      )
-      .all<FragmentContent>();
-
-    const boilerplates = boilerplateResult.results ?? [];
+    const boilerplates = await loadAllFragmentContents(db, r2, "category = 'cover-letter'");
 
     const saveForm = await superValidate(
       {
@@ -1103,6 +1231,7 @@ export const actions: Actions = {
     }
 
     const db = platform.env.DB;
+    const r2 = platform.env.R2;
     const pdfService = platform.env.PDF_SERVICE;
 
     if (!pdfService) {
@@ -1166,8 +1295,7 @@ export const actions: Actions = {
       const isManifestBased = Boolean(proposal.r2_manifest_key);
       let fragmentContents: FragmentContent[] = [];
 
-      if (isManifestBased && platform.env.R2) {
-        const r2 = platform.env.R2;
+      if (isManifestBased && r2) {
         const manifestObj = await r2.get(proposal.r2_manifest_key!);
         if (manifestObj) {
           const manifestYaml = await manifestObj.text();
@@ -1232,23 +1360,12 @@ export const actions: Actions = {
       }
 
       // Now fetch fragment contents with the correct IDs (legacy path only)
-      // InfoSec: Parameterized queries (OWASP A03)
+      // InfoSec: Parameterized queries via loadFragmentContents (OWASP A03)
       const enabledFragmentIds = enabledFragments.map((f) => f.id);
 
       if (!isManifestBased && enabledFragmentIds.length > 0) {
         fragmentContents = await withRetry(
-          async () => {
-            const placeholders = enabledFragmentIds.map(() => '?').join(',');
-            const result = await db
-              .prepare(
-                `SELECT id, name, slug, category, content_en, content_ja
-                 FROM fragments
-                 WHERE id IN (${placeholders})`
-              )
-              .bind(...enabledFragmentIds)
-              .all<FragmentContent>();
-            return result.results ?? [];
-          },
+          async () => loadFragmentContents(db, r2, enabledFragmentIds),
           2,
           'Load fragments'
         );
@@ -1283,29 +1400,19 @@ export const actions: Actions = {
           referencedFragmentIds.add(fragmentRefMatch[1]!);
         }
 
-        // InfoSec: Parameterized query for D1 fragment fetch (OWASP A03)
+        // InfoSec: Parameterized query via loadFragmentContents (OWASP A03)
         if (referencedFragmentIds.size > 0) {
           const existingIds = new Set(fragmentContents.map((f) => f.id));
           const missingIds = Array.from(referencedFragmentIds).filter((id) => !existingIds.has(id));
           if (missingIds.length > 0) {
-            const placeholders = missingIds.map(() => '?').join(',');
-            const additionalFragments = await db
-              .prepare(
-                `SELECT id, name, slug, category, content_en, content_ja
-                 FROM fragments
-                 WHERE id IN (${placeholders})`
-              )
-              .bind(...missingIds)
-              .all<FragmentContent>();
-            if (additionalFragments.results) {
-              fragmentContents.push(...additionalFragments.results);
-              for (const f of additionalFragments.results) {
-                contentMap.set(f.id, f);
-              }
-              console.log(
-                `PDF: Loaded ${additionalFragments.results.length} additional fragments from references`
-              );
+            const additionalFragments = await loadFragmentContents(db, r2, missingIds);
+            fragmentContents.push(...additionalFragments);
+            for (const f of additionalFragments) {
+              contentMap.set(f.id, f);
             }
+            console.log(
+              `PDF: Loaded ${additionalFragments.length} additional fragments from references`
+            );
           }
         }
 
