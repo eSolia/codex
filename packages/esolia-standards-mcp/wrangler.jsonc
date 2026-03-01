@@ -16,12 +16,12 @@
     }
   ],
 
-  // Durable Objects for MCP agent state
+  // Durable Objects for MCP agent state (SQLite-backed, required by agents SDK)
   "durable_objects": {
     "bindings": [
       {
         "name": "MCP_OBJECT",
-        "class_name": "EsoliaStandardsMCP"
+        "class_name": "EsoliaStandardsMCPv2"
       }
     ]
   },
@@ -30,6 +30,10 @@
     {
       "tag": "v1",
       "new_classes": ["EsoliaStandardsMCP"]
+    },
+    {
+      "tag": "v2",
+      "new_sqlite_classes": ["EsoliaStandardsMCPv2"]
     }
   ],
 

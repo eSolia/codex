@@ -189,7 +189,7 @@ async function searchStandards(
 
 // ─── MCP Server (Durable Object) ────────────────────────────────────────────
 
-export class EsoliaStandardsMCP extends McpAgent<Env> {
+export class EsoliaStandardsMCPv2 extends McpAgent<Env> {
   server = new McpServer({
     name: "esolia-standards",
     version: "1.0.0",
@@ -322,6 +322,17 @@ export class EsoliaStandardsMCP extends McpAgent<Env> {
   }
 }
 
+// ─── Legacy DO class (kept for migration; no longer used) ────────────────────
+
+// Cloudflare requires the old non-SQLite class to remain exported until a
+// delete-class migration removes it. This stub satisfies that requirement.
+export class EsoliaStandardsMCP extends McpAgent<Env> {
+  server = new McpServer({ name: "esolia-standards-legacy", version: "0.0.0" });
+  async init() {
+    /* no-op — superseded by EsoliaStandardsMCPv2 */
+  }
+}
+
 // ─── Default export (Cloudflare Worker fetch handler) ────────────────────────
 
 export default {
@@ -377,9 +388,9 @@ export default {
       );
     }
 
-    // MCP handling via Durable Object
+    // MCP handling via Durable Object (streamable HTTP transport)
     return (
-      EsoliaStandardsMCP as unknown as {
+      EsoliaStandardsMCPv2 as unknown as {
         serve: (path: string) => {
           fetch: (
             req: Request,
