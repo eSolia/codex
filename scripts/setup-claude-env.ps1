@@ -119,7 +119,7 @@ if (Test-Path $McpTemplate) {
         Write-Host "4. SKIP: .mcp.json already exists (not overwriting)" -ForegroundColor Yellow
     } else {
         Copy-Item $McpTemplate $McpTarget
-        Write-Host "4. Copied .mcp.json template (edit to add your Worker URL and secret)"
+        Write-Host "4. Copied .mcp.json template"
     }
 } else {
     Write-Host "4. SKIP: No mcp.json.example template found" -ForegroundColor Yellow
@@ -132,12 +132,11 @@ Write-Host "=== Setup Complete ===" -ForegroundColor Green
 Write-Host ""
 Write-Host "Next steps:"
 Write-Host ""
-Write-Host "  1. Edit .mcp.json to set your Worker URL and shared secret"
+Write-Host "  1. Register the MCP server (user-scoped, works from any repo):"
+Write-Host "     claude mcp add esolia-standards --transport http -s user ``"
+Write-Host "       --url https://esolia-standards-mcp.esolia.workers.dev/mcp"
 Write-Host ""
-Write-Host "  2. Or add the MCP server to your user-scoped config:"
-Write-Host "     claude mcp add esolia-standards --transport sse ``"
-Write-Host "       --url https://esolia-standards-mcp.YOUR_SUBDOMAIN.workers.dev/sse ``"
-Write-Host "       --header 'Authorization: Bearer YOUR_SECRET'"
+Write-Host "  2. Or copy .mcp.json to your project root for project-scoped config"
 Write-Host ""
 Write-Host "  3. Add .claude\rules\ and .claude\commands\ to .gitignore if"
 Write-Host "     symlinks shouldn't be committed (they point to your local codex)"

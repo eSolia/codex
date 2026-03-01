@@ -1,10 +1,10 @@
 # Backpressure Review
 
-Deep review of this project against the quality enforcement strategy. This command handles the judgment-based checks that deterministic tools cannot cover.
+Deep review of this project against the quality enforcement strategy in `docs/shared/guides/SVELTEKIT_BACKPRESSURE.md`. This command handles the judgment-based checks that the deterministic audit script (`audit-backpressure.sh`) cannot cover.
 
 ## Instructions
 
-First, fetch the `sveltekit-backpressure` standard from the esolia-standards MCP server (or read `docs/shared/guides/SVELTEKIT_BACKPRESSURE.md` if available locally).
+Read `docs/shared/guides/SVELTEKIT_BACKPRESSURE.md` fully before starting.
 
 Perform the following review, then output a structured report.
 
@@ -35,38 +35,53 @@ Read this project's `CLAUDE.md` and identify every "always" or "never" statement
 | Statement | Can be a type? | Can be a lint rule? | Can be a test? | Should stay in CLAUDE.md? |
 | --------- | -------------- | ------------------- | -------------- | ------------------------- |
 
-Statements that can be mechanically enforced should migrate out of CLAUDE.md.
+Statements that can be mechanically enforced should migrate out of CLAUDE.md. Only domain knowledge, architectural intent, and context should remain.
 
 ### 4. Lint rule coverage
 
-Check the linting configuration against the `linting-strategy` standard:
+Check the linting configuration against `docs/shared/guides/LINTING_STRATEGY.md`:
 
-- Is oxlint installed with `.oxlintrc.json`?
-- Is `eslint-plugin-svelte` configured for Svelte 5?
-- Is `eslint-plugin-oxlint` placed last in flat config?
-- Are custom backpressure rules implemented?
-- Does `package.json` chain oxlint before eslint?
+**Oxlint layer (fast pass):**
 
-Rate: strong / adequate / weak.
+- Is `oxlint` installed as a dev dependency?
+- Is there an `.oxlintrc.json` with `correctness: "error"`, `suspicious: "warn"`, `perf: "warn"` enabled?
+- Are the appropriate plugins enabled (`typescript`, `import`, `unicorn`, `promise`)?
+- Are Svelte-incompatible rules disabled in oxlint (e.g., `no-unused-vars` off, since oxlint can't see template usage)?
+
+**ESLint layer (Svelte + custom rules):**
+
+- Is `eslint-plugin-svelte` installed and configured with Svelte 5 rules?
+- Is `eslint-plugin-oxlint` installed and placed **last** in the flat config to disable overlapping rules?
+- Are any custom backpressure rules implemented (`no-raw-html`, `no-schema-parse`, `no-binding-leak`, `no-silent-catch`)?
+- Is the `esolia` plugin registered with the custom rules?
+
+**Script wiring:**
+
+- Does `package.json` chain oxlint before eslint? (`"lint": "oxlint --config .oxlintrc.json && eslint ."`)
+- Does a `verify` script exist that chains `lint` → `check` → `test:unit`?
+
+Rate: strong / adequate / weak. List what's missing vs. the LINTING_STRATEGY.md reference config.
 
 ### 5. Test coverage assessment
 
-- Are there unit tests for utility functions?
+Look at existing test files:
+
+- Are there unit tests for utility functions (especially sanitize, validation)?
 - Are there contract tests for D1/R2/KV behaviors?
 - Is there a `verify` script that chains all checks?
-- What's the most impactful missing test?
+- What's the most impactful test that's missing?
 
 ### 6. Tenant isolation
 
-For multi-tenant repos:
+For multi-tenant repos (those with `org_id` or `client_id` patterns):
 
-- Are queries scoped via a helper module?
-- Could an AI-generated load function skip the tenant filter?
-- Would the type system catch it?
+- Are queries scoped via a helper module, or is `org_id` added ad-hoc in each load function?
+- Could an AI-generated load function accidentally skip the tenant filter?
+- Would the type system catch it if it did?
 
 ## Output format
 
-Write to `docs/backpressure-review.md`:
+Write the report to `docs/backpressure-review.md` with this structure:
 
 ```markdown
 # Backpressure Review — [project name]
@@ -95,3 +110,5 @@ Write to `docs/backpressure-review.md`:
 
 [One section per area above]
 ```
+
+After writing the report, summarize the top 3 actions for the developer.

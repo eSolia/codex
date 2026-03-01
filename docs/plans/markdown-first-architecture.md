@@ -12,7 +12,7 @@
 | Phase 3: Fragment Editing | ✅ Complete | Fragment list/edit/new routes, R2 load/save, AI translate, version auto-bump |
 | Phase 4: Assembled Document Builder | ✅ Complete | Multi-editor, RBAC guards, section translate, type filter. #12 for D1 user lookup |
 | Phase 5: PDF via Typst | ✅ Complete | Cloudflare Container with pandoc + typst, bilingual scoped TOCs |
-| Phase 6: Centralized Standards | ✅ Complete | MCP Worker deployed, 27 standards in R2, D1 migration 0027, CMS routes, GitHub Action |
+| Phase 6: Centralized Standards | ✅ Complete | MCP Worker deployed, 27 standards in R2, D1 migration 0027, CMS routes, GitHub Action, config synced, bootstrap scripts fixed, rsync deprecated |
 | Phase 7: Content Quality & Import | ⏳ Planned | Markdown import, QC guides, in-editor guidance |
 | Phase 8: Codex Sync | ⏳ Planned | Git ↔ R2 content synchronization worker |
 | Phase 9: Standing Documents | ⏳ Planned | Single-file docs (rate cards, capability statements) |
@@ -482,7 +482,7 @@ packages/esolia-standards-mcp/
 
 Reads all `content/standards/**/*.md`, uploads to R2 at `standards/{slug}.md` via wrangler CLI. Keeps frontmatter intact so the MCP Worker can parse it at read time.
 
-#### Task 4: Create `config/claude/` for distributable rules & commands
+#### Task 4: Create `config/claude/` for distributable rules & commands ✅
 
 ```
 config/claude/
@@ -493,10 +493,12 @@ config/claude/
 │   ├── backpressure-review.md
 │   ├── seo-setup.md
 │   └── update-diagram.md
-└── mcp.json.example          # .mcp.json template for repos
+└── mcp.json.example          # .mcp.json template for repos (type: http, /mcp endpoint)
 ```
 
-#### Task 5: Cross-platform bootstrap scripts
+Commands synced from `.claude/commands/` (authoritative). `mcp.json.example` updated to `type: http` transport with correct Worker URL, no auth headers.
+
+#### Task 5: Cross-platform bootstrap scripts ✅
 
 - `scripts/setup-claude-env.sh` (macOS/Linux) — creates symlinks from `config/claude/` into target repo's `.claude/`, copies `.mcp.json` template
 - `scripts/setup-claude-env.ps1` (Windows) — same, using PowerShell symlinks (requires Developer Mode or admin)
@@ -505,7 +507,7 @@ Both scripts:
 1. Create `.claude/{rules,commands}` dirs in target repo
 2. Symlink rules and commands from codex
 3. Copy `.mcp.json` template if not present
-4. Print instructions for `claude mcp add` (user-scoped)
+4. Print instructions for `claude mcp add --transport http -s user` (user-scoped, correct URL)
 
 #### Task 6: Hanawa CMS standards collection (separate PR)
 
@@ -518,18 +520,19 @@ Both scripts:
 
 On push to `main` when `content/standards/**` changes → run `seed-standards.ts --remote` to upload to R2.
 
-#### Task 8: Retire rsync distribution
+#### Task 8: Retire rsync distribution ✅ (deprecation notice added)
 
-After all repos switch to MCP:
-1. Remove `docs/shared/` copies from consuming repos
-2. Update each repo's `CLAUDE.md` Required Reading
-3. Archive `nexus/scripts/sync-shared-docs.sh`
+Deprecation path started:
+1. Created `docs/shared/DEPRECATED.md` — notes MCP is authoritative, local copies are reference only
+2. Updated codex `CLAUDE.md` Required Reading to point to MCP first, local fallback second
+3. Consuming repos still need individual updates (tracked in `docs/shared/DEPRECATED.md` checklist)
+4. `nexus/scripts/sync-shared-docs.sh` can be archived once all repos switch
 
 ### Implementation order
 
-1. **First PR**: Tasks 1-5 (content migration, MCP Worker, seeder, bootstrap, config/claude)
-2. **Second PR**: Tasks 6-7 (Hanawa CMS standards routes, GitHub Action)
-3. **Third PR**: Task 8 (retire rsync, update consuming repos)
+1. **First PR**: Tasks 1-5 (content migration, MCP Worker, seeder, bootstrap, config/claude) ✅
+2. **Second PR**: Tasks 6-7 (Hanawa CMS standards routes, GitHub Action) ✅
+3. **Third PR**: Task 8 (retire rsync, update consuming repos) ✅ deprecation notice added; full retirement pending per-repo updates
 
 ### Files to create
 

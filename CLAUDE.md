@@ -332,10 +332,13 @@ flowchart TB
 
 ## Required Reading
 
-Before working on SvelteKit code in this project, read both guides:
+Standards are now served via the **eSolia Standards MCP server** (`/standards:*` commands).
+Local copies in `docs/shared/` are kept as reference only — see `docs/shared/DEPRECATED.md`.
 
-1. `docs/shared/guides/SVELTEKIT_GUIDE.md` — Svelte 5 syntax, SvelteKit patterns, security
-2. `docs/shared/guides/SVELTEKIT_BACKPRESSURE.md` — Quality enforcement, verification strategy
+Before working on SvelteKit code in this project:
+
+1. **MCP (authoritative):** Use `/standards:search sveltekit` or `get_standard('sveltekit-guide')` / `get_standard('sveltekit-backpressure')`
+2. **Local fallback:** `docs/shared/guides/SVELTEKIT_GUIDE.md` and `docs/shared/guides/SVELTEKIT_BACKPRESSURE.md`
 
 After generating code, run the preflight checks (`npm run format && npm run lint && npm run check`) before presenting results.
 
