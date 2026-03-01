@@ -1,0 +1,34 @@
+%%{init: {'flowchart': {'curve': 'basis'}}}%%
+flowchart TB
+    subgraph local["Your Machine"]
+        direction TB
+        A1["repo-alpha/<br/>Claude Code"] 
+        A2["repo-beta/<br/>Claude Code"]
+        A3["repo-gamma/<br/>Claude Code"]
+    end
+
+    subgraph cf["Cloudflare Edge"]
+        direction TB
+        W["esolia-standards-mcp<br/>Worker + Durable Object"]
+        KV["KV Store<br/>standards:backpressure<br/>standards:error-handling<br/>standards:article-editing<br/>..."]
+    end
+
+    subgraph gh["GitHub (source of truth)"]
+        direction TB
+        R["standards-repo/<br/>standards/*.md"]
+        GA["GitHub Action<br/>seed on push"]
+    end
+
+    A1 -- "MCP over HTTP<br/>get_standard('backpressure')" --> W
+    A2 -- "MCP over HTTP<br/>search_standards('logging')" --> W
+    A3 -- "MCP over HTTP<br/>list_standards()" --> W
+    W --> KV
+    R --> GA
+    GA -- "wrangler kv put" --> KV
+
+    style local fill:#1a1a2e,stroke:#e94560,color:#eee
+    style cf fill:#0f3460,stroke:#e94560,color:#eee
+    style gh fill:#16213e,stroke:#e94560,color:#eee
+    style W fill:#533483,stroke:#e94560,color:#eee
+    style KV fill:#2b2d42,stroke:#8d99ae,color:#eee
+    style GA fill:#2b2d42,stroke:#8d99ae,color:#eee
