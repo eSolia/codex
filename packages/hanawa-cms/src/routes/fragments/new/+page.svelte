@@ -1,6 +1,8 @@
 <script lang="ts">
   import { enhance } from '$app/forms';
   import type { ActionData } from './$types';
+  import ImportDropzone from '$lib/components/editor/ImportDropzone.svelte';
+  import type { ImportResult } from '$lib/import-markdown';
 
   let { form }: { form: ActionData } = $props();
 
@@ -12,6 +14,32 @@
   let tagsInput = $state('');
   let isSubmitting = $state(false);
   let idManuallySet = $state(false);
+  let importedContentEn = $state('');
+  let importedContentJa = $state('');
+  let importedFilename = $state('');
+
+  function handleImport(result: ImportResult) {
+    if (result.language === 'ja') {
+      titleJa = result.title;
+    } else {
+      titleEn = result.title;
+    }
+    if (result.id) {
+      id = result.id;
+      idManuallySet = true;
+    }
+    if (result.category) category = result.category;
+    if (result.type) type = result.type;
+    if (result.tags.length > 0) tagsInput = result.tags.join(', ');
+
+    // Store imported content for the server action
+    if (result.language === 'ja') {
+      importedContentJa = result.body;
+    } else {
+      importedContentEn = result.body;
+    }
+    importedFilename = result.filename;
+  }
 
   // Auto-generate ID from English title
   let autoId = $derived(
@@ -45,6 +73,32 @@
     <h1 class="text-2xl font-bold text-esolia-navy">Create New Fragment</h1>
     <p class="mt-1 text-gray-600">Reusable content block for proposals and documents</p>
   </div>
+
+  <!-- Import Dropzone -->
+  <ImportDropzone onimport={handleImport} />
+
+  {#if importedFilename}
+    <div
+      class="bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded-lg flex items-center justify-between"
+    >
+      <span
+        >Imported from <code class="text-xs bg-blue-100 px-1.5 py-0.5 rounded"
+          >{importedFilename}</code
+        > — review fields below and save.</span
+      >
+      <button
+        type="button"
+        class="text-blue-600 hover:text-blue-800 text-sm underline"
+        onclick={() => {
+          importedFilename = '';
+          importedContentEn = '';
+          importedContentJa = '';
+        }}
+      >
+        Clear
+      </button>
+    </div>
+  {/if}
 
   {#if form?.form?.message}
     <div class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">
@@ -188,6 +242,10 @@
           placeholder="e.g., m365, security, compliance"
         />
       </div>
+
+      <!-- Hidden fields for imported content -->
+      <input type="hidden" name="imported_content_en" value={importedContentEn} />
+      <input type="hidden" name="imported_content_ja" value={importedContentJa} />
     </div>
 
     <!-- Actions -->

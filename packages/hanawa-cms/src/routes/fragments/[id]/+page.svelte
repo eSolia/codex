@@ -6,6 +6,8 @@
   import type { PageData, ActionData } from './$types';
   import { enhance } from '$app/forms';
   import HanawaEditor from '$lib/components/editor/HanawaEditor.svelte';
+  import WritingTips from '$lib/components/editor/WritingTips.svelte';
+  import QCResultPanel from '$lib/components/editor/QCResultPanel.svelte';
   import { browser } from '$app/environment';
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
@@ -36,6 +38,19 @@
   let newCategory = $state('');
   let isSaving = $state(false);
   let metadataCollapsed = $state(false);
+  let isRunningQC = $state(false);
+
+  // QC state — initialized from data in $effect below
+  interface QCIssueUI {
+    severity: 'error' | 'warning' | 'info';
+    rule: string;
+    message: string;
+    suggestion?: string;
+    location?: string;
+  }
+  let qcScore = $state<number | null>(null);
+  let qcIssues = $state<QCIssueUI[]>([]);
+  let qcCheckedAt = $state<string | null>(null);
 
   /** Translate text via fetch to avoid nested form issues */
   async function aiTranslate(text: string, sourceLocale: 'en' | 'ja', field: 'title' | 'content') {
@@ -104,6 +119,9 @@
     version = bumpVersion(data.fragment.version || '');
     contentEn = data.fragment.content_en || '';
     contentJa = data.fragment.content_ja || '';
+    qcScore = data.fragment.qc_score ?? null;
+    qcIssues = (data.fragment.qc_issues as QCIssueUI[]) || [];
+    qcCheckedAt = data.fragment.last_qc_at || null;
   });
 
   function formatTags(): string {
@@ -112,6 +130,30 @@
       .map((t: string) => t.trim())
       .filter(Boolean);
     return JSON.stringify(tags);
+  }
+
+  // Handle QC result from form action
+  $effect(() => {
+    if (form && 'qcResult' in form) {
+      const r = form.qcResult as { score: number; issues: QCIssueUI[]; checkedAt: string };
+      qcScore = r.score;
+      qcIssues = r.issues;
+      qcCheckedAt = r.checkedAt;
+    }
+  });
+
+  // QC nudge: show if never checked or last check > 7 days ago
+  const showQCNudge = $derived(() => {
+    if (!qcCheckedAt) return true;
+    const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    return new Date(qcCheckedAt).getTime() < weekAgo;
+  });
+
+  function getQCBadgeStyle(s: number): string {
+    if (s >= 90) return 'bg-green-100 text-green-800';
+    if (s >= 70) return 'bg-yellow-100 text-yellow-800';
+    if (s >= 50) return 'bg-orange-100 text-orange-800';
+    return 'bg-red-100 text-red-800';
   }
 
   // Status options
@@ -171,6 +213,16 @@
         >
           {data.fragment.status}
         </span>
+        {#if qcScore !== null}
+          <span
+            class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium {getQCBadgeStyle(
+              qcScore
+            )}"
+            title="QC Score"
+          >
+            QC: {qcScore}
+          </span>
+        {/if}
       </div>
     </div>
     <div class="flex items-center gap-2">
@@ -207,6 +259,12 @@
   {:else if form?.renameForm?.message}
     <div class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">
       Rename error: {form.renameForm.message}
+    </div>
+  {/if}
+
+  {#if form && 'qcError' in form}
+    <div class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg">
+      QC check error: {form.qcError}
     </div>
   {/if}
 
@@ -481,6 +539,84 @@
             {isSaving ? 'Saving...' : 'Save Fragment'}
           </button>
         </div>
+
+        <!-- Run QC Button (uses fetch to avoid nested form) -->
+        <button
+          type="button"
+          disabled={isRunningQC || (!contentEn && !contentJa)}
+          onclick={async () => {
+            isRunningQC = true;
+            try {
+              const formData = new FormData();
+              formData.set('qc_content_en', contentEn);
+              formData.set('qc_content_ja', contentJa);
+              formData.set('qc_user_email', data.fragment.author || '');
+              const response = await fetch('?/qcCheck', { method: 'POST', body: formData });
+              const result = await response.json();
+              const resultData = (result as { data?: string })?.data;
+              const parsed =
+                typeof resultData === 'string'
+                  ? (JSON.parse(resultData) as Record<string, unknown>)
+                  : {};
+              if (parsed?.qcResult) {
+                const r = parsed.qcResult as {
+                  score: number;
+                  issues: QCIssueUI[];
+                  checkedAt: string;
+                };
+                qcScore = r.score;
+                qcIssues = r.issues;
+                qcCheckedAt = r.checkedAt;
+              } else if (parsed?.qcError) {
+                console.error('QC error:', parsed.qcError);
+              }
+            } catch (err) {
+              console.error('QC check request failed:', err);
+            } finally {
+              isRunningQC = false;
+            }
+          }}
+          class="w-full px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm disabled:opacity-50"
+        >
+          {#if isRunningQC}
+            <span class="inline-flex items-center gap-1.5">
+              <svg class="animate-spin h-3.5 w-3.5" fill="none" viewBox="0 0 24 24">
+                <circle
+                  class="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  stroke-width="4"
+                ></circle>
+                <path
+                  class="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+              Running QC...
+            </span>
+          {:else}
+            Run QC Check
+          {/if}
+        </button>
+
+        <!-- QC Nudge -->
+        {#if showQCNudge() && !isRunningQC && (contentEn || contentJa)}
+          <div
+            class="bg-amber-50 border border-amber-200 text-amber-800 px-3 py-2 rounded-lg text-xs"
+          >
+            {#if !qcCheckedAt}
+              Content hasn't been QC-checked yet.
+            {:else}
+              QC check is over 7 days old.
+            {/if}
+          </div>
+        {/if}
+
+        <!-- Writing Tips -->
+        <WritingTips lang={activeTab === 'ja' ? 'ja' : 'en'} />
       </div>
 
       <!-- Right column: Content Editors -->
@@ -633,6 +769,11 @@
       </div>
     </div>
   </form>
+
+  <!-- QC Results Panel -->
+  {#if qcScore !== null}
+    <QCResultPanel score={qcScore} issues={qcIssues} checkedAt={qcCheckedAt} />
+  {/if}
 </div>
 
 <!-- Rename Modal -->

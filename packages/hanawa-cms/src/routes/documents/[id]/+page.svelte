@@ -18,6 +18,7 @@
   import ArrowsOut from 'phosphor-svelte/lib/ArrowsOut';
   import CoverLetterEditor from '$lib/components/editor/CoverLetterEditor.svelte';
   import SectionEditor from '$lib/components/editor/SectionEditor.svelte';
+  import WritingTips from '$lib/components/editor/WritingTips.svelte';
   import FragmentPicker from '$lib/components/FragmentPicker.svelte';
   import { sanitizeHtml } from '$lib/sanitize';
 
@@ -759,6 +760,9 @@
             </div>
           {/if}
         </div>
+
+        <!-- Writing Tips (manifest-based view) -->
+        <WritingTips lang={manifest?.language_mode === 'ja' ? 'ja' : 'en'} />
 
         <!-- Danger Zone -->
         {#if isAdmin}
@@ -1600,6 +1604,9 @@
             </div>
           {/if}
         </div>
+
+        <!-- Writing Tips (legacy view) -->
+        <WritingTips lang={languageMode === 'ja' ? 'ja' : 'en'} />
 
         <!-- Danger Zone -->
         {#if isAdmin}

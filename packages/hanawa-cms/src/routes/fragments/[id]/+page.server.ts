@@ -12,6 +12,7 @@ import { superValidate } from 'sveltekit-superforms';
 import { zod4 } from 'sveltekit-superforms/adapters';
 import { saveFragmentSchema, renameFragmentSchema, deleteFragmentSchema } from '$lib/schemas';
 import { parseFrontmatter, buildFragmentMarkdown } from '$lib/server/frontmatter';
+import { runQCCheck, storeQCResults } from '$lib/server/qc';
 
 interface FragmentIndexRow {
   id: string;
@@ -30,6 +31,9 @@ interface FragmentIndexRow {
   author: string | null;
   created_at: string | null;
   updated_at: string | null;
+  last_qc_at: string | null;
+  qc_score: number | null;
+  qc_issues: string | null;
 }
 
 export const load: PageServerLoad = async ({ platform, params }) => {
@@ -115,6 +119,14 @@ export const load: PageServerLoad = async ({ platform, params }) => {
     const renameForm = await superValidate(zod4(renameFragmentSchema));
     const deleteForm = await superValidate(zod4(deleteFragmentSchema));
 
+    // Parse QC issues from JSON
+    let qcIssues: unknown[] = [];
+    try {
+      qcIssues = meta.qc_issues ? JSON.parse(meta.qc_issues) : [];
+    } catch {
+      qcIssues = [];
+    }
+
     return {
       fragment: {
         ...meta,
@@ -123,6 +135,7 @@ export const load: PageServerLoad = async ({ platform, params }) => {
         content_ja: contentJa,
         frontmatter_en: frontmatterEn,
         frontmatter_ja: frontmatterJa,
+        qc_issues: qcIssues,
       },
       saveForm,
       renameForm,
@@ -515,6 +528,44 @@ export const actions: Actions = {
     } catch (err) {
       console.error('Translation failed:', err);
       return fail(500, { error: 'Translation failed' });
+    }
+  },
+
+  qcCheck: async ({ platform, params, request }) => {
+    if (!platform?.env?.DB || !platform?.env?.AI) {
+      return fail(500, { qcError: 'AI or database not available' });
+    }
+
+    const db = platform.env.DB;
+    const ai = platform.env.AI;
+
+    const formData = await request.formData();
+    const contentEn = formData.get('qc_content_en')?.toString() || '';
+    const contentJa = formData.get('qc_content_ja')?.toString() || '';
+    const userEmail = formData.get('qc_user_email')?.toString() || 'anonymous';
+
+    // Run QC on whichever content is available, preferring EN
+    const content = contentEn || contentJa;
+    if (!content.trim()) {
+      return fail(400, { qcError: 'No content to check' });
+    }
+
+    const language = contentEn ? 'en' : 'ja';
+
+    try {
+      const result = await runQCCheck(ai, db, content, language, userEmail, params.id);
+      await storeQCResults(db, params.id, result);
+
+      return {
+        qcResult: {
+          score: result.score,
+          issues: result.issues,
+          checkedAt: result.checkedAt,
+        },
+      };
+    } catch (err) {
+      console.error('[QC Check] Error:', err);
+      return fail(500, { qcError: err instanceof Error ? err.message : 'QC check failed' });
     }
   },
 

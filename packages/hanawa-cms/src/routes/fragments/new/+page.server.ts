@@ -19,7 +19,7 @@ export const load: PageServerLoad = async () => {
 export const actions: Actions = {
   default: async ({ platform, request }) => {
     if (!platform?.env?.DB || !platform?.env?.R2) {
-      const form = await superValidate(request, zod4(createFragmentSchema));
+      const form = await superValidate(zod4(createFragmentSchema));
       form.message = 'Database or R2 not available';
       return fail(500, { form });
     }
@@ -27,14 +27,21 @@ export const actions: Actions = {
     const db = platform.env.DB;
     const r2 = platform.env.R2;
 
+    // Read formData once, then pass to superValidate and extract imported content
+    const formData = await request.formData();
+
     // InfoSec: Validate form input (OWASP A03)
-    const form = await superValidate(request, zod4(createFragmentSchema));
+    const form = await superValidate(formData, zod4(createFragmentSchema));
 
     if (!form.valid) {
       return fail(400, { form });
     }
 
     const { id, title_en, title_ja, category, type, tags } = form.data;
+
+    // Extract optional imported content from form data
+    const importedContentEn = formData.get('imported_content_en')?.toString() || '';
+    const importedContentJa = formData.get('imported_content_ja')?.toString() || '';
 
     try {
       // Check ID doesn't already exist
@@ -56,9 +63,9 @@ export const actions: Actions = {
 
       const cat = category || 'uncategorized';
       const r2KeyEn = `fragments/${cat}/${id}.en.md`;
-      const r2KeyJa = title_ja ? `fragments/${cat}/${id}.ja.md` : null;
+      const r2KeyJa = `fragments/${cat}/${id}.ja.md`;
 
-      // Build and write EN markdown to R2
+      // Build and write EN markdown to R2 (include imported content if available)
       const mdEn = buildFragmentMarkdown(
         {
           id,
@@ -71,17 +78,18 @@ export const actions: Actions = {
           sensitivity: 'normal',
           created: new Date().toISOString().split('T')[0],
         },
-        '\n'
+        importedContentEn || '\n'
       );
       await r2.put(r2KeyEn, mdEn, { httpMetadata: { contentType: 'text/markdown' } });
 
-      // Build and write JA markdown if title provided
-      if (title_ja && r2KeyJa) {
+      // Build and write JA markdown if title or imported JA content provided
+      const hasJa = title_ja || importedContentJa;
+      if (hasJa && r2KeyJa) {
         const mdJa = buildFragmentMarkdown(
           {
             id,
             language: 'ja',
-            title: title_ja,
+            title: title_ja || title_en,
             category: cat,
             type: type || undefined,
             status: 'draft',
@@ -89,7 +97,7 @@ export const actions: Actions = {
             sensitivity: 'normal',
             created: new Date().toISOString().split('T')[0],
           },
-          '\n'
+          importedContentJa || '\n'
         );
         await r2.put(r2KeyJa, mdJa, { httpMetadata: { contentType: 'text/markdown' } });
       }
@@ -113,9 +121,9 @@ export const actions: Actions = {
           'draft',
           JSON.stringify(tagArray),
           1, // has_en — always created
-          title_ja ? 1 : 0,
+          hasJa ? 1 : 0,
           r2KeyEn,
-          r2KeyJa,
+          hasJa ? r2KeyJa : null,
           'normal',
           null // author set by user later
           // created_at and updated_at use datetime('now')
