@@ -63,6 +63,8 @@ declare global {
         PDF_API_KEY?: string;
         // Service binding to PDF Worker (direct worker-to-worker)
         PDF_SERVICE?: Fetcher;
+        // Service binding to Typst PDF Container (native typesetting)
+        TYPST_PDF_SERVICE?: Fetcher;
         // InfoSec: Anthropic API key for AI-powered translations
         ANTHROPIC_API_KEY?: string;
       };

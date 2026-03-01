@@ -1441,6 +1441,275 @@ export const actions: Actions = {
       // Date string for filename (JST)
       const dateStr = now.toLocaleDateString('en-CA', { timeZone: 'Asia/Tokyo' }).replace(/-/g, '');
 
+      // ═══════════════════════════════════════════════════════════
+      // TYPST PIPELINE — Native typesetting (manifest-based docs)
+      // Produces higher-quality PDFs with proper typography.
+      // Falls through to HTML pipeline when unavailable.
+      // ═══════════════════════════════════════════════════════════
+      const typstService = platform.env.TYPST_PDF_SERVICE;
+      const useTypst = isManifestBased && typstService;
+
+      if (useTypst) {
+        console.log('PDF: Using Typst pipeline (native typesetting)');
+
+        // Build provenance metadata
+        const provenance = {
+          source: 'esolia-codex',
+          document_id: proposal.id,
+          version: '1.0',
+          created: proposal.created_at,
+          modified: new Date().toISOString(),
+          author: 'eSolia Inc.',
+          language: isBilingual ? 'bilingual' : primaryLang,
+          license: 'Proprietary - eSolia Inc.',
+          client_code: proposal.client_code,
+          fragments_used: enabledFragmentIds,
+          renderer: 'typst',
+        };
+
+        // Collect SVG images for Typst pipeline (raw base64, not data URI img tags)
+        const typstImages: Record<string, string> = {};
+        if (platform.env.R2) {
+          // Scan all content for SVG/image paths
+          const allContent = [
+            ...fragmentContents.flatMap((f) => [f.content_en, f.content_ja]),
+            proposal.cover_letter_en,
+            proposal.cover_letter_ja,
+          ]
+            .filter(Boolean)
+            .join('\n');
+
+          // Find markdown image refs and data-svg-path attributes
+          const imgRegex =
+            /(?:!\[[^\]]*\]\(\/api\/diagrams\/([^)]+)\)|data-svg-path=["']([^"']+)["'])/gi;
+          let imgMatch;
+          const diagramPaths = new Map<string, string>(); // filename → r2Key
+
+          while ((imgMatch = imgRegex.exec(allContent)) !== null) {
+            const id = imgMatch[1] ?? imgMatch[2]?.replace('diagrams/', '').replace('.svg', '');
+            if (id) {
+              const filename = id.endsWith('.svg') ? id : `${id}.svg`;
+              const r2Key = `diagrams/${filename}`;
+              diagramPaths.set(filename, r2Key);
+            }
+          }
+
+          // Fetch SVGs from R2 and encode as base64
+          const svgFetches = [...diagramPaths.entries()].map(async ([filename, r2Key]) => {
+            try {
+              const object = await platform.env.R2.get(r2Key);
+              if (object) {
+                const svgContent = await object.text();
+                // Encode as base64 for the container to write as files
+                const encoder = new TextEncoder();
+                const bytes = encoder.encode(svgContent);
+                const CHUNK = 8192;
+                const chunks: string[] = [];
+                for (let i = 0; i < bytes.length; i += CHUNK) {
+                  const chunk = bytes.subarray(i, Math.min(i + CHUNK, bytes.length));
+                  chunks.push(String.fromCharCode(...chunk));
+                }
+                typstImages[filename] = btoa(chunks.join(''));
+                console.log(`PDF(typst): Loaded SVG ${filename}`);
+              }
+            } catch (err) {
+              console.warn(`PDF(typst): Failed to fetch ${r2Key}:`, err);
+            }
+          });
+          await Promise.all(svgFetches);
+        }
+
+        // Build sections for Typst request (markdown, frontmatter stripped)
+        const typstSections = enabledFragments.map((frag) => {
+          const content = contentMap.get(frag.id);
+          if (!content) return { label: frag.id, pageBreakBefore: frag.pageBreakBefore };
+
+          // Strip frontmatter from markdown sections
+          const contentEn = content.content_en
+            ? parseFrontmatter(content.content_en).body
+            : undefined;
+          const contentJa = content.content_ja
+            ? parseFrontmatter(content.content_ja).body
+            : undefined;
+
+          return {
+            label: content.name,
+            contentEn: contentEn || undefined,
+            contentJa: contentJa || undefined,
+            pageBreakBefore: frag.pageBreakBefore,
+          };
+        });
+
+        // Build Typst PDF request
+        // InfoSec: No user HTML reaches the Typst pipeline — markdown only (OWASP A03)
+        const typstRequest = {
+          mode: isBilingual ? 'bilingual' : 'single',
+          title: proposal.title,
+          titleJa: proposal.title_ja ?? undefined,
+          clientName: proposal.client_name ?? undefined,
+          clientNameJa: proposal.client_name_ja ?? undefined,
+          contactName: proposal.contact_name ?? undefined,
+          contactNameJa: proposal.contact_name_ja ?? undefined,
+          dateEn: dateFormattedEn,
+          dateJa: dateFormattedJa,
+          firstLanguage: firstLang as 'en' | 'ja',
+          primaryLanguage: primaryLang as 'en' | 'ja',
+          sections: typstSections,
+          coverLetterEn: proposal.cover_letter_en ?? undefined,
+          coverLetterJa: proposal.cover_letter_ja ?? undefined,
+          images: Object.keys(typstImages).length > 0 ? typstImages : undefined,
+          watermark: undefined, // Watermark config can be added here
+        };
+
+        // Call Typst PDF service via service binding
+        // InfoSec: Service binding is internal worker-to-worker, trusted (OWASP A05)
+        const typstResponse = await typstService.fetch('https://typst-pdf/pdf', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(typstRequest),
+        });
+
+        if (!typstResponse.ok) {
+          const errorText = await typstResponse.text();
+          console.error('Typst PDF generation failed:', errorText);
+          // Fall through to HTML pipeline on Typst failure
+          console.warn('PDF: Falling back to HTML pipeline');
+        } else {
+          // Decode response and store PDFs in R2
+          const typstResult = (await typstResponse.json()) as Record<string, unknown>;
+
+          function base64ToArrayBuffer(base64: string): ArrayBuffer {
+            const binary = atob(base64);
+            const bytes = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) {
+              bytes[i] = binary.charCodeAt(i);
+            }
+            return bytes.buffer;
+          }
+
+          if (isBilingual) {
+            const result = typstResult as {
+              combined: string;
+              english: string;
+              japanese: string;
+              pageInfo: {
+                coverPages: number;
+                englishPages: number;
+                japanesePages: number;
+                totalPages: number;
+              };
+            };
+
+            const combinedPdf = base64ToArrayBuffer(result.combined);
+            const englishPdf = base64ToArrayBuffer(result.english);
+            const japanesePdf = base64ToArrayBuffer(result.japanese);
+
+            let r2KeyCombined: string | null = null;
+            let r2KeyEn: string | null = null;
+            let r2KeyJa: string | null = null;
+
+            if (platform.env.R2) {
+              const clientFolder = proposal.client_code || 'general';
+              const basePath = `proposals/${clientFolder}/${proposal.id}`;
+              r2KeyCombined = `${basePath}.pdf`;
+              r2KeyEn = `${basePath}_en.pdf`;
+              r2KeyJa = `${basePath}_ja.pdf`;
+
+              const metadata = {
+                proposalId: proposal.id,
+                clientCode: proposal.client_code,
+                generatedAt: new Date().toISOString(),
+                renderer: 'typst',
+              };
+
+              await Promise.all([
+                platform.env.R2.put(r2KeyCombined, combinedPdf, {
+                  httpMetadata: { contentType: 'application/pdf' },
+                  customMetadata: { ...metadata, pdfType: 'combined' },
+                }),
+                platform.env.R2.put(r2KeyEn, englishPdf, {
+                  httpMetadata: { contentType: 'application/pdf' },
+                  customMetadata: { ...metadata, pdfType: 'english' },
+                }),
+                platform.env.R2.put(r2KeyJa, japanesePdf, {
+                  httpMetadata: { contentType: 'application/pdf' },
+                  customMetadata: { ...metadata, pdfType: 'japanese' },
+                }),
+              ]);
+            }
+
+            await db
+              .prepare(
+                `UPDATE proposals SET
+                  pdf_generated_at = datetime('now'),
+                  pdf_r2_key = ?,
+                  pdf_r2_key_en = ?,
+                  pdf_r2_key_ja = ?,
+                  provenance = ?,
+                  updated_at = datetime('now')
+                 WHERE id = ?`
+              )
+              .bind(r2KeyCombined, r2KeyEn, r2KeyJa, JSON.stringify(provenance), params.id)
+              .run();
+
+            return {
+              success: true,
+              message: 'Bilingual PDFs generated via Typst',
+              pdfKey: r2KeyCombined,
+              pdfKeyEn: r2KeyEn,
+              pdfKeyJa: r2KeyJa,
+              pageInfo: result.pageInfo,
+            };
+          } else {
+            // Single-language Typst result
+            const result = typstResult as {
+              combined: string;
+              pageInfo: { totalPages: number };
+            };
+
+            const pdfData = base64ToArrayBuffer(result.combined);
+
+            let r2Key: string | null = null;
+            if (platform.env.R2) {
+              const clientFolder = proposal.client_code || 'general';
+              r2Key = `proposals/${clientFolder}/${proposal.id}.pdf`;
+              await platform.env.R2.put(r2Key, pdfData, {
+                httpMetadata: { contentType: 'application/pdf' },
+                customMetadata: {
+                  proposalId: proposal.id,
+                  clientCode: proposal.client_code,
+                  generatedAt: new Date().toISOString(),
+                  renderer: 'typst',
+                },
+              });
+            }
+
+            await db
+              .prepare(
+                `UPDATE proposals SET
+                  pdf_generated_at = datetime('now'),
+                  pdf_r2_key = ?,
+                  provenance = ?,
+                  updated_at = datetime('now')
+                 WHERE id = ?`
+              )
+              .bind(r2Key, JSON.stringify(provenance), params.id)
+              .run();
+
+            return {
+              success: true,
+              message: 'PDF generated via Typst',
+              pdfKey: r2Key,
+            };
+          }
+        }
+      }
+
+      // ═══════════════════════════════════════════════════════════
+      // HTML PIPELINE — Browser Rendering (legacy + fallback)
+      // Used for non-manifest documents or when Typst service unavailable.
+      // ═══════════════════════════════════════════════════════════
+
       // Helper: Build content section for a language
       // Note: proposal is guaranteed non-null here (checked above)
       const proposalData = proposal;

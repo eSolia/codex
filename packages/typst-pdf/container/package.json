@@ -1,0 +1,22 @@
+{
+  "name": "@esolia/typst-pdf-container",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Hono HTTP server inside Docker — pandoc + typst PDF pipeline",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/server.ts",
+    "start": "node dist/server.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.13.8",
+    "hono": "^4.11.10"
+  },
+  "devDependencies": {
+    "@types/node": "^22.12.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  }
+}
